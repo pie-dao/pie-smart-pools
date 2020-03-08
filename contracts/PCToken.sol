@@ -33,9 +33,9 @@ interface IERC20 {
 }
 
 contract PCToken is IERC20 {
-    string  public NAME     = "Balancer Smart Pool";
-    string  public SYMBOL   = "BSP";
-    uint8   public constant DECIMALS = 18;
+    string public name     = "Balancer Smart Pool";
+    string public symbol   = "BSP";
+    uint8 public constant decimals = 18;
 
     uint internal totalSupplyInternal;
 
