@@ -16,25 +16,27 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
      event LOG_JOIN(
         address indexed caller,
         address indexed tokenIn,
-        uint256         tokenAmountIn
+        uint256 tokenAmountIn
     );
 
     event LOG_EXIT(
         address indexed caller,
         address indexed tokenOut,
-        uint256         tokenAmountOut
+        uint256 tokenAmountOut
     );
 
-    constructor(address _bPool, string memory _name, string memory _symbol) public {
-        init(_bPool, _name, _symbol);
+    constructor(address _bPool, string memory _name, string memory _symbol, uint256 _initialSupply) public {
+        init(_bPool, _name, _symbol, _initialSupply);
     }
 
     // Seperated initializer for easier use with proxies
-    function init(address _bPool, string memory _name, string memory _symbol) public {
+    function init(address _bPool, string memory _name, string memory _symbol, uint256 _initialSupply) public {
         require(address(bPool) == address(0), "PBasicSmartPool.init: already initialised");
         bPool = IBPool(_bPool);
         name = _name;
-        _symbol = _symbol;
+        symbol = _symbol;
+        _mintPoolShare(_initialSupply);
+        _pushPoolShare(msg.sender, _initialSupply);
     }
 
     function joinPool(uint _amount) external override ready {

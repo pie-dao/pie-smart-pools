@@ -42,5 +42,8 @@
   },
   "directories": {
     "test": "test"
+  },
+  "dependencies": {
+    "@pie-dao/mock-contracts": "^0.0.2"
   }
 }
