@@ -1,0 +1,46 @@
+{
+  "name": "@pie-dao/smart-pools",
+  "version": "0.0.1",
+  "description": "Implementations of smart pools for Balancer",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run compile && npx buidler typechain",
+    "compile": "npx buidler compile",
+    "test": "npx buidler test",
+    "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pie-dao/proxied-balancer-factory.git"
+  },
+  "author": "Pie DAO",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/pie-dao/proxied-balancer-factory/issues"
+  },
+  "homepage": "https://github.com/pie-dao/proxied-balancer-factory/readme",
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.1.2",
+    "@nomiclabs/buidler-ethers": "^1.1.2",
+    "@nomiclabs/buidler-etherscan": "^1.1.2",
+    "@nomiclabs/buidler-waffle": "^1.1.2",
+    "@types/chai": "^4.2.8",
+    "@types/mocha": "^7.0.1",
+    "@types/node": "^13.7.0",
+    "buidler-typechain": "0.0.5",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^2.3.2",
+    "ethers": "^4.0.44",
+    "solidity-coverage": "^0.7.1",
+    "ts-generator": "0.0.8",
+    "ts-node": "^8.6.2",
+    "typechain": "^1.0.4",
+    "typechain-target-ethers": "^1.0.3",
+    "typechain-target-truffle": "^1.0.2",
+    "typechain-target-web3-v1": "^1.0.4",
+    "typescript": "^3.7.5"
+  },
+  "directories": {
+    "test": "test"
+  }
+}
