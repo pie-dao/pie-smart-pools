@@ -3,6 +3,7 @@ import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTok
 import { MockToken } from "@pie-dao/mock-contracts/typechain/MockToken";
 import { ethers } from "@nomiclabs/buidler";
 import { Signer, Wallet, utils, constants } from "ethers";
+import { BigNumber } from "ethers/utils";
 import chai from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 
@@ -14,12 +15,12 @@ import { PBasicSmartPool } from "../typechain/PBasicSmartPool";
 
 chai.use(solidity);
 const { expect } = chai;
-const { BigNumber } = utils;
 
 
 const PLACE_HOLDER_ADDRESS = "0x0000000000000000000000000000000000000001";
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
+const INITIAL_SUPPLY = constants.WeiPerEther;
 
 describe("PProxiedBalancerFactory", () => {
     let signers: Signer[];
@@ -39,13 +40,21 @@ describe("PProxiedBalancerFactory", () => {
 
         for(let i = 0; i < 8; i ++) {
             const token: MockToken = (await tokenFactory.deploy(`Mock ${i}`, `M${i}`, 18));
-            await token.mint(account, utils.parseEther("1000000000000"));
+            await token.mint(account, constants.WeiPerEther.mul(1000000));
+            await token.mint(await signers[1].getAddress(), constants.WeiPerEther.mul(1000000));
             await token.approve(pool.address, constants.MaxUint256);
-            pool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther.mul(2));
+            pool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther.mul(1));
             tokens.push(token);
         }
 
-        smartpool = await (new PBasicSmartPoolFactory(signers[0])).deploy(pool.address, NAME, SYMBOL, constants.WeiPerEther);
+        smartpool = await (new PBasicSmartPoolFactory(signers[0])).deploy(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
+        await pool.setController(smartpool.address);
+
+        for(const token of tokens) {
+            await token.approve(smartpool.address, constants.MaxUint256);
+            // Attach alt signer to token and approve pool
+            await MockTokenFactory.connect(token.address, signers[1]).approve(smartpool.address, constants.MaxUint256);
+        }
     });
 
     describe("init", async() => {
@@ -58,35 +67,69 @@ describe("PProxiedBalancerFactory", () => {
             expect(symbol).to.eq(SYMBOL);
         });
         it("Initial supply should be correct", async() => {
-
+            const initialSupply = await smartpool.totalSupply();
+            expect(initialSupply).to.eq(INITIAL_SUPPLY);
         });
         it("Calling init when already initialized should fail", async() => {
-
+            await expect(smartpool.init(PLACE_HOLDER_ADDRESS, NAME, SYMBOL, constants.WeiPerEther)).to.be.reverted;
         });
-        it("Pool should not hold any non balancer pool tokens after init", async() => {
-
+        it("Smart pool should not hold any non balancer pool tokens after init", async() => {
+            const smartPoolBalances = await getTokenBalances(smartpool.address);
+            expectZero(smartPoolBalances);
         });
     });
 
     describe("Joining and Exiting", async() => {
         it("Adding liquidity should work", async() => {
+            const mintAmount = constants.WeiPerEther;
+            await smartpool.joinPool(mintAmount);
 
+            const balance = await smartpool.balanceOf(account);
+            expect(balance).to.eq(mintAmount.add(INITIAL_SUPPLY));
+
+            // TODO Check if token balances are correct
         });
         it("Adding liquidity when a transfer fails should fail", async() => {
-
-        });
-        it("After adding liquidity the pool should not hold any non balancer pool tokens", async() => {
-
+            const mintAmount = constants.WeiPerEther;
+            await tokens[1].approve(smartpool.address, constants.Zero);
+            await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
         });
         it("Removing liquidity should work", async() => {
+            const removeAmount = constants.WeiPerEther.div(2);
 
+            await smartpool.exitPool(removeAmount);
+            const balance = await smartpool.balanceOf(account);
+            expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
+
+            // TODO check all balances
+        })
+        it("Removing all liquidity should fail", async() => {
+            const removeAmount = constants.WeiPerEther;
+            await expect(smartpool.exitPool(removeAmount)).to.be.reverted;
         });
         it("Removing liquidity should fail when removing more than balance", async() => {
+            // First mint some more in another account to not withdraw all total liquidity in the actual test
+            const altSignerSmartPool = PBasicSmartPoolFactory.connect(smartpool.address, signers[1]);
+            await altSignerSmartPool.joinPool(constants.WeiPerEther);
 
-        });
-        it("After removing liquidity the pool should not hold any non balancer pool tokens", async() => {
-
+            await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
         });
     })
+
+    async function getTokenBalances(address: string) {
+        const balances:BigNumber[] = [];
+
+        for(const token of tokens) {
+             balances.push(await token.balanceOf(address));
+        }
+
+        return balances;
+    }
+
+    function expectZero(amounts: BigNumber[]) {
+        for(const amount of amounts) {
+            expect(amount).to.eq(0);
+        }
+    }
 
 });

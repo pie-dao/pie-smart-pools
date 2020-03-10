@@ -22,6 +22,7 @@ interface IBPool {
     function getDenormalizedWeight(address token) external view returns (uint);
     function getTotalDenormalizedWeight() external view returns (uint);
     function getCurrentTokens() external view returns(address[] memory);
+    function setController(address manager) external;
 
     function calcPoolOutGivenSingleIn(
         uint tokenBalanceIn,

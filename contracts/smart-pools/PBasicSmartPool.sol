@@ -9,7 +9,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     IBPool public bPool;
 
     modifier ready() {
-        require(address(bPool) == address(0), "PBasicSmartPool.initialise: not ready");
+        require(address(bPool) != address(0), "PBasicSmartPool.ready: not ready");
         _;
     }
 
@@ -73,7 +73,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
             address t = tokens[i];
             uint bal = bPool.getBalance(t);
             uint tAo = bmul(ratio, bal);
-            emit LOG_EXIT(msg.sender, t, tAo);
+            emit LOG_EXIT(msg.sender, t, tAo);  
             _pushUnderlying(t, msg.sender, tAo);
         }
     }
@@ -87,6 +87,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
 
         bool xfer = IERC20(_token).transferFrom(_from, address(this), _amount);
+        IERC20(_token).approve(address(bPool), _amount);
         require(xfer, "ERR_ERC20_FALSE");
         bPool.rebind(_token, badd(tokenBalance, _amount), tokenWeight);
     }
