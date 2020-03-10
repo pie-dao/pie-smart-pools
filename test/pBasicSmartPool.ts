@@ -12,6 +12,7 @@ import { IBPool } from "../typechain/IBPool";
 import { IBPoolFactory } from "../typechain/IBPoolFactory";
 import { PBasicSmartPoolFactory } from "../typechain/PBasicSmartPoolFactory";
 import { PBasicSmartPool } from "../typechain/PBasicSmartPool";
+import PBasicSmartPoolArtifact from "../artifacts/PBasicSmartPool.json";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -22,7 +23,8 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PProxiedBalancerFactory", () => {
+describe("PBasicSmartPool", function() {
+    this.timeout(30000)
     let signers: Signer[];
     let account: string;
     let tokens: MockToken[];
@@ -47,7 +49,8 @@ describe("PProxiedBalancerFactory", () => {
             tokens.push(token);
         }
 
-        smartpool = await (new PBasicSmartPoolFactory(signers[0])).deploy(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
+        // Deploy this way to get the coverage provider to pick it up
+        smartpool = await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [pool.address, NAME, SYMBOL, INITIAL_SUPPLY], {gasLimit: 8000000}) as PBasicSmartPool
         await pool.setController(smartpool.address);
 
         for(const token of tokens) {
