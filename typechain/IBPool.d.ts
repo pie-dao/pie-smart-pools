@@ -121,6 +121,8 @@ interface IBPoolInterface extends Interface {
     setSwapFee: TypedFunctionDescription<{
       encode([swapFee]: [BigNumberish]): string;
     }>;
+
+    unbind: TypedFunctionDescription<{ encode([token]: [string]): string }>;
   };
 
   events: {};
@@ -209,6 +211,11 @@ export class IBPool extends Contract {
       swapFee: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
+
+    unbind(
+      token: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
   };
 
   bind(
@@ -281,6 +288,11 @@ export class IBPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  unbind(
+    token: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   filters: {};
 
   estimate: {
@@ -345,5 +357,7 @@ export class IBPool extends Contract {
     setController(manager: string): Promise<BigNumber>;
 
     setSwapFee(swapFee: BigNumberish): Promise<BigNumber>;
+
+    unbind(token: string): Promise<BigNumber>;
   };
 }

@@ -19,6 +19,7 @@ interface IBPool {
     function rebind(address token, uint balance, uint denorm) external;
     function setSwapFee(uint swapFee) external;
     function bind(address token, uint balance, uint denorm) external;
+    function unbind(address token) external;
     function getDenormalizedWeight(address token) external view returns (uint);
     function getTotalDenormalizedWeight() external view returns (uint);
     function getCurrentTokens() external view returns(address[] memory);

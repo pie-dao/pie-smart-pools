@@ -343,5 +343,18 @@ const _abi = [
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      }
+    ],
+    name: "unbind",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
   }
 ];
