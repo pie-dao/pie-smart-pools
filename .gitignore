@@ -108,6 +108,5 @@ cache
 artifacts
 .secret
 
-typechain
 .DS_Store
 coverage.json
