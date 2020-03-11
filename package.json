@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run compile && npx buidler typechain",
+    "typechain": "npx buidler typechain",
     "compile": "npx buidler compile",
     "test": "npx buidler test",
     "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage"

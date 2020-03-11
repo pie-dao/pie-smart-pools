@@ -1,7 +1,13 @@
 require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
+import { utils, constants } from "ethers";
+import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
-import { utils } from "ethers";
+import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
+import { deployBalancerFactory } from "./utils";
+import { IBPoolFactory } from "./typechain/IBPoolFactory";
+import { IERC20Factory } from "./typechain/IERC20Factory";
+import { parseUnits } from "ethers/utils";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -11,8 +17,6 @@ usePlugin("solidity-coverage");
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-
-console.log(KOVAN_PRIVATE_KEY);
 
 interface ExtendedBuidlerConfig extends BuidlerConfig {
   [x:string]: any
@@ -57,5 +61,78 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
 
     console.log(`PBasicSmartPool deployed at: ${smartpool.address}`);
 })
+
+task("deploy-mock-token", "deploys a mock token")
+  .addParam("name", "Name of the token")
+  .addParam("symbol", "Symbol of the token")
+  .addParam("decimals", "Amount of decimals", "18")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const factory = await new MockTokenFactory(signers[0]);
+    const token = await factory.deploy(taskArgs.name, taskArgs.symbol, taskArgs.decimals);
+    await token.mint(await signers[0].getAddress(), constants.WeiPerEther.mul(10000000000000));
+    console.log(`Deployed token at: ${token.address}`);
+});
+
+task("deploy-balancer-factory", "deploys a balancer factory")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const factoryAddress = await deployBalancerFactory(signers[0]);
+    console.log(`Deployed balancer factory at: ${factoryAddress}`);
+});
+
+task("deploy-balancer-pool", "deploys a balancer pool from a factory")
+  .addParam("factory", "Address of the balancer pool address")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const factory = await IBFactoryFactory.connect(taskArgs.factory, signers[0]);
+    const tx = await factory.newBPool();
+    const receipt = await tx.wait(2); //wait for 2 confirmations
+    const event = receipt.events.pop();
+    console.log(`Deployed balancer pool at : ${event.address}`);
+});
+
+
+task("balancer-bind-token", "binds a token to a balancer pool")
+  .addParam("pool", "the address of the Balancer pool")
+  .addParam("token", "address of the token to bind")
+  .addParam("balance", "amount of token to bind")
+  .addParam("weight", "denormalised weight (max total weight = 50, min_weight = 1 == 2%")
+  .addParam("decimals", "amount of decimals the token has", "18")
+  .setAction(async (taskArgs, { ethers }) => {
+    // Approve token
+    const signers = await ethers.getSigners();
+    const account = await signers[0].getAddress();
+    const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
+
+    const weight = parseUnits(taskArgs.weight, 18);
+    const balance = utils.parseUnits(taskArgs.balance);
+    const token = await IERC20Factory.connect(taskArgs.token, signers[0]);
+
+    const allowance = await token.allowance(account, pool.address);
+
+    if(allowance.lt(balance)) {
+      await token.approve(pool.address, constants.MaxUint256);
+    }
+
+    const tx = await pool.bind(taskArgs.token, balance, weight);
+    const receipt = await tx.wait(1);
+
+    console.log(`Token bound tx: ${receipt.transactionHash}`);
+});
+
+task("balancer-set-controller")
+  .addParam("pool")
+  .addParam("controller")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
+    
+    const tx = await pool.setController(taskArgs.controller);
+    const receipt = await tx.wait(1);
+
+    console.log(`Controller set tx: ${receipt.transactionHash}`); 
+});
+
 
 export default config;
