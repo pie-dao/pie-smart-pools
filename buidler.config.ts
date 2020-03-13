@@ -50,14 +50,10 @@ const config: ExtendedBuidlerConfig = {
 };
 
 task("deploy-pie-smart-pool", "deploys a pie smart pool")
-  .addParam("pool", "Balancer pool address (should have tokens binded)")
-  .addParam("name", "Name of the token")
-  .addParam("symbol", "Symbol of the token")
-  .addParam("initialSupply", "Initial supply of the token")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
     const factory = new PBasicSmartPoolFactory(signers[0]);
-    const smartpool = await factory.deploy(taskArgs.pool, taskArgs.name, taskArgs.symbol, utils.parseEther(taskArgs.initialSupply));
+    const smartpool = await factory.deploy();
 
     console.log(`PBasicSmartPool deployed at: ${smartpool.address}`);
 });

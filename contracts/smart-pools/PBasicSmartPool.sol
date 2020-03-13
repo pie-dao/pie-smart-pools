@@ -11,7 +11,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     modifier ready() {
         require(address(bPool) != address(0), "PBasicSmartPool.ready: not ready");
         _;
-    }
+    }   
 
      event LOG_JOIN(
         address indexed caller,
@@ -25,8 +25,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         uint256 tokenAmountOut
     );
 
-    constructor(address _bPool, string memory _name, string memory _symbol, uint256 _initialSupply) public {
-        init(_bPool, _name, _symbol, _initialSupply);
+    constructor() public {
+        
     }
 
     // Seperated initializer for easier use with proxies
