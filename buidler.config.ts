@@ -16,6 +16,7 @@ usePlugin("solidity-coverage");
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
+const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 
 interface ExtendedBuidlerConfig extends BuidlerConfig {
@@ -28,6 +29,10 @@ const config: ExtendedBuidlerConfig = {
     version: "0.6.2"
   },
   networks: {
+    mainnet: {
+      url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+      accounts: [MAINNET_PRIVATE_KEY]
+    },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [KOVAN_PRIVATE_KEY]
@@ -38,7 +43,7 @@ const config: ExtendedBuidlerConfig = {
   },
   etherscan: {
     // The url for the Etherscan API you want to use.
-    url: "https://api-rinkeby.etherscan.io/api",
+    url: "https://api.etherscan.io/api",
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: ETHERSCAN_API_KEY
@@ -92,6 +97,23 @@ task("join-smart-pool")
     const receipt = await tx.wait(1);
 
     console.log(`Pool joined tx: ${receipt.transactionHash}`)
+});
+
+task("approve-smart-pool")
+  .addParam("pool")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const smartpool = PBasicSmartPoolFactory.connect(taskArgs.pool, signers[0]);
+
+    // TODO fix this confusing line
+    const tokens = await IBPoolFactory.connect(await smartpool.bPool(), signers[0]).getCurrentTokens();
+
+    for(const tokenAddress of tokens) {
+      const token = IERC20Factory.connect(tokenAddress, signers[0]);
+      // TODO make below more readable
+      const receipt = await (await token.approve(smartpool.address, constants.MaxUint256)).wait(1);
+      console.log(`${tokenAddress} approved tx: ${receipt.transactionHash}`);
+    }
 });
 
 task("deploy-mock-token", "deploys a mock token")

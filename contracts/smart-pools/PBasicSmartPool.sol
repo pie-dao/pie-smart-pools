@@ -39,7 +39,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         _pushPoolShare(msg.sender, _initialSupply);
     }
 
-    function joinPool(uint _amount) external override ready {
+    function joinPool(uint256 _amount) external override ready {
         uint poolTotal = totalSupply();
 
         uint ratio = bdiv(_amount, poolTotal);
@@ -58,7 +58,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         _pushPoolShare(msg.sender, _amount);
     }
 
-    function exitPool(uint _amount) external override ready {
+    function exitPool(uint256 _amount) external override ready {
 
         uint poolTotal = totalSupply();
         uint ratio = bdiv(_amount, poolTotal);

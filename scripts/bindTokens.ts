@@ -8,48 +8,48 @@ import { IERC20Factory } from "../typechain/IERC20Factory";
 
 
 const config = {
-    pool: "0xbE7439d6AecDeBf67c0B1A9c08dd672Fd6353A27",
+    pool: "0xE80d0143E671224f5EA0bf46a2be7D57e12798f8",
     units: 20,
 
     components: [
         // cDAI
         {
-            token: "0x17C634e1081A2e02c83Bf008cd8E156415028F67",
+            token: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
             weight: 8,
             decimals: 8,
             amountPerUnit: 7.8677
         },
         // cUSDC
         {
-            token: "0x3e62991D1e91871340dd57E78e45e470bc30e503",
+            token: "0x39aa39c021dfbae8fac545936693ac917d5e7563",
             weight: 8,
             decimals: 8,
             amountPerUnit: 7.6178
         },
         // aDAI
         {
-            token: "0x7A60c3482D96F0bCFE1fb48e94689669c6214e09",
+            token: "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
             weight: 3,
             decimals: 18,
             amountPerUnit: 0.06
         },
         // aUSDT
         {
-            token: "0x9Da3507f137c99297939dc885C158Be9e04e8510",
+            token: "0x71fc860F7D3A592A4a98740e39dB31d25db65ae8",
             weight: 3.5,
             decimals: 6,
             amountPerUnit: 0.07
         },
         // aUSDC
         {
-            token: "0xF9155b335FAa6C184aB2F2c4D5939d86268F3668",
+            token: "0x9bA00D6856a4eDF4665BcA2C2309936572473B7E",
             weight: 10,
             decimals: 6,
             amountPerUnit: 0.2
         },
         // CHAI
         {
-            token: "0x2e8294800691c71d9343Fb636dda9dEa46515843",
+            token: "0x06af07097c9eeb7fd685c692751d5c66db49c215",
             weight: 17.5,
             decimals: 18,
             amountPerUnit: 0.344
