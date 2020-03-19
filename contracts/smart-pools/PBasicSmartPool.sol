@@ -8,6 +8,9 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     
     IBPool public bPool;
 
+    // Added in in update (appended to prevent storage collissions)
+    address public controller;
+
     modifier ready() {
         require(address(bPool) != address(0), "PBasicSmartPool.ready: not ready");
         _;
@@ -25,21 +28,31 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         uint256 tokenAmountOut
     );
 
-    constructor() public {
-        
+    modifier onlyController() {
+        require(msg.sender == controller, "PBasicSmartPool.init: not owner");
+        _;
     }
 
     // Seperated initializer for easier use with proxies
-    function init(address _bPool, string memory _name, string memory _symbol, uint256 _initialSupply) public {
+    function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
         require(address(bPool) == address(0), "PBasicSmartPool.init: already initialised");
         bPool = IBPool(_bPool);
         name = _name;
         symbol = _symbol;
+        controller = msg.sender;
         _mintPoolShare(_initialSupply);
         _pushPoolShare(msg.sender, _initialSupply);
     }
 
-    function joinPool(uint256 _amount) external override ready {
+    function setController(address _controller) onlyController external {
+        controller = _controller;
+    }
+
+    function joinPool(uint256 _amount) external override virtual ready {
+        _joinPool(_amount);
+    }
+
+    function _joinPool(uint256 _amount) internal virtual ready {
         uint poolTotal = totalSupply();
 
         uint ratio = bdiv(_amount, poolTotal);
