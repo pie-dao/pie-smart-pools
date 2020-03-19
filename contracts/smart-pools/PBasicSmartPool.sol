@@ -1,4 +1,4 @@
-pragma solidity ^0.6.2;
+pragma solidity ^0.6.4;
 
 import "../interfaces/IBPool.sol";
 import "../interfaces/IPSmartPool.sol";
@@ -6,13 +6,15 @@ import "../PCToken.sol";
 
 contract PBasicSmartPool is IPSmartPool, PCToken {
     
-    IBPool public bPool;
-
-    // Added in in update (appended to prevent storage collissions)
-    address public controller;
-
+    // P Basic Smart Struct
+    bytes32 constant public pbsSlot = keccak256("PBasicSmartPool.storage.location");
+    struct pbs {
+        IBPool bPool;
+        address controller;
+    }
+    
     modifier ready() {
-        require(address(bPool) != address(0), "PBasicSmartPool.ready: not ready");
+        require(address(lpbs().bPool) != address(0), "PBasicSmartPool.ready: not ready");
         _;
     }   
 
@@ -29,23 +31,24 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     );
 
     modifier onlyController() {
-        require(msg.sender == controller, "PBasicSmartPool.init: not owner");
+        require(msg.sender == lpbs().controller, "PBasicSmartPool.init: not owner");
         _;
     }
 
     // Seperated initializer for easier use with proxies
     function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
-        require(address(bPool) == address(0), "PBasicSmartPool.init: already initialised");
-        bPool = IBPool(_bPool);
+        pbs storage s = lpbs();
+        require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
+        s.bPool = IBPool(_bPool);
+        s.controller = msg.sender;
         name = _name;
         symbol = _symbol;
-        controller = msg.sender;
         _mintPoolShare(_initialSupply);
         _pushPoolShare(msg.sender, _initialSupply);
     }
 
     function setController(address _controller) onlyController external {
-        controller = _controller;
+        lpbs().controller = _controller;
     }
 
     function joinPool(uint256 _amount) external override virtual ready {
@@ -53,8 +56,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     }
 
     function _joinPool(uint256 _amount) internal virtual ready {
+        IBPool bPool = lpbs().bPool;
         uint poolTotal = totalSupply();
-
         uint ratio = bdiv(_amount, poolTotal);
         require(ratio != 0);
 
@@ -72,7 +75,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     }
 
     function exitPool(uint256 _amount) external override ready {
-
+        IBPool bPool = lpbs().bPool;
         uint poolTotal = totalSupply();
         uint ratio = bdiv(_amount, poolTotal);
         require(ratio != 0);
@@ -91,10 +94,19 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         }
     }
 
+    function getController() external view returns(address) {
+        return lpbs().controller;
+    }
+
+    function getBPool() external view returns(address) {
+        return address(lpbs().bPool);
+    }
+
     // Pull tokens from address and rebind BPool
     function _pullUnderlying(address _token, address _from, uint _amount)
         internal
-    {
+    {   
+        IBPool bPool = lpbs().bPool;
         // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
         uint tokenBalance = bPool.getBalance(_token);
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
@@ -108,7 +120,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     // Rebind BPool and push tokens to address
     function _pushUnderlying(address _token, address _to, uint _amount)
         internal
-    {
+    {   
+        IBPool bPool = lpbs().bPool;
         // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
         uint tokenBalance = bPool.getBalance(_token);
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
@@ -139,6 +152,14 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         internal
     {
         _push(_to, _amount);
+    }
+
+    // Load p basic storage
+    function lpbs() internal view returns (pbs storage s) {
+        bytes32 loc = pbsSlot;
+        assembly {
+            s_slot := loc
+        }
     }
 
 }

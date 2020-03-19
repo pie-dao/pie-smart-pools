@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.6.2;
+pragma solidity 0.6.4;
 
 interface IBPool {
     function isBound(address token) external view returns(bool);
