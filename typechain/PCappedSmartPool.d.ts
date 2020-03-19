@@ -38,8 +38,6 @@ interface PCappedSmartPoolInterface extends Interface {
 
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
-    cap: TypedFunctionDescription<{ encode([]: []): string }>;
-
     decimals: TypedFunctionDescription<{ encode([]: []): string }>;
 
     decreaseApproval: TypedFunctionDescription<{
@@ -51,6 +49,8 @@ interface PCappedSmartPoolInterface extends Interface {
     }>;
 
     getBPool: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getCap: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -74,6 +74,8 @@ interface PCappedSmartPoolInterface extends Interface {
     name: TypedFunctionDescription<{ encode([]: []): string }>;
 
     pbsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    pcsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     setCap: TypedFunctionDescription<{
       encode([_cap]: [BigNumberish]): string;
@@ -174,8 +176,6 @@ export class PCappedSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
-    cap(): Promise<BigNumber>;
-
     decimals(): Promise<number>;
 
     decreaseApproval(
@@ -190,6 +190,8 @@ export class PCappedSmartPool extends Contract {
     ): Promise<ContractTransaction>;
 
     getBPool(): Promise<string>;
+
+    getCap(): Promise<BigNumber>;
 
     getController(): Promise<string>;
 
@@ -215,6 +217,8 @@ export class PCappedSmartPool extends Contract {
     name(): Promise<string>;
 
     pbsSlot(): Promise<string>;
+
+    pcsSlot(): Promise<string>;
 
     setCap(
       _cap: BigNumberish,
@@ -270,8 +274,6 @@ export class PCappedSmartPool extends Contract {
 
   balanceOf(_whom: string): Promise<BigNumber>;
 
-  cap(): Promise<BigNumber>;
-
   decimals(): Promise<number>;
 
   decreaseApproval(
@@ -286,6 +288,8 @@ export class PCappedSmartPool extends Contract {
   ): Promise<ContractTransaction>;
 
   getBPool(): Promise<string>;
+
+  getCap(): Promise<BigNumber>;
 
   getController(): Promise<string>;
 
@@ -311,6 +315,8 @@ export class PCappedSmartPool extends Contract {
   name(): Promise<string>;
 
   pbsSlot(): Promise<string>;
+
+  pcsSlot(): Promise<string>;
 
   setCap(
     _cap: BigNumberish,
@@ -388,8 +394,6 @@ export class PCappedSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
-    cap(): Promise<BigNumber>;
-
     decimals(): Promise<BigNumber>;
 
     decreaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
@@ -397,6 +401,8 @@ export class PCappedSmartPool extends Contract {
     exitPool(_amount: BigNumberish): Promise<BigNumber>;
 
     getBPool(): Promise<BigNumber>;
+
+    getCap(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
 
@@ -414,6 +420,8 @@ export class PCappedSmartPool extends Contract {
     name(): Promise<BigNumber>;
 
     pbsSlot(): Promise<BigNumber>;
+
+    pcsSlot(): Promise<BigNumber>;
 
     setCap(_cap: BigNumberish): Promise<BigNumber>;
 
