@@ -10,7 +10,7 @@ import {
   TypedFunctionDescription
 } from ".";
 
-interface PBasicSmartPoolInterface extends Interface {
+interface PCappedSmartPoolInterface extends Interface {
   functions: {
     BONE: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -39,6 +39,8 @@ interface PBasicSmartPoolInterface extends Interface {
     bPool: TypedFunctionDescription<{ encode([]: []): string }>;
 
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
+
+    cap: TypedFunctionDescription<{ encode([]: []): string }>;
 
     controller: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -70,6 +72,10 @@ interface PBasicSmartPoolInterface extends Interface {
     }>;
 
     name: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    setCap: TypedFunctionDescription<{
+      encode([_cap]: [BigNumberish]): string;
+    }>;
 
     setController: TypedFunctionDescription<{
       encode([_controller]: [string]): string;
@@ -123,21 +129,21 @@ interface PBasicSmartPoolInterface extends Interface {
   };
 }
 
-export class PBasicSmartPool extends Contract {
-  connect(signerOrProvider: Signer | Provider | string): PBasicSmartPool;
-  attach(addressOrName: string): PBasicSmartPool;
-  deployed(): Promise<PBasicSmartPool>;
+export class PCappedSmartPool extends Contract {
+  connect(signerOrProvider: Signer | Provider | string): PCappedSmartPool;
+  attach(addressOrName: string): PCappedSmartPool;
+  deployed(): Promise<PCappedSmartPool>;
 
-  on(event: EventFilter | string, listener: Listener): PBasicSmartPool;
-  once(event: EventFilter | string, listener: Listener): PBasicSmartPool;
+  on(event: EventFilter | string, listener: Listener): PCappedSmartPool;
+  once(event: EventFilter | string, listener: Listener): PCappedSmartPool;
   addListener(
     eventName: EventFilter | string,
     listener: Listener
-  ): PBasicSmartPool;
-  removeAllListeners(eventName: EventFilter | string): PBasicSmartPool;
-  removeListener(eventName: any, listener: Listener): PBasicSmartPool;
+  ): PCappedSmartPool;
+  removeAllListeners(eventName: EventFilter | string): PCappedSmartPool;
+  removeListener(eventName: any, listener: Listener): PCappedSmartPool;
 
-  interface: PBasicSmartPoolInterface;
+  interface: PCappedSmartPoolInterface;
 
   functions: {
     BONE(): Promise<BigNumber>;
@@ -167,6 +173,8 @@ export class PBasicSmartPool extends Contract {
     bPool(): Promise<string>;
 
     balanceOf(_whom: string): Promise<BigNumber>;
+
+    cap(): Promise<BigNumber>;
 
     controller(): Promise<string>;
 
@@ -203,6 +211,11 @@ export class PBasicSmartPool extends Contract {
     ): Promise<ContractTransaction>;
 
     name(): Promise<string>;
+
+    setCap(
+      _cap: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
 
     setController(
       _controller: string,
@@ -255,6 +268,8 @@ export class PBasicSmartPool extends Contract {
 
   balanceOf(_whom: string): Promise<BigNumber>;
 
+  cap(): Promise<BigNumber>;
+
   controller(): Promise<string>;
 
   decimals(): Promise<number>;
@@ -290,6 +305,11 @@ export class PBasicSmartPool extends Contract {
   ): Promise<ContractTransaction>;
 
   name(): Promise<string>;
+
+  setCap(
+    _cap: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   setController(
     _controller: string,
@@ -364,6 +384,8 @@ export class PBasicSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
+    cap(): Promise<BigNumber>;
+
     controller(): Promise<BigNumber>;
 
     decimals(): Promise<BigNumber>;
@@ -384,6 +406,8 @@ export class PBasicSmartPool extends Contract {
     joinPool(_amount: BigNumberish): Promise<BigNumber>;
 
     name(): Promise<BigNumber>;
+
+    setCap(_cap: BigNumberish): Promise<BigNumber>;
 
     setController(_controller: string): Promise<BigNumber>;
 
