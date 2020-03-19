@@ -41,8 +41,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
         s.bPool = IBPool(_bPool);
         s.controller = msg.sender;
-        name = _name;
-        symbol = _symbol;
+        lpts().name = _name;
+        lpts().symbol = _symbol;
         _mintPoolShare(_initialSupply);
         _pushPoolShare(msg.sender, _initialSupply);
     }

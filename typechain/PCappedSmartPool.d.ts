@@ -77,6 +77,8 @@ interface PCappedSmartPoolInterface extends Interface {
 
     pcsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     setCap: TypedFunctionDescription<{
       encode([_cap]: [BigNumberish]): string;
     }>;
@@ -220,6 +222,8 @@ export class PCappedSmartPool extends Contract {
 
     pcsSlot(): Promise<string>;
 
+    ptSlot(): Promise<string>;
+
     setCap(
       _cap: BigNumberish,
       overrides?: TransactionOverrides
@@ -317,6 +321,8 @@ export class PCappedSmartPool extends Contract {
   pbsSlot(): Promise<string>;
 
   pcsSlot(): Promise<string>;
+
+  ptSlot(): Promise<string>;
 
   setCap(
     _cap: BigNumberish,
@@ -422,6 +428,8 @@ export class PCappedSmartPool extends Contract {
     pbsSlot(): Promise<BigNumber>;
 
     pcsSlot(): Promise<BigNumber>;
+
+    ptSlot(): Promise<BigNumber>;
 
     setCap(_cap: BigNumberish): Promise<BigNumber>;
 

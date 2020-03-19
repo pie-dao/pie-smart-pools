@@ -73,6 +73,8 @@ interface PBasicSmartPoolInterface extends Interface {
 
     pbsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     setController: TypedFunctionDescription<{
       encode([_controller]: [string]): string;
     }>;
@@ -208,6 +210,8 @@ export class PBasicSmartPool extends Contract {
 
     pbsSlot(): Promise<string>;
 
+    ptSlot(): Promise<string>;
+
     setController(
       _controller: string,
       overrides?: TransactionOverrides
@@ -296,6 +300,8 @@ export class PBasicSmartPool extends Contract {
   name(): Promise<string>;
 
   pbsSlot(): Promise<string>;
+
+  ptSlot(): Promise<string>;
 
   setController(
     _controller: string,
@@ -392,6 +398,8 @@ export class PBasicSmartPool extends Contract {
     name(): Promise<BigNumber>;
 
     pbsSlot(): Promise<BigNumber>;
+
+    ptSlot(): Promise<BigNumber>;
 
     setController(_controller: string): Promise<BigNumber>;
 

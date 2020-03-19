@@ -50,6 +50,8 @@ interface PCTokenInterface extends Interface {
 
     name: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     symbol: TypedFunctionDescription<{ encode([]: []): string }>;
 
     totalSupply: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -138,6 +140,8 @@ export class PCToken extends Contract {
 
     name(): Promise<string>;
 
+    ptSlot(): Promise<string>;
+
     symbol(): Promise<string>;
 
     totalSupply(): Promise<BigNumber>;
@@ -197,6 +201,8 @@ export class PCToken extends Contract {
   ): Promise<ContractTransaction>;
 
   name(): Promise<string>;
+
+  ptSlot(): Promise<string>;
 
   symbol(): Promise<string>;
 
@@ -259,6 +265,8 @@ export class PCToken extends Contract {
     increaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
     name(): Promise<BigNumber>;
+
+    ptSlot(): Promise<BigNumber>;
 
     symbol(): Promise<BigNumber>;
 
