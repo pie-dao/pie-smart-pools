@@ -31,7 +31,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     );
 
     modifier onlyController() {
-        require(msg.sender == lpbs().controller, "PBasicSmartPool.init: not owner");
+        require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not owner");
         _;
     }
 
