@@ -16,6 +16,10 @@ interface IPSmartPoolInterface extends Interface {
       encode([_amount]: [BigNumberish]): string;
     }>;
 
+    getController: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
+
     joinPool: TypedFunctionDescription<{
       encode([_amount]: [BigNumberish]): string;
     }>;
@@ -43,6 +47,12 @@ export class IPSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    getController(
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    getTokens(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
     joinPool(
       _amount: BigNumberish,
       overrides?: TransactionOverrides
@@ -54,6 +64,10 @@ export class IPSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  getController(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
+  getTokens(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
   joinPool(
     _amount: BigNumberish,
     overrides?: TransactionOverrides
@@ -63,6 +77,10 @@ export class IPSmartPool extends Contract {
 
   estimate: {
     exitPool(_amount: BigNumberish): Promise<BigNumber>;
+
+    getController(): Promise<BigNumber>;
+
+    getTokens(): Promise<BigNumber>;
 
     joinPool(_amount: BigNumberish): Promise<BigNumber>;
   };

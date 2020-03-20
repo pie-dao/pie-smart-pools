@@ -52,6 +52,8 @@ interface PBasicSmartPoolInterface extends Interface {
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
+
     increaseApproval: TypedFunctionDescription<{
       encode([_dst, _amount]: [string, BigNumberish]): string;
     }>;
@@ -187,6 +189,8 @@ export class PBasicSmartPool extends Contract {
 
     getController(): Promise<string>;
 
+    getTokens(): Promise<string[]>;
+
     increaseApproval(
       _dst: string,
       _amount: BigNumberish,
@@ -277,6 +281,8 @@ export class PBasicSmartPool extends Contract {
   getBPool(): Promise<string>;
 
   getController(): Promise<string>;
+
+  getTokens(): Promise<string[]>;
 
   increaseApproval(
     _dst: string,
@@ -383,6 +389,8 @@ export class PBasicSmartPool extends Contract {
     getBPool(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
+
+    getTokens(): Promise<BigNumber>;
 
     increaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 

@@ -54,6 +54,8 @@ interface PCappedSmartPoolInterface extends Interface {
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
+
     increaseApproval: TypedFunctionDescription<{
       encode([_dst, _amount]: [string, BigNumberish]): string;
     }>;
@@ -197,6 +199,8 @@ export class PCappedSmartPool extends Contract {
 
     getController(): Promise<string>;
 
+    getTokens(): Promise<string[]>;
+
     increaseApproval(
       _dst: string,
       _amount: BigNumberish,
@@ -296,6 +300,8 @@ export class PCappedSmartPool extends Contract {
   getCap(): Promise<BigNumber>;
 
   getController(): Promise<string>;
+
+  getTokens(): Promise<string[]>;
 
   increaseApproval(
     _dst: string,
@@ -411,6 +417,8 @@ export class PCappedSmartPool extends Contract {
     getCap(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
+
+    getTokens(): Promise<BigNumber>;
 
     increaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 

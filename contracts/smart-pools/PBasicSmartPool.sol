@@ -94,6 +94,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         }
     }
 
+    function getTokens() external view returns(address[] memory) {
+        return lpbs().bPool.getCurrentTokens();
+    }
+
     function getController() external view returns(address) {
         return lpbs().controller;
     }
