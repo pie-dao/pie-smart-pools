@@ -3,7 +3,7 @@ pragma solidity ^0.6.4;
 import "./PBasicSmartPool.sol";
 contract PCappedSmartPool is PBasicSmartPool {
 
-    bytes32 constant public pcsSlot = keccak256("PBasicSmartPool.storage.location");
+    bytes32 constant public pcsSlot = keccak256("PCappedSmartPool.storage.location");
     struct pcs {
         uint256 cap;
     }
