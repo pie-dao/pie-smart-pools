@@ -25,7 +25,7 @@ contract PUnsiwapPoolRecipe {
         // Buy and approve tokens
         for(uint256 i = 0; i < tokens.length; i ++) {
             IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(tokens[i]));
-            exchange.ethToTokenSwapOutput{value: address(this).balance}(amounts[i], block.timestamp + 1);
+            exchange.ethToTokenSwapOutput{value: address(this).balance}(amounts[i], _deadline);
             IERC20(tokens[i]).approve(address(pool), uint256(-1));
         }
 
@@ -54,10 +54,52 @@ contract PUnsiwapPoolRecipe {
             IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(tokens[i]));
             eth_sold += exchange.getEthToTokenOutputPrice(amounts[i]);
         }
+
+        return eth_sold;
     }
 
+    function tokenToEthTransferInput(uint256 _tokens_sold, uint256 _min_eth, uint256 _deadline, address _recipient) public returns (uint256  eth_bought) {
+        require(_deadline >= block.timestamp);
+        require(pool.transferFrom(msg.sender, address(this), _tokens_sold), "PUniswapPoolRecipe.tokenToEthTransferInput: transferFrom failed");
+
+        pool.exitPool(_tokens_sold);
+
+        address[] memory tokens = pool.getTokens();
+
+        for(uint256 i = 0; i < tokens.length; i ++) {
+            IERC20 token = IERC20(tokens[i]);
+            IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(address(token)));
+            
+            uint256 balance = token.balanceOf(address(this));
+
+            // Approve token. We approve the balance to keep the associated storage slot at 0 at the end of the tx
+            token.approve(address(exchange), balance);
+            // Exchange for ETH
+            exchange.tokenToEthTransferInput(_tokens_sold, 1, _deadline, _recipient);
+        }
+
+        require(address(this).balance > _min_eth, "PUniswapPoolRecipe.tokenToEthTransferInput: not enough ETH");
+        return address(this).balance;
+    }
+
+    function tokenToEthSwapInput(uint256 _tokens_sold, uint256 _min_eth, uint256 _deadline) external returns (uint256 eth_bought) {
+        return tokenToEthTransferInput(_tokens_sold, _min_eth, _deadline, msg.sender);
+    }
+
+    function getTokenToEthInputPrice(uint256 _tokens_sold) external view returns (uint256 eth_bought) {
+        (address[] memory tokens, uint256[] memory amounts) = pool.calcTokensForAmount(_tokens_sold);
+
+        eth_bought = 0;
+
+        for(uint256 i = 0; i < tokens.length; i ++) {
+            IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(address(tokens[i])));
+            eth_bought += exchange.getTokenToEthInputPrice(amounts[i]);
+        }
+
+        return eth_bought;
+    }
 
     fallback() external payable {
 
     }
-}
+} 
