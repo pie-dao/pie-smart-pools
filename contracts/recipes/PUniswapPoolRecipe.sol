@@ -51,7 +51,7 @@ contract PUniswapPoolRecipe {
         return exchange.ethToTokenSwapOutput{value: address(this).balance}(_tokens_bought, uint256(-1));
     }
 
-    function getEthToTokenOutputPrice(uint256 _tokens_bought) external view returns (uint256 eth_sold) {
+    function getEthToTokenOutputPrice(uint256 _tokens_bought) external view virtual returns (uint256 eth_sold) {
         (address[] memory tokens, uint256[] memory amounts) = pool.calcTokensForAmount(_tokens_bought);
 
         eth_sold = 0;
@@ -98,7 +98,7 @@ contract PUniswapPoolRecipe {
         return exchange.tokenToEthTransferInput(_tokens_sold, 1, uint256(-1), _recipient);
     }
 
-    function getTokenToEthInputPrice(uint256 _tokens_sold) external view returns (uint256 eth_bought) {
+    function getTokenToEthInputPrice(uint256 _tokens_sold) external view virtual returns (uint256 eth_bought) {
         (address[] memory tokens, uint256[] memory amounts) = pool.calcTokensForAmount(_tokens_sold);
 
         eth_bought = 0;
