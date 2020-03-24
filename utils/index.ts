@@ -21,25 +21,27 @@ export const deployBalancerPool = async(signer: ethers.Signer) => {
 }
 
 export const deployAndAddLiquidityUniswapExchange = async(factory: IUniswapFactory, token: MockToken, ethAmount: BigNumberish, tokenAmount: BigNumberish) => {
-    await factory.createExchange(token.address);
+    await (await factory.createExchange(token.address)).wait(1);
 
     const exchangeAddress = await factory.getExchange(token.address);
     const exchange = IUniswapExchangeFactory.connect(exchangeAddress, factory.signer);
 
-    await token.approve(exchange.address, constants.MaxUint256);
-    await exchange.addLiquidity(constants.WeiPerEther.mul(10), tokenAmount, constants.MaxUint256, { value: ethAmount });
+    await (await token.approve(exchange.address, constants.MaxUint256)).wait(1);
+    await (await exchange.addLiquidity(constants.WeiPerEther.mul(10), tokenAmount, constants.MaxUint256, { value: ethAmount })).wait(1);
 
     return exchange;
 }
 
 export const deployUniswapFactory = async(signer: ethers.Signer) => {
     const factoryTx = (await signer.sendTransaction({data: uniswapFactoryBytecode})) as any;
+    await factoryTx.wait(1);
     const factory = IUniswapFactoryFactory.connect(factoryTx.creates, signer);
 
     const templateTx = (await signer.sendTransaction({data: uniswapExchangeBytecode})) as any;
+    await templateTx.wait(1);
     const templateAddress = templateTx.creates;
 
-    await factory.initializeFactory(templateAddress);
+    (await factory.initializeFactory(templateAddress)).wait(1);
 
     return factory;
 }
