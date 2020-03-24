@@ -25,7 +25,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe.only("PUniswapPoolRecipe", function() {
+describe("PUniswapPoolRecipe", function() {
     this.timeout(300000);
     let signers: Signer[];
     let account: string;
@@ -126,4 +126,50 @@ describe.only("PUniswapPoolRecipe", function() {
             expect(ethBalance).to.eq(ethBalanceBefore.add(expectedEth));
         });
     });
+
+    describe("ethToToken", async() => {
+        it("EthToTokenTransferOutput should work", async() => {
+            const amount = INITIAL_SUPPLY.div(2);
+
+            const expectedEth = await recipe.getEthToTokenOutputPrice(amount);
+            const ethBalanceBefore = await signers[0].provider.getBalance(account);
+            
+            await recipe.ethToTokenTransferOutput(amount, constants.MaxUint256, account2, {value: expectedEth.mul(2)});
+
+            const sPBalance = await smartpool.balanceOf(account2);
+            expect(sPBalance).to.eq(amount);
+
+            const ethBalance = await signers[0].provider.getBalance(account);
+            expect(ethBalance).to.eq(ethBalanceBefore.sub(expectedEth));
+        });
+
+        it("Calling EthToTokenTransferOutput when the dealine has passed should fail", async() => {
+            const amount = INITIAL_SUPPLY.div(2);
+            const expectedEth = await recipe.getEthToTokenOutputPrice(amount);
+
+            await expect(recipe.ethToTokenTransferOutput(amount, 1, account2, {value: expectedEth.mul(2)})).to.be.reverted;
+        });
+
+        it("Calling EthToTokenTransferOutput when not sending enough eth should fail", async() => {
+            const amount = INITIAL_SUPPLY.div(2);
+            const expectedEth = await recipe.getEthToTokenOutputPrice(amount);
+
+            await expect(recipe.ethToTokenTransferOutput(amount, 1, account2, {value: expectedEth.sub(1)})).to.be.reverted;
+        })
+
+        it("EthToTokenSwapOutput should work", async() => {
+            const amount = INITIAL_SUPPLY.div(2);
+
+            const expectedEth = await recipe.getEthToTokenOutputPrice(amount);
+            const ethBalanceBefore = await signers[0].provider.getBalance(account);
+            
+            await recipe.ethToTokenSwapOutput(amount, constants.MaxUint256, {value: expectedEth.mul(2)});
+
+            const sPBalance = await smartpool.balanceOf(account);
+            expect(sPBalance).to.eq(amount.add(INITIAL_SUPPLY));
+
+            const ethBalance = await signers[0].provider.getBalance(account);
+            expect(ethBalance).to.eq(ethBalanceBefore.sub(expectedEth));
+        })
+    })
 });
