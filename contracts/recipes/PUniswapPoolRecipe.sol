@@ -22,10 +22,10 @@ contract PUniswapPoolRecipe {
         require(_deadline >= block.timestamp);
         (address[] memory tokens, uint256[] memory amounts) = pool.calcTokensForAmount(_tokens_bought);
 
+        eth_sold = 0;
         // Buy and approve tokens
         for(uint256 i = 0; i < tokens.length; i ++) {
-            IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(tokens[i]));
-            exchange.ethToTokenSwapOutput{value: address(this).balance}(amounts[i], _deadline);
+            eth_sold += _ethToToken(tokens[i], amounts[i]);
             IERC20(tokens[i]).approve(address(pool), uint256(-1));
         }
 
@@ -39,10 +39,16 @@ contract PUniswapPoolRecipe {
 
         // Send pool tokens to receiver
         pool.transfer(_recipient, pool.balanceOf(address(this)));
+        return eth_sold;
     }
 
-    function ethToTokenSwapOutput(uint256 _tokens_bought, uint256 _deadline) external payable returns (uint256  eth_sold) {
+    function ethToTokenSwapOutput(uint256 _tokens_bought, uint256 _deadline) external payable returns (uint256 eth_sold) {
         return ethToTokenTransferOutput(_tokens_bought, _deadline, msg.sender);
+    }
+
+    function _ethToToken(address _token, uint256 _tokens_bought) internal virtual returns (uint256) {
+        IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(_token));
+        return exchange.ethToTokenSwapOutput{value: address(this).balance}(_tokens_bought, uint256(-1));
     }
 
     function getEthToTokenOutputPrice(uint256 _tokens_bought) external view returns (uint256 eth_sold) {
@@ -58,7 +64,7 @@ contract PUniswapPoolRecipe {
         return eth_sold;
     }
 
-    function tokenToEthTransferInput(uint256 _tokens_sold, uint256 _min_eth, uint256 _deadline, address _recipient) public returns (uint256  eth_bought) {
+    function tokenToEthTransferInput(uint256 _tokens_sold, uint256 _min_eth, uint256 _deadline, address _recipient) public returns (uint256 eth_bought) {
         require(_deadline >= block.timestamp);
         require(pool.transferFrom(msg.sender, address(this), _tokens_sold), "PUniswapPoolRecipe.tokenToEthTransferInput: transferFrom failed");
 
@@ -70,14 +76,11 @@ contract PUniswapPoolRecipe {
 
         for(uint256 i = 0; i < tokens.length; i ++) {
             IERC20 token = IERC20(tokens[i]);
-            IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(address(token)));
             
             uint256 balance = token.balanceOf(address(this));
-
-            // Approve token. We approve the balance to keep the associated storage slot at 0 at the end of the tx
-            token.approve(address(exchange), balance);
+           
             // Exchange for ETH
-            ethAmount += exchange.tokenToEthTransferInput(_tokens_sold, 1, _deadline, _recipient);
+            ethAmount += _tokenToEth(token, balance, _recipient);
         }
 
         require(ethAmount > _min_eth, "PUniswapPoolRecipe.tokenToEthTransferInput: not enough ETH");
@@ -86,6 +89,13 @@ contract PUniswapPoolRecipe {
 
     function tokenToEthSwapInput(uint256 _tokens_sold, uint256 _min_eth, uint256 _deadline) external returns (uint256 eth_bought) {
         return tokenToEthTransferInput(_tokens_sold, _min_eth, _deadline, msg.sender);
+    }
+
+    function _tokenToEth(IERC20 _token, uint256 _tokens_sold, address _recipient) internal virtual returns (uint256 eth_bought) {
+        IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(address(_token)));
+        _token.approve(address(exchange), _tokens_sold);
+        // Exchange for ETH
+        return exchange.tokenToEthTransferInput(_tokens_sold, 1, uint256(-1), _recipient);
     }
 
     function getTokenToEthInputPrice(uint256 _tokens_sold) external view returns (uint256 eth_bought) {
