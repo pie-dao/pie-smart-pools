@@ -29,6 +29,9 @@ const config: ExtendedBuidlerConfig = {
     version: "0.6.4"
   },
   networks: {
+    buidlerevm: {
+      gasPrice: 0,
+    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [MAINNET_PRIVATE_KEY]
@@ -38,7 +41,8 @@ const config: ExtendedBuidlerConfig = {
       accounts: [KOVAN_PRIVATE_KEY]
     },
     coverage: {
-      url: 'http://127.0.0.1:8555' // Coverage launches its own ganache-cli client
+      url: 'http://127.0.0.1:8555', // Coverage launches its own ganache-cli client
+      gasPrice: 0
     }
   },
   etherscan: {

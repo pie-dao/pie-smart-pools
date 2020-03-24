@@ -6,7 +6,7 @@ import "../interfaces/IUniswapFactory.sol";
 import "../interfaces/IUniswapExchange.sol";
 
 // Takes ETH and mints smart pool tokens
-contract PUnsiwapPoolRecipe {
+contract PUniswapPoolRecipe {
 
     IPSmartPool public pool;
     IUniswapFactory public uniswapFactory;
@@ -66,6 +66,8 @@ contract PUnsiwapPoolRecipe {
 
         address[] memory tokens = pool.getTokens();
 
+        uint256 ethAmount = 0;
+
         for(uint256 i = 0; i < tokens.length; i ++) {
             IERC20 token = IERC20(tokens[i]);
             IUniswapExchange exchange = IUniswapExchange(uniswapFactory.getExchange(address(token)));
@@ -75,11 +77,11 @@ contract PUnsiwapPoolRecipe {
             // Approve token. We approve the balance to keep the associated storage slot at 0 at the end of the tx
             token.approve(address(exchange), balance);
             // Exchange for ETH
-            exchange.tokenToEthTransferInput(_tokens_sold, 1, _deadline, _recipient);
+            ethAmount += exchange.tokenToEthTransferInput(_tokens_sold, 1, _deadline, _recipient);
         }
 
-        require(address(this).balance > _min_eth, "PUniswapPoolRecipe.tokenToEthTransferInput: not enough ETH");
-        return address(this).balance;
+        require(ethAmount > _min_eth, "PUniswapPoolRecipe.tokenToEthTransferInput: not enough ETH");
+        return ethAmount;
     }
 
     function tokenToEthSwapInput(uint256 _tokens_sold, uint256 _min_eth, uint256 _deadline) external returns (uint256 eth_bought) {
