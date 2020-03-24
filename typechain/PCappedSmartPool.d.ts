@@ -38,6 +38,10 @@ interface PCappedSmartPoolInterface extends Interface {
 
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
+    calcTokensForAmount: TypedFunctionDescription<{
+      encode([_amount]: [BigNumberish]): string;
+    }>;
+
     decimals: TypedFunctionDescription<{ encode([]: []): string }>;
 
     decreaseApproval: TypedFunctionDescription<{
@@ -180,6 +184,15 @@ export class PCappedSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
+    calcTokensForAmount(
+      _amount: BigNumberish
+    ): Promise<{
+      tokens: string[];
+      amounts: BigNumber[];
+      0: string[];
+      1: BigNumber[];
+    }>;
+
     decimals(): Promise<number>;
 
     decreaseApproval(
@@ -281,6 +294,15 @@ export class PCappedSmartPool extends Contract {
   ): Promise<ContractTransaction>;
 
   balanceOf(_whom: string): Promise<BigNumber>;
+
+  calcTokensForAmount(
+    _amount: BigNumberish
+  ): Promise<{
+    tokens: string[];
+    amounts: BigNumber[];
+    0: string[];
+    1: BigNumber[];
+  }>;
 
   decimals(): Promise<number>;
 
@@ -405,6 +427,8 @@ export class PCappedSmartPool extends Contract {
     approve(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
     balanceOf(_whom: string): Promise<BigNumber>;
+
+    calcTokensForAmount(_amount: BigNumberish): Promise<BigNumber>;
 
     decimals(): Promise<BigNumber>;
 

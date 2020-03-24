@@ -94,11 +94,24 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         }
     }
 
-    function getTokens() external view returns(address[] memory) {
+    function getTokens() external view override returns(address[] memory) {
         return lpbs().bPool.getCurrentTokens();
     }
 
-    function getController() external view returns(address) {
+    function calcTokensForAmount(uint256 _amount) external view override returns(address[] memory tokens, uint256[] memory amounts) {
+        tokens = lpbs().bPool.getCurrentTokens();
+        amounts = new uint256[](tokens.length);
+        uint256 ratio = bdiv(_amount, totalSupply());
+
+        for(uint256 i = 0; i < tokens.length; i ++) {
+            address t = tokens[i];
+            uint256 bal = lpbs().bPool.getBalance(t);
+            uint256 amount = bmul(ratio, bal);
+            amounts[i] = amount;
+        }
+    }
+
+    function getController() external view override returns(address) {
         return lpbs().controller;
     }
 
