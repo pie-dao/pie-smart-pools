@@ -18,11 +18,16 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
     address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     
-    function init(address _pool, address _uniswapFactory, address _kyber, address[] memory _swapOnKyber, address _feeReciever) public {
+    function init(address _pool, address _uniswapFactory) public override {
+        require(false, "not enabled");
+    }
+
+    // Use seperate init function
+    function initUK(address _pool, address _uniswapFactory, address _kyber, address[] memory _swapOnKyber, address _feeReciever) public {
         // UnsiwapRecipe enforces that init can only be called once
         ukprs storage s = lukprs();
 
-        super.init(_pool, _uniswapFactory);
+        PUniswapPoolRecipe.init(_pool, _uniswapFactory);
         s.kyber = IKyberNetwork(_kyber);
         s.feeReceiver = _feeReciever;
 
@@ -68,7 +73,7 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
     // Load uniswap pool recipe
     function lukprs() internal view returns (ukprs storage s) {
-        bytes32 loc = uprSlot;
+        bytes32 loc = ukprSlot;
         assembly {
             s_slot := loc
         }

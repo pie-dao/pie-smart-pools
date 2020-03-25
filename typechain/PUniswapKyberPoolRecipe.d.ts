@@ -35,6 +35,10 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
     }>;
 
     init: TypedFunctionDescription<{
+      encode([_pool, _uniswapFactory]: [string, string]): string;
+    }>;
+
+    initUK: TypedFunctionDescription<{
       encode([_pool, _uniswapFactory, _kyber, _swapOnKyber, _feeReciever]: [
         string,
         string,
@@ -45,6 +49,8 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
     }>;
 
     oSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    pool: TypedFunctionDescription<{ encode([]: []): string }>;
 
     setKyberSwap: TypedFunctionDescription<{
       encode([_token, _value]: [string, boolean]): string;
@@ -123,6 +129,12 @@ export class PUniswapKyberPoolRecipe extends Contract {
     init(
       _pool: string,
       _uniswapFactory: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    initUK(
+      _pool: string,
+      _uniswapFactory: string,
       _kyber: string,
       _swapOnKyber: string[],
       _feeReciever: string,
@@ -130,6 +142,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
     ): Promise<ContractTransaction>;
 
     oSlot(): Promise<string>;
+
+    pool(): Promise<string>;
 
     setKyberSwap(
       _token: string,
@@ -184,6 +198,12 @@ export class PUniswapKyberPoolRecipe extends Contract {
   init(
     _pool: string,
     _uniswapFactory: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  initUK(
+    _pool: string,
+    _uniswapFactory: string,
     _kyber: string,
     _swapOnKyber: string[],
     _feeReciever: string,
@@ -191,6 +211,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
   ): Promise<ContractTransaction>;
 
   oSlot(): Promise<string>;
+
+  pool(): Promise<string>;
 
   setKyberSwap(
     _token: string,
@@ -242,7 +264,9 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
-    init(
+    init(_pool: string, _uniswapFactory: string): Promise<BigNumber>;
+
+    initUK(
       _pool: string,
       _uniswapFactory: string,
       _kyber: string,
@@ -251,6 +275,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
     ): Promise<BigNumber>;
 
     oSlot(): Promise<BigNumber>;
+
+    pool(): Promise<BigNumber>;
 
     setKyberSwap(_token: string, _value: boolean): Promise<BigNumber>;
 

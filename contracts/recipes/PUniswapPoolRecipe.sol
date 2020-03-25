@@ -18,7 +18,6 @@ contract PUniswapPoolRecipe {
 
     function init(address _pool, address _uniswapFactory) public virtual {
         uprs storage s = luprs();
-
         require(address(s.pool) == address(0), "already initialised");
         s.pool = IPSmartPool(_pool);
         s.uniswapFactory = IUniswapFactory(_uniswapFactory);
@@ -122,6 +121,10 @@ contract PUniswapPoolRecipe {
         }
 
         return eth_bought;
+    }
+
+    function pool() external view returns (address) {
+        return address(luprs().pool);
     }
 
     fallback() external payable {

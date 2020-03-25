@@ -12,8 +12,8 @@ import { IBPool } from "../typechain/IBPool";
 import { IBPoolFactory } from "../typechain/IBPoolFactory";
 import { PBasicSmartPool } from "../typechain/PBasicSmartPool";
 import PBasicSmartPoolArtifact from "../artifacts/PBasicSmartPool.json";
-import { PUniswapPoolRecipe } from "../typechain/PUniswapPoolRecipe";
-import PUniswapPoolRecipeArtifact from "../artifacts/PUniswapPoolRecipe.json";
+import { PUniswapKyberPoolRecipe } from "../typechain/PUniswapKyberPoolRecipe";
+import PUniswapKyberPoolRecipeArtifact from "../artifacts/PUniswapKyberPoolRecipe.json";
 import { IUniswapFactory } from "../typechain/IUniswapFactory";
 
 
@@ -25,7 +25,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PUniswapPoolRecipe", function() {
+describe.only("PUniswapPoolRecipe", function() {
     this.timeout(300000);
     let signers: Signer[];
     let account: string;
@@ -33,7 +33,7 @@ describe("PUniswapPoolRecipe", function() {
     let tokens: MockToken[];
     let pool: IBPool;
     let smartpool: PBasicSmartPool;
-    let recipe: PUniswapPoolRecipe;
+    let recipe: PUniswapKyberPoolRecipe;
     let uniswapFactory:  IUniswapFactory;
 
     beforeEach(async() => {
@@ -70,8 +70,12 @@ describe("PUniswapPoolRecipe", function() {
             await token.approve(smartpool.address, constants.MaxUint256);
         }
 
-        recipe = await deployContract(signers[0] as Wallet, PUniswapPoolRecipeArtifact, []) as PUniswapPoolRecipe;
-        await recipe.init(smartpool.address, uniswapFactory.address);
+        recipe = await deployContract(signers[0] as Wallet, PUniswapKyberPoolRecipeArtifact, []) as PUniswapKyberPoolRecipe;
+        await recipe.initUK(smartpool.address, uniswapFactory.address, PLACE_HOLDER_ADDRESS, [], PLACE_HOLDER_ADDRESS);
+
+        // console.log(await recipe.pool());
+        // process.exit();
+
         // approve contract
         await smartpool.approve(recipe.address, constants.MaxUint256);
     });
