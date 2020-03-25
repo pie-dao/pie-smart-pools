@@ -52,6 +52,10 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
 
     pool: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    setKyberSwap: TypedFunctionDescription<{
+      encode([_token, _value]: [string, boolean]): string;
+    }>;
+
     swapOnKyber: TypedFunctionDescription<{ encode([]: [string]): string }>;
 
     tokenToEthSwapInput: TypedFunctionDescription<{
@@ -76,6 +80,8 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
     }>;
 
     uniswapFactory: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    uprSlot: TypedFunctionDescription<{ encode([]: []): string }>;
   };
 
   events: {};
@@ -139,6 +145,12 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     pool(): Promise<string>;
 
+    setKyberSwap(
+      _token: string,
+      _value: boolean,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     swapOnKyber(arg0: string): Promise<boolean>;
 
     tokenToEthSwapInput(
@@ -162,6 +174,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
     ): Promise<ContractTransaction>;
 
     uniswapFactory(): Promise<string>;
+
+    uprSlot(): Promise<string>;
   };
 
   ETH(): Promise<string>;
@@ -200,6 +214,12 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
   pool(): Promise<string>;
 
+  setKyberSwap(
+    _token: string,
+    _value: boolean,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   swapOnKyber(arg0: string): Promise<boolean>;
 
   tokenToEthSwapInput(
@@ -223,6 +243,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
   ): Promise<ContractTransaction>;
 
   uniswapFactory(): Promise<string>;
+
+  uprSlot(): Promise<string>;
 
   filters: {};
 
@@ -260,6 +282,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     pool(): Promise<BigNumber>;
 
+    setKyberSwap(_token: string, _value: boolean): Promise<BigNumber>;
+
     swapOnKyber(arg0: string): Promise<BigNumber>;
 
     tokenToEthSwapInput(
@@ -278,5 +302,7 @@ export class PUniswapKyberPoolRecipe extends Contract {
     transferOwnership(_newOwner: string): Promise<BigNumber>;
 
     uniswapFactory(): Promise<BigNumber>;
+
+    uprSlot(): Promise<BigNumber>;
   };
 }

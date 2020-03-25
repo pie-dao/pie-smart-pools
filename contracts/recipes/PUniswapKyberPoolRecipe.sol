@@ -26,7 +26,9 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
         }
     }
 
-    // TODO set swap on kyber
+    function setKyberSwap(address _token, bool _value) external onlyOwner {
+        swapOnKyber[_token] = _value;
+    }
 
     function _ethToToken(address _token, uint256 _tokens_bought) internal override returns (uint256) {
         if(!swapOnKyber[_token]) {
@@ -46,7 +48,6 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
             return super._tokenToEth(_token, _tokens_sold, _recipient);
         }
 
-        // TODO swap on kyber
         uint256 ethBefore = address(this).balance;
         kyber.trade(address(_token), _tokens_sold, ETH, address(this), uint256(-1), 1, feeReceiver);
         uint256 ethAfter = address(this).balance;

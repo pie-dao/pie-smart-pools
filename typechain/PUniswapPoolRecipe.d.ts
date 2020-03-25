@@ -56,6 +56,8 @@ interface PUniswapPoolRecipeInterface extends Interface {
     }>;
 
     uniswapFactory: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    uprSlot: TypedFunctionDescription<{ encode([]: []): string }>;
   };
 
   events: {};
@@ -119,6 +121,8 @@ export class PUniswapPoolRecipe extends Contract {
     ): Promise<ContractTransaction>;
 
     uniswapFactory(): Promise<string>;
+
+    uprSlot(): Promise<string>;
   };
 
   ethToTokenSwapOutput(
@@ -163,6 +167,8 @@ export class PUniswapPoolRecipe extends Contract {
 
   uniswapFactory(): Promise<string>;
 
+  uprSlot(): Promise<string>;
+
   filters: {};
 
   estimate: {
@@ -199,5 +205,7 @@ export class PUniswapPoolRecipe extends Contract {
     ): Promise<BigNumber>;
 
     uniswapFactory(): Promise<BigNumber>;
+
+    uprSlot(): Promise<BigNumber>;
   };
 }
