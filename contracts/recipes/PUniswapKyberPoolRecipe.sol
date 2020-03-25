@@ -6,7 +6,6 @@ import "../interfaces/IKyberNetwork.sol";
 
 contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
-    // TODO use diamond storage
     bytes32 constant public ukprSlot = keccak256("PUniswapKyberPoolRecipe.storage.location");
 
     // Uniswap pool recipe struct
