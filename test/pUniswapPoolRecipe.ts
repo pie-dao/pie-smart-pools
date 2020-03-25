@@ -83,13 +83,14 @@ describe("PUniswapPoolRecipe", function() {
 
             const expectedEth = await recipe.getTokenToEthInputPrice(amount);
         
+            const ethBalanceBefore = await signers[0].provider.getBalance(account2);
             await recipe.tokenToEthTransferInput(amount, 1, constants.MaxUint256, account2);
 
             const sPBalance = await smartpool.balanceOf(account);
             expect(sPBalance, "Smart pool token balance should have decreased by the amount").to.eq(INITIAL_SUPPLY.sub(amount));
 
             const ethBalance = await signers[0].provider.getBalance(account2);
-            expect(ethBalance).to.eq(expectedEth);
+            expect(ethBalance).to.eq(ethBalanceBefore.add(expectedEth));
         });
 
         it("Calling TokenToEthTransferInput when the dealine passed should fail", async() => {
