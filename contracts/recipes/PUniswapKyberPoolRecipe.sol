@@ -12,7 +12,9 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe {
 
     address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     
-    constructor(address _pool, address _uniswapFactory, address _kyber, address[] memory _swapOnKyber, address _feeReciever) PUniswapPoolRecipe(_pool, _uniswapFactory) public {
+    function init(address _pool, address _uniswapFactory, address _kyber, address[] memory _swapOnKyber, address _feeReciever) public {
+        // UnsiwapRecipe enforces that init can only be called once
+        super.init(_pool, _uniswapFactory);
         kyber = IKyberNetwork(_kyber);
         feeReceiver = _feeReciever;
 

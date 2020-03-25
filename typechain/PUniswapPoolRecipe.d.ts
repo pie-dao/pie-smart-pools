@@ -32,6 +32,10 @@ interface PUniswapPoolRecipeInterface extends Interface {
       encode([_tokens_sold]: [BigNumberish]): string;
     }>;
 
+    init: TypedFunctionDescription<{
+      encode([_pool, _uniswapFactory]: [string, string]): string;
+    }>;
+
     pool: TypedFunctionDescription<{ encode([]: []): string }>;
 
     tokenToEthSwapInput: TypedFunctionDescription<{
@@ -91,6 +95,12 @@ export class PUniswapPoolRecipe extends Contract {
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
+    init(
+      _pool: string,
+      _uniswapFactory: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     pool(): Promise<string>;
 
     tokenToEthSwapInput(
@@ -128,6 +138,12 @@ export class PUniswapPoolRecipe extends Contract {
 
   getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
+  init(
+    _pool: string,
+    _uniswapFactory: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   pool(): Promise<string>;
 
   tokenToEthSwapInput(
@@ -164,6 +180,8 @@ export class PUniswapPoolRecipe extends Contract {
     getEthToTokenOutputPrice(_tokens_bought: BigNumberish): Promise<BigNumber>;
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
+
+    init(_pool: string, _uniswapFactory: string): Promise<BigNumber>;
 
     pool(): Promise<BigNumber>;
 

@@ -70,7 +70,8 @@ describe.only("PUniswapPoolRecipe", function() {
             await token.approve(smartpool.address, constants.MaxUint256);
         }
 
-        recipe = await deployContract(signers[0] as Wallet, PUniswapPoolRecipeArtifact, [smartpool.address, uniswapFactory.address]) as PUniswapPoolRecipe;
+        recipe = await deployContract(signers[0] as Wallet, PUniswapPoolRecipeArtifact, []) as PUniswapPoolRecipe;
+        await recipe.init(smartpool.address, uniswapFactory.address);
         // approve contract
         await smartpool.approve(recipe.address, constants.MaxUint256);
     });

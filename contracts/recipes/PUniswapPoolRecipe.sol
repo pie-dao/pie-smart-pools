@@ -12,7 +12,8 @@ contract PUniswapPoolRecipe {
     IUniswapFactory public uniswapFactory;
     
 
-    constructor(address _pool, address _uniswapFactory) public {
+    function init(address _pool, address _uniswapFactory) public virtual {
+        require(address(pool) == address(0), "already initialised");
         pool = IPSmartPool(_pool);
         uniswapFactory = IUniswapFactory(_uniswapFactory);
     }

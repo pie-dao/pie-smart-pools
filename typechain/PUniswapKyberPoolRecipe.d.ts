@@ -36,6 +36,16 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
       encode([_tokens_sold]: [BigNumberish]): string;
     }>;
 
+    init: TypedFunctionDescription<{
+      encode([_pool, _uniswapFactory, _kyber, _swapOnKyber, _feeReciever]: [
+        string,
+        string,
+        string,
+        string[],
+        string
+      ]): string;
+    }>;
+
     kyber: TypedFunctionDescription<{ encode([]: []): string }>;
 
     pool: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -108,6 +118,15 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
+    init(
+      _pool: string,
+      _uniswapFactory: string,
+      _kyber: string,
+      _swapOnKyber: string[],
+      _feeReciever: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     kyber(): Promise<string>;
 
     pool(): Promise<string>;
@@ -153,6 +172,15 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
   getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
+  init(
+    _pool: string,
+    _uniswapFactory: string,
+    _kyber: string,
+    _swapOnKyber: string[],
+    _feeReciever: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   kyber(): Promise<string>;
 
   pool(): Promise<string>;
@@ -197,6 +225,14 @@ export class PUniswapKyberPoolRecipe extends Contract {
     getEthToTokenOutputPrice(_tokens_bought: BigNumberish): Promise<BigNumber>;
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
+
+    init(
+      _pool: string,
+      _uniswapFactory: string,
+      _kyber: string,
+      _swapOnKyber: string[],
+      _feeReciever: string
+    ): Promise<BigNumber>;
 
     kyber(): Promise<BigNumber>;
 
