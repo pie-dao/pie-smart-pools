@@ -48,6 +48,8 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
 
     kyber: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    oSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     pool: TypedFunctionDescription<{ encode([]: []): string }>;
 
     swapOnKyber: TypedFunctionDescription<{ encode([]: [string]): string }>;
@@ -67,6 +69,10 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
         BigNumberish,
         string
       ]): string;
+    }>;
+
+    transferOwnership: TypedFunctionDescription<{
+      encode([_newOwner]: [string]): string;
     }>;
 
     uniswapFactory: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -129,6 +135,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     kyber(): Promise<string>;
 
+    oSlot(): Promise<string>;
+
     pool(): Promise<string>;
 
     swapOnKyber(arg0: string): Promise<boolean>;
@@ -145,6 +153,11 @@ export class PUniswapKyberPoolRecipe extends Contract {
       _min_eth: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      _newOwner: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -183,6 +196,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
   kyber(): Promise<string>;
 
+  oSlot(): Promise<string>;
+
   pool(): Promise<string>;
 
   swapOnKyber(arg0: string): Promise<boolean>;
@@ -199,6 +214,11 @@ export class PUniswapKyberPoolRecipe extends Contract {
     _min_eth: BigNumberish,
     _deadline: BigNumberish,
     _recipient: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    _newOwner: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -236,6 +256,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     kyber(): Promise<BigNumber>;
 
+    oSlot(): Promise<BigNumber>;
+
     pool(): Promise<BigNumber>;
 
     swapOnKyber(arg0: string): Promise<BigNumber>;
@@ -252,6 +274,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
       _deadline: BigNumberish,
       _recipient: string
     ): Promise<BigNumber>;
+
+    transferOwnership(_newOwner: string): Promise<BigNumber>;
 
     uniswapFactory(): Promise<BigNumber>;
   };

@@ -1,9 +1,10 @@
 pragma solidity ^0.6.4;
 
 import "./PUniswapPoolRecipe.sol";
+import "../Ownable.sol";
 import "../interfaces/IKyberNetwork.sol";
 
-contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe {
+contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
     // TODO use diamond storage
     mapping(address => bool) public swapOnKyber;
@@ -17,6 +18,8 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe {
         super.init(_pool, _uniswapFactory);
         kyber = IKyberNetwork(_kyber);
         feeReceiver = _feeReciever;
+
+        _setOwner(msg.sender);
 
         for(uint256 i = 0; i < _swapOnKyber.length; i ++) {
             swapOnKyber[_swapOnKyber[i]] = true;
