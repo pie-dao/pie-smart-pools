@@ -146,10 +146,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.0.0-rc.0.tgz#6cc5128f509b6310668547899a4115f8512c32ff"
   integrity sha512-Ts7h4/5tNiRN2iiH10Mp+6CgmK/PETDHYIJ/tpUrXgGjWR51T/Dr8kxa41GeHHhmAsuo+CkcuG9L4di6qth/Mw==
 
-"@pie-dao/mock-contracts@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@pie-dao/mock-contracts/-/mock-contracts-0.0.4.tgz#544c7a93745a74fb7f24ac982038e2991009fe18"
-  integrity sha512-O2gbi0NofXJ5eZ0ayobi4rJJwhukZZw3AbQIOtFt43t5+W7c4KP+aASdrb1CuGCJhc+9m6kPGyDqHxrIPzem+g==
+"@pie-dao/mock-contracts@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@pie-dao/mock-contracts/-/mock-contracts-0.0.5.tgz#098a979a862d34bbf83fc5cc3f5820e2c12f78a9"
+  integrity sha512-E8+A5in2IO3E7oq1xUFu8ag2i2bOGXS7xIA1/iiX3H+h98pSf2nGqXPvebrSaTAyeoGVszv2kehRuA9AN6121w==
   dependencies:
     "@openzeppelin/contracts" "^3.0.0-beta.0"
 

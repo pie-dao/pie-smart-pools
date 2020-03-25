@@ -50,7 +50,7 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
         }
 
         uint256 ethBefore = address(this).balance;
-        s.kyber.trade(ETH, address(this).balance, _token, address(this), _tokens_bought, 1, s.feeReceiver);
+        s.kyber.trade{value: address(this).balance}(ETH, address(this).balance, _token, address(this), _tokens_bought, 1, s.feeReceiver);
         uint256 ethAfter = address(this).balance;
 
         // return amount of ETH spend
@@ -64,6 +64,7 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
         }
 
         uint256 ethBefore = address(this).balance;
+        _token.approve(address(s.kyber), uint256(-1));
         s.kyber.trade(address(_token), _tokens_sold, ETH, address(this), uint256(-1), 1, s.feeReceiver);
         uint256 ethAfter = address(this).balance;
 

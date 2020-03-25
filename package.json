@@ -45,7 +45,7 @@
     "test": "test"
   },
   "dependencies": {
-    "@pie-dao/mock-contracts": "^0.0.4",
+    "@pie-dao/mock-contracts": "^0.0.5",
     "dotenv": "^8.2.0"
   }
 }
