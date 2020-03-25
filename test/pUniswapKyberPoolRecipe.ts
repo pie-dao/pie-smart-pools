@@ -29,7 +29,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe.only("PUniswapKyberPoolRecipe", function() {
+describe("PUniswapKyberPoolRecipe", function() {
     this.timeout(300000);
     let signers: Signer[];
     let account: string;
