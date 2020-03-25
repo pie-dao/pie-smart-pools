@@ -7,36 +7,45 @@ import "../interfaces/IKyberNetwork.sol";
 contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
     // TODO use diamond storage
-    mapping(address => bool) public swapOnKyber;
-    IKyberNetwork public kyber;
-    address public feeReceiver;
+    bytes32 constant public ukprSlot = keccak256("PUniswapKyberPoolRecipe.storage.location");
+
+    // Uniswap pool recipe struct
+    struct ukprs {
+        mapping(address => bool) swapOnKyber;
+        IKyberNetwork kyber;
+        address feeReceiver;
+    }
 
     address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     
     function init(address _pool, address _uniswapFactory, address _kyber, address[] memory _swapOnKyber, address _feeReciever) public {
         // UnsiwapRecipe enforces that init can only be called once
+        ukprs storage s = lukprs();
+
         super.init(_pool, _uniswapFactory);
-        kyber = IKyberNetwork(_kyber);
-        feeReceiver = _feeReciever;
+        s.kyber = IKyberNetwork(_kyber);
+        s.feeReceiver = _feeReciever;
 
         _setOwner(msg.sender);
 
         for(uint256 i = 0; i < _swapOnKyber.length; i ++) {
-            swapOnKyber[_swapOnKyber[i]] = true;
+            s.swapOnKyber[_swapOnKyber[i]] = true;
         }
     }
 
     function setKyberSwap(address _token, bool _value) external onlyOwner {
-        swapOnKyber[_token] = _value;
+        ukprs storage s = lukprs();
+        s.swapOnKyber[_token] = _value;
     }
 
     function _ethToToken(address _token, uint256 _tokens_bought) internal override returns (uint256) {
-        if(!swapOnKyber[_token]) {
+        ukprs storage s = lukprs();
+        if(!s.swapOnKyber[_token]) {
             return super._ethToToken(_token, _tokens_bought);
         }
 
         uint256 ethBefore = address(this).balance;
-        kyber.trade(ETH, address(this).balance, _token, address(this), _tokens_bought, 1, feeReceiver);
+        s.kyber.trade(ETH, address(this).balance, _token, address(this), _tokens_bought, 1, s.feeReceiver);
         uint256 ethAfter = address(this).balance;
 
         // return amount of ETH spend
@@ -44,16 +53,25 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
     }
 
     function _tokenToEth(IERC20 _token, uint256 _tokens_sold, address _recipient) internal override returns (uint256 eth_bought) {
-        if(!swapOnKyber[address(_token)]) {
+        ukprs storage s = lukprs();
+        if(!s.swapOnKyber[address(_token)]) {
             return super._tokenToEth(_token, _tokens_sold, _recipient);
         }
 
         uint256 ethBefore = address(this).balance;
-        kyber.trade(address(_token), _tokens_sold, ETH, address(this), uint256(-1), 1, feeReceiver);
+        s.kyber.trade(address(_token), _tokens_sold, ETH, address(this), uint256(-1), 1, s.feeReceiver);
         uint256 ethAfter = address(this).balance;
 
         // return amount of ETH received
         return ethAfter - ethBefore;
+    }
+
+    // Load uniswap pool recipe
+    function lukprs() internal view returns (ukprs storage s) {
+        bytes32 loc = uprSlot;
+        assembly {
+            s_slot := loc
+        }
     }
 
 }

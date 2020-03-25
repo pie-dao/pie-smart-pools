@@ -8,7 +8,7 @@ import "../interfaces/IUniswapExchange.sol";
 // Takes ETH and mints smart pool tokens
 contract PUniswapPoolRecipe {
     
-    bytes32 constant public uprSlot = keccak256("UniswapPoolRecipe.storage.location");
+    bytes32 constant public uprSlot = keccak256("PUniswapPoolRecipe.storage.location");
 
     // Uniswap pool recipe struct
     struct uprs {

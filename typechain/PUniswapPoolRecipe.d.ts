@@ -36,8 +36,6 @@ interface PUniswapPoolRecipeInterface extends Interface {
       encode([_pool, _uniswapFactory]: [string, string]): string;
     }>;
 
-    pool: TypedFunctionDescription<{ encode([]: []): string }>;
-
     tokenToEthSwapInput: TypedFunctionDescription<{
       encode([_tokens_sold, _min_eth, _deadline]: [
         BigNumberish,
@@ -54,8 +52,6 @@ interface PUniswapPoolRecipeInterface extends Interface {
         string
       ]): string;
     }>;
-
-    uniswapFactory: TypedFunctionDescription<{ encode([]: []): string }>;
 
     uprSlot: TypedFunctionDescription<{ encode([]: []): string }>;
   };
@@ -103,8 +99,6 @@ export class PUniswapPoolRecipe extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    pool(): Promise<string>;
-
     tokenToEthSwapInput(
       _tokens_sold: BigNumberish,
       _min_eth: BigNumberish,
@@ -119,8 +113,6 @@ export class PUniswapPoolRecipe extends Contract {
       _recipient: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
-
-    uniswapFactory(): Promise<string>;
 
     uprSlot(): Promise<string>;
   };
@@ -148,8 +140,6 @@ export class PUniswapPoolRecipe extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
-  pool(): Promise<string>;
-
   tokenToEthSwapInput(
     _tokens_sold: BigNumberish,
     _min_eth: BigNumberish,
@@ -164,8 +154,6 @@ export class PUniswapPoolRecipe extends Contract {
     _recipient: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
-
-  uniswapFactory(): Promise<string>;
 
   uprSlot(): Promise<string>;
 
@@ -189,8 +177,6 @@ export class PUniswapPoolRecipe extends Contract {
 
     init(_pool: string, _uniswapFactory: string): Promise<BigNumber>;
 
-    pool(): Promise<BigNumber>;
-
     tokenToEthSwapInput(
       _tokens_sold: BigNumberish,
       _min_eth: BigNumberish,
@@ -203,8 +189,6 @@ export class PUniswapPoolRecipe extends Contract {
       _deadline: BigNumberish,
       _recipient: string
     ): Promise<BigNumber>;
-
-    uniswapFactory(): Promise<BigNumber>;
 
     uprSlot(): Promise<BigNumber>;
   };
