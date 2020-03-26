@@ -53,6 +53,17 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         lpts().symbol = _symbol;
         _mintPoolShare(_initialSupply);
         _pushPoolShare(msg.sender, _initialSupply);
+        
+        // approve tokens now to save gas on joining the pool
+        approveTokens();
+    }
+
+    function approveTokens() public {
+        IBPool bPool = lpbs().bPool;
+        address[] memory tokens = bPool.getCurrentTokens();
+        for(uint256 i = 0; i < tokens.length; i ++) {
+            IERC20(tokens[i]).approve(address(bPool), uint256(-1));
+        }
     }
 
     function setController(address _controller) onlyController noReentry external {
@@ -161,7 +172,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
 
         bool xfer = IERC20(_token).transferFrom(_from, address(this), _amount);
-        IERC20(_token).approve(address(bPool), _amount);
         require(xfer, "ERR_ERC20_FALSE");
         bPool.rebind(_token, badd(tokenBalance, _amount), tokenWeight);
     }
