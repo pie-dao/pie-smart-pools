@@ -34,9 +34,7 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
       encode([_tokens_sold]: [BigNumberish]): string;
     }>;
 
-    init: TypedFunctionDescription<{
-      encode([_pool, _uniswapFactory]: [string, string]): string;
-    }>;
+    init: TypedFunctionDescription<{ encode([,]: [string, string]): string }>;
 
     initUK: TypedFunctionDescription<{
       encode([_pool, _uniswapFactory, _kyber, _swapOnKyber, _feeReciever]: [
@@ -127,8 +125,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
     init(
-      _pool: string,
-      _uniswapFactory: string,
+      arg0: string,
+      arg1: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -196,8 +194,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
   getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
   init(
-    _pool: string,
-    _uniswapFactory: string,
+    arg0: string,
+    arg1: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -264,7 +262,7 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
-    init(_pool: string, _uniswapFactory: string): Promise<BigNumber>;
+    init(arg0: string, arg1: string): Promise<BigNumber>;
 
     initUK(
       _pool: string,

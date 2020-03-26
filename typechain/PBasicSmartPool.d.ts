@@ -36,6 +36,8 @@ interface PBasicSmartPoolInterface extends Interface {
       encode([_dst, _amount]: [string, BigNumberish]): string;
     }>;
 
+    approveTokens: TypedFunctionDescription<{ encode([]: []): string }>;
+
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
     calcTokensForAmount: TypedFunctionDescription<{
@@ -80,6 +82,8 @@ interface PBasicSmartPoolInterface extends Interface {
     pbsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    rpSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     setController: TypedFunctionDescription<{
       encode([_controller]: [string]): string;
@@ -174,6 +178,10 @@ export class PBasicSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    approveTokens(
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     balanceOf(_whom: string): Promise<BigNumber>;
 
     calcTokensForAmount(
@@ -229,6 +237,8 @@ export class PBasicSmartPool extends Contract {
 
     ptSlot(): Promise<string>;
 
+    rpSlot(): Promise<string>;
+
     setController(
       _controller: string,
       overrides?: TransactionOverrides
@@ -275,6 +285,8 @@ export class PBasicSmartPool extends Contract {
     _amount: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
+
+  approveTokens(overrides?: TransactionOverrides): Promise<ContractTransaction>;
 
   balanceOf(_whom: string): Promise<BigNumber>;
 
@@ -330,6 +342,8 @@ export class PBasicSmartPool extends Contract {
   pbsSlot(): Promise<string>;
 
   ptSlot(): Promise<string>;
+
+  rpSlot(): Promise<string>;
 
   setController(
     _controller: string,
@@ -400,6 +414,8 @@ export class PBasicSmartPool extends Contract {
 
     approve(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
+    approveTokens(): Promise<BigNumber>;
+
     balanceOf(_whom: string): Promise<BigNumber>;
 
     calcTokensForAmount(_amount: BigNumberish): Promise<BigNumber>;
@@ -432,6 +448,8 @@ export class PBasicSmartPool extends Contract {
     pbsSlot(): Promise<BigNumber>;
 
     ptSlot(): Promise<BigNumber>;
+
+    rpSlot(): Promise<BigNumber>;
 
     setController(_controller: string): Promise<BigNumber>;
 

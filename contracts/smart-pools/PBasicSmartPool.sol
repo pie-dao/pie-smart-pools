@@ -99,7 +99,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
             uint bal = bPool.getBalance(t);
             uint tokenAmountIn = bmul(ratio, bal);
             emit LOG_JOIN(msg.sender, t, tokenAmountIn);
-            _pullUnderlying(t, msg.sender, tokenAmountIn);
+            _pullUnderlying(t, msg.sender, tokenAmountIn, bal);
         }
         _mintPoolShare(_amount);
         _pushPoolShare(msg.sender, _amount);
@@ -121,7 +121,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
             uint bal = bPool.getBalance(t);
             uint tAo = bmul(ratio, bal);
             emit LOG_EXIT(msg.sender, t, tAo);  
-            _pushUnderlying(t, msg.sender, tAo);
+            _pushUnderlying(t, msg.sender, tAo, bal);
         }
     }
 
@@ -163,28 +163,26 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
 
     // Pull tokens from address and rebind BPool
-    function _pullUnderlying(address _token, address _from, uint _amount)
+    function _pullUnderlying(address _token, address _from, uint256 _amount, uint256 _tokenBalance)
         internal
     {   
         IBPool bPool = lpbs().bPool;
         // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
-        uint tokenBalance = bPool.getBalance(_token);
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
 
         bool xfer = IERC20(_token).transferFrom(_from, address(this), _amount);
         require(xfer, "ERR_ERC20_FALSE");
-        bPool.rebind(_token, badd(tokenBalance, _amount), tokenWeight);
+        bPool.rebind(_token, badd(_tokenBalance, _amount), tokenWeight);
     }
 
     // Rebind BPool and push tokens to address
-    function _pushUnderlying(address _token, address _to, uint _amount)
+    function _pushUnderlying(address _token, address _to, uint256 _amount, uint256 _tokenBalance)
         internal
     {   
         IBPool bPool = lpbs().bPool;
         // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
-        uint tokenBalance = bPool.getBalance(_token);
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
-        bPool.rebind(_token, bsub(tokenBalance, _amount), tokenWeight);
+        bPool.rebind(_token, bsub(_tokenBalance, _amount), tokenWeight);
 
         bool xfer = IERC20(_token).transfer(_to, _amount);
         require(xfer, "ERR_ERC20_FALSE");
@@ -195,7 +193,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         _pull(_from, _amount);
     }
 
-    function _burnPoolShare(uint _amount)
+    function _burnPoolShare(uint256 _amount)
         internal
     {
         _burn(_amount);
