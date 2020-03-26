@@ -3,8 +3,9 @@ pragma solidity ^0.6.4;
 import "../interfaces/IBPool.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
+import "../ReentryProtection.sol";
 
-contract PBasicSmartPool is IPSmartPool, PCToken {
+contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     
     // P Basic Smart Struct
     bytes32 constant public pbsSlot = keccak256("PBasicSmartPool.storage.location");
@@ -54,7 +55,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         _pushPoolShare(msg.sender, _initialSupply);
     }
 
-    function setController(address _controller) onlyController external {
+    function setController(address _controller) onlyController noReentry external {
         lpbs().controller = _controller;
     }
 
@@ -93,7 +94,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         _pushPoolShare(msg.sender, _amount);
     }
 
-    function exitPool(uint256 _amount) external override ready {
+    function exitPool(uint256 _amount) external override ready noReentry {
         IBPool bPool = lpbs().bPool;
         uint poolTotal = totalSupply();
         uint ratio = bdiv(_amount, poolTotal);
@@ -203,7 +204,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     }
 
     // Load p basic storage
-    function lpbs() internal view returns (pbs storage s) {
+    function lpbs() internal pure returns (pbs storage s) {
         bytes32 loc = pbsSlot;
         assembly {
             s_slot := loc

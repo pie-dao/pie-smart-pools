@@ -13,6 +13,7 @@ contract ReentryProtection {
 
     modifier noReentry {
         // Use counter to only write to storage once
+        lrps().lockCounter ++;
         uint256 lockValue = lrps().lockCounter;
         _;
         require(lockValue == lrps().lockCounter, "ReentryProtection.noReentry: reentry detected");
