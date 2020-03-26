@@ -26,7 +26,7 @@ contract PCappedSmartPool is PBasicSmartPool {
         return lpcs().cap;
     }
 
-    function lpcs() internal view returns (pcs storage s) {
+    function lpcs() internal pure returns (pcs storage s) {
         bytes32 loc = pcsSlot;
         assembly {
             s_slot := loc

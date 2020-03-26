@@ -26,7 +26,7 @@ contract Ownable {
     }
 
     // Load ownable storage
-    function los() internal view returns (os storage s) {
+    function los() internal pure returns (os storage s) {
         bytes32 loc = oSlot;
         assembly {
             s_slot := loc

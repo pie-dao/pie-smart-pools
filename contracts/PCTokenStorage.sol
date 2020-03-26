@@ -11,7 +11,7 @@ contract PCTokenStorage {
         mapping(address => mapping(address=>uint256)) allowance;
     }
 
-    function lpts() internal view returns (pts storage s) {
+    function lpts() internal pure returns (pts storage s) {
         bytes32 loc = ptSlot;
         assembly {
             s_slot := loc
