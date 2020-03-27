@@ -16,16 +16,26 @@ contract Ownable {
         _;
     }
 
+    /**
+        @notice Transfer ownership to a new address
+        @param _newOwner Address of the new owner
+    */
     function transferOwnership(address _newOwner) onlyOwner external {
         _setOwner(_newOwner);
     }
 
-
+    /**
+        @notice Internal method to set the owner
+        @param Address of the new owner
+    */
     function _setOwner(address _newOwner) internal {
         los().owner = _newOwner;
     }
 
-    // Load ownable storage
+    /**
+        @notice Load ownable storage
+        @return Storage pointer to the Ownable storage struct
+    */
     function los() internal pure returns (os storage s) {
         bytes32 loc = oSlot;
         assembly {

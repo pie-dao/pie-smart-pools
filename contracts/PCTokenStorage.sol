@@ -11,6 +11,10 @@ contract PCTokenStorage {
         mapping(address => mapping(address=>uint256)) allowance;
     }
 
+    /**
+        @notice Load pool token storage
+        @return Storage pointer to the pool token struct
+    */
     function lpts() internal pure returns (pts storage s) {
         bytes32 loc = ptSlot;
         assembly {
