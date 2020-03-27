@@ -134,6 +134,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         return lpbs().controller;
     }
 
+    function getPublicSwapSetter() external view returns(address) {
+        return lpbs().publicSwapSetter;
+    }
+
     function isPublicSwap() external view returns (bool) {
         return lpbs().bPool.isPublicSwap();
     }
