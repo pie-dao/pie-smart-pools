@@ -11,6 +11,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
     struct pbs {
         IBPool bPool;
         address controller;
+        address publicSwapSetter;
     }
     
     modifier ready() {
@@ -35,12 +36,18 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
         _;
     }
 
+    modifier onlyPublicSwapSetter() {
+        require(msg.sender == lpbs().controller, "PBasicSmartPool.publicSwapSetter: not owner");
+        _;
+    }
+
     // Seperated initializer for easier use with proxies
     function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
         pbs storage s = lpbs();
         require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
         s.bPool = IBPool(_bPool);
         s.controller = msg.sender;
+        s.publicSwapSetter = msg.sender;
         lpts().name = _name;
         lpts().symbol = _symbol;
         _mintPoolShare(_initialSupply);
@@ -49,6 +56,18 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
 
     function setController(address _controller) onlyController external {
         lpbs().controller = _controller;
+    }
+
+    function setPublicSwapSetter(address _newPublicSwapSetter) onlyController external {
+        lpbs().publicSwapSetter = _newPublicSwapSetter;
+    }
+
+    function setPublicSwap(bool _public) onlyPublicSwapSetter external {
+        lpbs().bPool.setPublicSwap(_public);
+    }
+
+    function setSwapFee(uint256 _swapFee) onlyController external {
+        lpbs().bPool.setSwapFee(_swapFee);
     }
 
     function joinPool(uint256 _amount) external override virtual ready {
@@ -113,6 +132,18 @@ contract PBasicSmartPool is IPSmartPool, PCToken {
 
     function getController() external view override returns(address) {
         return lpbs().controller;
+    }
+
+    function getPublicSwapSetter() external view returns(address) {
+        return lpbs().publicSwapSetter;
+    }
+
+    function isPublicSwap() external view returns (bool) {
+        return lpbs().bPool.isPublicSwap();
+    }
+
+    function getSwapFee() external view returns (uint256) {
+        return lpbs().bPool.getSwapFee();
     }
 
     function getBPool() external view returns(address) {

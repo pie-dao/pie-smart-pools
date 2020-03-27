@@ -18,12 +18,15 @@ interface IBPool {
     function getBalance(address token) external view returns (uint);
     function rebind(address token, uint balance, uint denorm) external;
     function setSwapFee(uint swapFee) external;
+    function setPublicSwap(bool _public) external;
     function bind(address token, uint balance, uint denorm) external;
     function unbind(address token) external;
     function getDenormalizedWeight(address token) external view returns (uint);
     function getTotalDenormalizedWeight() external view returns (uint);
     function getCurrentTokens() external view returns(address[] memory);
     function setController(address manager) external;
+    function isPublicSwap() external view returns(bool);
+    function getSwapFee() external view returns (uint256);
 
     function calcPoolOutGivenSingleIn(
         uint tokenBalanceIn,
