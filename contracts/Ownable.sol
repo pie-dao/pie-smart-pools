@@ -26,7 +26,7 @@ contract Ownable {
 
     /**
         @notice Internal method to set the owner
-        @param Address of the new owner
+        @param _newOwner Address of the new owner
     */
     function _setOwner(address _newOwner) internal {
         los().owner = _newOwner;
@@ -34,7 +34,7 @@ contract Ownable {
 
     /**
         @notice Load ownable storage
-        @return Storage pointer to the Ownable storage struct
+        @return s Storage pointer to the Ownable storage struct
     */
     function los() internal pure returns (os storage s) {
         bytes32 loc = oSlot;

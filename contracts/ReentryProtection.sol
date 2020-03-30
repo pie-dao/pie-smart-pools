@@ -21,7 +21,7 @@ contract ReentryProtection {
 
     /**
         @notice Load reentry protection storage
-        @return Pointer to the reentry protection storage struct
+        @return s Pointer to the reentry protection storage struct
     */
     function lrps() internal pure returns (rps storage s) {
         bytes32 loc = rpSlot;

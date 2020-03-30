@@ -47,7 +47,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _bPool Address of the underlying balancer pool
         @param _name Name for the smart pool token
         @param _symbol Symbol for the smart pool token
-        @param _inititialSupply Initial token supply to mint
+        @param _initialSupply Initial token supply to mint
     */
     function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
         pbs storage s = lpbs();
@@ -279,7 +279,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
 
     /**
         @notice Load PBasicPool storage
-        @return Pointer to the storage struct
+        @return s Pointer to the storage struct
     */
     function lpbs() internal pure returns (pbs storage s) {
         bytes32 loc = pbsSlot;

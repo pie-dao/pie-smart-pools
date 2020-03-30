@@ -40,7 +40,7 @@ contract PCappedSmartPool is PBasicSmartPool {
 
     /**
         @notice Load the PCappedSmartPool storage
-        @return Pointer to the storage struct
+        @return s Pointer to the storage struct
     */
     function lpcs() internal pure returns (pcs storage s) {
         bytes32 loc = pcsSlot;
