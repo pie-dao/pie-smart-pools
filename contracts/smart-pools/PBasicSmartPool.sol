@@ -33,7 +33,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     );
 
     modifier onlyController() {
-        require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not owner");
+        require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not controller");
         _;
     }
 
@@ -61,7 +61,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         _pushPoolShare(msg.sender, _initialSupply);
         
         // approve tokens now to save gas on joining the pool
-        approveTokens();
+        // approveTokens();
     }
 
     /**
