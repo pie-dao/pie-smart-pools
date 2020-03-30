@@ -32,7 +32,6 @@
     "chai": "^4.2.0",
     "ethereum-waffle": "^2.3.2",
     "ethers": "^4.0.44",
-    "solidity-coverage": "^0.7.1",
     "ts-generator": "0.0.8",
     "ts-node": "^8.6.2",
     "typechain": "^1.0.4",
@@ -47,6 +46,7 @@
   "dependencies": {
     "@pie-dao/mock-contracts": "^0.0.5",
     "@pie-dao/proxy": "^0.0.6",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "solidity-coverage": "^0.7.2"
   }
 }
