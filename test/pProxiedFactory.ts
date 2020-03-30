@@ -20,7 +20,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe.only("PCappedSmartPool", function() {
+describe("PCappedSmartPool", function() {
     let signers: Signer[];
     let account: string;
     let factory: PProxiedFactory;
