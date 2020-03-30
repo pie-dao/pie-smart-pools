@@ -12,13 +12,14 @@ contract PProxiedFactory is Ownable {
 
     IBFactory public balancerFactory;
     address public smartPoolImplementation;
-    mapping(address => bool) public isS
+    mapping(address => bool) public isPool;
+    address[] public pools;
 
     constructor(address _balancerFactory) public {
         _setOwner(msg.sender);
         balancerFactory = IBFactory(_balancerFactory);
         
-        PCappedSmartPool memory implementation = new PCappedSmartPool();
+        PCappedSmartPool implementation = new PCappedSmartPool();
         // function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
         implementation.init(address(0), "IMPL", "IMPL", 1 ether);
         smartPoolImplementation = address(implementation);
@@ -26,45 +27,51 @@ contract PProxiedFactory is Ownable {
 
 
     function newProxiedSmartPool(
-        string calldata _name, 
-        string calldata _symbol,
+        string memory _name, 
+        string memory _symbol,
         uint256 _initialSupply,
-        address[] calldata _tokens,
-        uint256[] calldata _amounts,
-        uint256[] calldata _weights,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256[] memory _weights,
         uint256 _cap
-    ) external onlyOwner returns(address) {
+    ) public onlyOwner returns(address) {
         // Deploy proxy contract
-        PProxyPausable memory proxy = new PProxyPausable();
+        PProxyPausable proxy = new PProxyPausable();
         
         // Setup proxy
-        proxy.setImplementation = smartPoolImplementation;
+        proxy.setImplementation(smartPoolImplementation);
         proxy.setPauzer(msg.sender);
         proxy.setProxyOwner(msg.sender);
-
+        
+        
         // Setup balancer pool
         address balancerPoolAddress = balancerFactory.newBPool();
-        IBPool memory bPool = IBPool(balancerPoolAddress);
+        IBPool bPool = IBPool(balancerPoolAddress);
 
         for(uint256 i = 0; i < _tokens.length; i ++) {
-            IERC20 memory token = IERC20(_tokens[i]);
+            IERC20 token = IERC20(_tokens[i]);
             // Transfer tokens to this contract
             token.transferFrom(msg.sender, address(this), _amounts[i]);
             // Approve the balancer pool
             token.approve(balancerPoolAddress, uint256(-1));
             // Bind tokens
-            bPool.bind(_tokens[i], _amounts[i], _weights[i]);=
+            bPool.bind(_tokens[i], _amounts[i], _weights[i]);
         }
-
         bPool.setController(address(proxy));
+        
 
-        PCappedSmartPool memory smartPool = PCappedSmartPool(address(proxy));
-        // init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply)
+        // Setup smart pool
+        PCappedSmartPool smartPool = PCappedSmartPool(address(proxy));
+    
         smartPool.init(balancerPoolAddress, _name, _symbol, _initialSupply);
         smartPool.setCap(_cap);
         smartPool.setController(msg.sender);
+        smartPool.setPublicSwapSetter(msg.sender);
         
+        isPool[address(smartPool)] = true;
+        pools.push(address(smartPool));
 
+        return address(smartPool);
     }
 
 }
