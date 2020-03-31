@@ -137,6 +137,21 @@ interface PCappedSmartPoolInterface extends Interface {
       ]): string[];
     }>;
 
+    CapChanged: TypedEventDescription<{
+      encodeTopics([setter, oldCap, newCap]: [
+        string | null,
+        null,
+        null
+      ]): string[];
+    }>;
+
+    ControllerChanged: TypedEventDescription<{
+      encodeTopics([previousController, newController]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+
     LOG_EXIT: TypedEventDescription<{
       encodeTopics([caller, tokenOut, tokenAmountOut]: [
         string | null,
@@ -152,6 +167,31 @@ interface PCappedSmartPoolInterface extends Interface {
         null
       ]): string[];
     }>;
+
+    PoolExited: TypedEventDescription<{
+      encodeTopics([from, amount]: [string | null, null]): string[];
+    }>;
+
+    PoolJoined: TypedEventDescription<{
+      encodeTopics([from, amount]: [string | null, null]): string[];
+    }>;
+
+    PublicSwapSet: TypedEventDescription<{
+      encodeTopics([setter, value]: [string | null, boolean | null]): string[];
+    }>;
+
+    PublicSwapSetterChanged: TypedEventDescription<{
+      encodeTopics([previousSetter, newSetter]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+
+    SwapFeeSet: TypedEventDescription<{
+      encodeTopics([setter, newFee]: [string | null, null]): string[];
+    }>;
+
+    TokensApproved: TypedEventDescription<{ encodeTopics([]: []): string[] }>;
 
     Transfer: TypedEventDescription<{
       encodeTopics([_src, _dst, _amount]: [
@@ -460,6 +500,13 @@ export class PCappedSmartPool extends Contract {
       _amount: null
     ): EventFilter;
 
+    CapChanged(setter: string | null, oldCap: null, newCap: null): EventFilter;
+
+    ControllerChanged(
+      previousController: string | null,
+      newController: string | null
+    ): EventFilter;
+
     LOG_EXIT(
       caller: string | null,
       tokenOut: string | null,
@@ -471,6 +518,21 @@ export class PCappedSmartPool extends Contract {
       tokenIn: string | null,
       tokenAmountIn: null
     ): EventFilter;
+
+    PoolExited(from: string | null, amount: null): EventFilter;
+
+    PoolJoined(from: string | null, amount: null): EventFilter;
+
+    PublicSwapSet(setter: string | null, value: boolean | null): EventFilter;
+
+    PublicSwapSetterChanged(
+      previousSetter: string | null,
+      newSetter: string | null
+    ): EventFilter;
+
+    SwapFeeSet(setter: string | null, newFee: null): EventFilter;
+
+    TokensApproved(): EventFilter;
 
     Transfer(
       _src: string | null,

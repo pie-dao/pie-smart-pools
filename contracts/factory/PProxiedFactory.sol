@@ -15,6 +15,8 @@ contract PProxiedFactory is Ownable {
     mapping(address => bool) public isPool;
     address[] public pools;
 
+    event SmartPoolCreated(address indexed poolAddress, string name, string symbol);
+
     constructor(address _balancerFactory) public {
         _setOwner(msg.sender);
         balancerFactory = IBFactory(_balancerFactory);
@@ -24,7 +26,6 @@ contract PProxiedFactory is Ownable {
         implementation.init(address(0), "IMPL", "IMPL", 1 ether);
         smartPoolImplementation = address(implementation);
     }
-
 
     function newProxiedSmartPool(
         string memory _name, 
@@ -41,8 +42,7 @@ contract PProxiedFactory is Ownable {
         // Setup proxy
         proxy.setImplementation(smartPoolImplementation);
         proxy.setPauzer(msg.sender);
-        proxy.setProxyOwner(msg.sender);
-        
+        proxy.setProxyOwner(msg.sender); 
         
         // Setup balancer pool
         address balancerPoolAddress = balancerFactory.newBPool();
@@ -59,7 +59,6 @@ contract PProxiedFactory is Ownable {
         }
         bPool.setController(address(proxy));
         
-
         // Setup smart pool
         PCappedSmartPool smartPool = PCappedSmartPool(address(proxy));
     
@@ -71,6 +70,8 @@ contract PProxiedFactory is Ownable {
         
         isPool[address(smartPool)] = true;
         pools.push(address(smartPool));
+
+        emit SmartPoolCreated(address(smartPool), _name, _symbol);
 
         return address(smartPool);
     }

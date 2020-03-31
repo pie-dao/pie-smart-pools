@@ -12,6 +12,8 @@ import {
 
 interface PUniswapKyberPoolRecipeInterface extends Interface {
   functions: {
+    ETH: TypedFunctionDescription<{ encode([]: []): string }>;
+
     ethToTokenSwapOutput: TypedFunctionDescription<{
       encode([_tokens_bought, _deadline]: [BigNumberish, BigNumberish]): string;
     }>;
@@ -32,13 +34,25 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
       encode([_tokens_sold]: [BigNumberish]): string;
     }>;
 
-    init: TypedFunctionDescription<{
-      encode([_pool, _uniswapFactory]: [string, string]): string;
+    init: TypedFunctionDescription<{ encode([,]: [string, string]): string }>;
+
+    initUK: TypedFunctionDescription<{
+      encode([_pool, _uniswapFactory, _kyber, _swapOnKyber, _feeReciever]: [
+        string,
+        string,
+        string,
+        string[],
+        string
+      ]): string;
     }>;
 
     oSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     pool: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    setKyberSwap: TypedFunctionDescription<{
+      encode([_token, _value]: [string, boolean]): string;
+    }>;
 
     tokenToEthSwapInput: TypedFunctionDescription<{
       encode([_tokens_sold, _min_eth, _deadline]: [
@@ -61,10 +75,19 @@ interface PUniswapKyberPoolRecipeInterface extends Interface {
       encode([_newOwner]: [string]): string;
     }>;
 
+    ukprSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     uprSlot: TypedFunctionDescription<{ encode([]: []): string }>;
   };
 
-  events: {};
+  events: {
+    OwnerChanged: TypedEventDescription<{
+      encodeTopics([previousOwner, newOwner]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+  };
 }
 
 export class PUniswapKyberPoolRecipe extends Contract {
@@ -89,6 +112,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
   interface: PUniswapKyberPoolRecipeInterface;
 
   functions: {
+    ETH(): Promise<string>;
+
     ethToTokenSwapOutput(
       _tokens_bought: BigNumberish,
       _deadline: BigNumberish,
@@ -107,14 +132,29 @@ export class PUniswapKyberPoolRecipe extends Contract {
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
     init(
+      arg0: string,
+      arg1: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    initUK(
       _pool: string,
       _uniswapFactory: string,
+      _kyber: string,
+      _swapOnKyber: string[],
+      _feeReciever: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     oSlot(): Promise<string>;
 
     pool(): Promise<string>;
+
+    setKyberSwap(
+      _token: string,
+      _value: boolean,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
 
     tokenToEthSwapInput(
       _tokens_sold: BigNumberish,
@@ -136,8 +176,12 @@ export class PUniswapKyberPoolRecipe extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    ukprSlot(): Promise<string>;
+
     uprSlot(): Promise<string>;
   };
+
+  ETH(): Promise<string>;
 
   ethToTokenSwapOutput(
     _tokens_bought: BigNumberish,
@@ -157,14 +201,29 @@ export class PUniswapKyberPoolRecipe extends Contract {
   getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
   init(
+    arg0: string,
+    arg1: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  initUK(
     _pool: string,
     _uniswapFactory: string,
+    _kyber: string,
+    _swapOnKyber: string[],
+    _feeReciever: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
   oSlot(): Promise<string>;
 
   pool(): Promise<string>;
+
+  setKyberSwap(
+    _token: string,
+    _value: boolean,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   tokenToEthSwapInput(
     _tokens_sold: BigNumberish,
@@ -186,11 +245,20 @@ export class PUniswapKyberPoolRecipe extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  ukprSlot(): Promise<string>;
+
   uprSlot(): Promise<string>;
 
-  filters: {};
+  filters: {
+    OwnerChanged(
+      previousOwner: string | null,
+      newOwner: string | null
+    ): EventFilter;
+  };
 
   estimate: {
+    ETH(): Promise<BigNumber>;
+
     ethToTokenSwapOutput(
       _tokens_bought: BigNumberish,
       _deadline: BigNumberish
@@ -206,11 +274,21 @@ export class PUniswapKyberPoolRecipe extends Contract {
 
     getTokenToEthInputPrice(_tokens_sold: BigNumberish): Promise<BigNumber>;
 
-    init(_pool: string, _uniswapFactory: string): Promise<BigNumber>;
+    init(arg0: string, arg1: string): Promise<BigNumber>;
+
+    initUK(
+      _pool: string,
+      _uniswapFactory: string,
+      _kyber: string,
+      _swapOnKyber: string[],
+      _feeReciever: string
+    ): Promise<BigNumber>;
 
     oSlot(): Promise<BigNumber>;
 
     pool(): Promise<BigNumber>;
+
+    setKyberSwap(_token: string, _value: boolean): Promise<BigNumber>;
 
     tokenToEthSwapInput(
       _tokens_sold: BigNumberish,
@@ -226,6 +304,8 @@ export class PUniswapKyberPoolRecipe extends Contract {
     ): Promise<BigNumber>;
 
     transferOwnership(_newOwner: string): Promise<BigNumber>;
+
+    ukprSlot(): Promise<BigNumber>;
 
     uprSlot(): Promise<BigNumber>;
   };
