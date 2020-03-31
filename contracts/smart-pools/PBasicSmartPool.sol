@@ -155,6 +155,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
             emit LOG_EXIT(msg.sender, t, tAo);  
             _pushUnderlying(t, msg.sender, tAo, bal);
         }
+        emit PoolExited(msg.sender, _amount);
     }
 
     function getTokens() external view override returns(address[] memory) {

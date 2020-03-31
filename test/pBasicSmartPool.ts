@@ -76,12 +76,61 @@ describe("PBasicSmartPool", function() {
             const initialSupply = await smartpool.totalSupply();
             expect(initialSupply).to.eq(INITIAL_SUPPLY);
         });
+        it("Controller should be correctly set", async() => {
+            const controller = await smartpool.getController();
+            expect(controller).to.eq(account);
+        })
+        it("PublicSwapSetter should be correctly set", async() => {
+            const publicSwapSetter = await smartpool.getPublicSwapSetter();
+            expect(publicSwapSetter).to.eq(account);
+        })
         it("Calling init when already initialized should fail", async() => {
             await expect(smartpool.init(PLACE_HOLDER_ADDRESS, NAME, SYMBOL, constants.WeiPerEther)).to.be.reverted;
         });
         it("Smart pool should not hold any non balancer pool tokens after init", async() => {
             const smartPoolBalances = await getTokenBalances(smartpool.address);
             expectZero(smartPoolBalances);
+        });
+        
+    });
+
+    describe("Controller functions", async() => {
+        it("Setting a new controller should work", async() => {
+            await smartpool.setController(PLACE_HOLDER_ADDRESS);
+            const controller = await smartpool.getController();
+            expect(controller).to.eq(PLACE_HOLDER_ADDRESS);
+        });
+        it("Setting a new controller from a non controller address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.setController(PLACE_HOLDER_ADDRESS)).to.be.reverted;
+        })
+        it("Setting public swap setter should work", async() => {
+            await smartpool.setPublicSwapSetter(PLACE_HOLDER_ADDRESS);
+            const publicSwapSetter = await smartpool.getPublicSwapSetter();
+            expect(publicSwapSetter).to.eq(PLACE_HOLDER_ADDRESS);
+        });
+        it("Setting public swap setter from a non controller address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.setPublicSwapSetter(PLACE_HOLDER_ADDRESS)).to.be.reverted;
+        });
+        it("Setting public swap should work", async() => {
+            await smartpool.setPublicSwap(true);
+            const publicSwap = await smartpool.isPublicSwap();
+            expect(publicSwap).to.be.true;
+        });
+        it("Setting public swap from a non publicSwapSetter address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.setPublicSwap(true)).to.be.reverted;
+        });
+        it("Setting the swap fee should work", async() => {
+            const feeValue = constants.WeiPerEther.div(20);
+            await smartpool.setSwapFee(feeValue);
+            const swapFee = await smartpool.getSwapFee();
+            expect(swapFee).to.eq(feeValue);
+        });
+        it("Setting the swap fee from a non controller address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.setSwapFee(constants.WeiPerEther.div(20))).to.be.reverted;
         });
     });
 
@@ -126,7 +175,7 @@ describe("PBasicSmartPool", function() {
         const balances:BigNumber[] = [];
 
         for(const token of tokens) {
-             balances.push(await token.balanceOf(address));
+            balances.push(await token.balanceOf(address));
         }
 
         return balances;
@@ -137,5 +186,4 @@ describe("PBasicSmartPool", function() {
             expect(amount).to.eq(0);
         }
     }
-
 });
