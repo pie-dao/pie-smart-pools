@@ -6,6 +6,8 @@ contract Ownable {
 
     bytes32 constant public oSlot = keccak256("Ownable.storage.location");
 
+    event OwnerChanged(address indexed previousOwner, address indexed newOwner);
+
     // Ownable struct
     struct os {
         address owner;
@@ -29,6 +31,7 @@ contract Ownable {
         @param _newOwner Address of the new owner
     */
     function _setOwner(address _newOwner) internal {
+        emit OwnerChanged(los().owner, _newOwner);
         los().owner = _newOwner;
     }
 

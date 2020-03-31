@@ -19,7 +19,14 @@ interface OwnableInterface extends Interface {
     }>;
   };
 
-  events: {};
+  events: {
+    OwnerChanged: TypedEventDescription<{
+      encodeTopics([previousOwner, newOwner]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+  };
 }
 
 export class Ownable extends Contract {
@@ -51,7 +58,12 @@ export class Ownable extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
-  filters: {};
+  filters: {
+    OwnerChanged(
+      previousOwner: string | null,
+      newOwner: string | null
+    ): EventFilter;
+  };
 
   estimate: {
     oSlot(): Promise<BigNumber>;

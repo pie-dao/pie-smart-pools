@@ -32,6 +32,14 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint256 tokenAmountOut
     );
 
+    event TokensApproved();
+    event ControllerChanged(address indexed previousController, address indexed newController);
+    event PublicSwapSetterChanged(address indexed previousSetter, address indexed newSetter);
+    event PublicSwapSet(address indexed setter, bool indexed value);
+    event SwapFeeSet(address indexed setter, uint256 newFee);
+    event PoolJoined(address indexed from, uint256 amount);
+    event PoolExited(address indexed from, uint256 amount);
+
     modifier onlyController() {
         require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not controller");
         _;
@@ -59,9 +67,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         lpts().symbol = _symbol;
         _mintPoolShare(_initialSupply);
         _pushPoolShare(msg.sender, _initialSupply);
-        
-        // approve tokens now to save gas on joining the pool
-        // approveTokens();
     }
 
     /**
@@ -74,6 +79,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         for(uint256 i = 0; i < tokens.length; i ++) {
             IERC20(tokens[i]).approve(address(bPool), uint256(-1));
         }
+        emit TokensApproved();
     }
 
     /**
@@ -81,18 +87,22 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _controller Address of the new controller
     */
     function setController(address _controller) onlyController noReentry external {
+        emit ControllerChanged(lpbs().controller, _controller);
         lpbs().controller = _controller;
     }
 
     function setPublicSwapSetter(address _newPublicSwapSetter) onlyController external {
+        emit PublicSwapSetterChanged(lpbs().publicSwapSetter, _newPublicSwapSetter);
         lpbs().publicSwapSetter = _newPublicSwapSetter;
     }
 
     function setPublicSwap(bool _public) onlyPublicSwapSetter external {
+        emit PublicSwapSet(msg.sender, _public);
         lpbs().bPool.setPublicSwap(_public);
     }
 
     function setSwapFee(uint256 _swapFee) onlyController external {
+        emit SwapFeeSet(msg.sender, _swapFee);
         lpbs().bPool.setSwapFee(_swapFee);
     }
 
@@ -120,6 +130,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         }
         _mintPoolShare(_amount);
         _pushPoolShare(msg.sender, _amount);
+        emit PoolJoined(msg.sender, _amount);
     }
 
     /** 

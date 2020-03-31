@@ -49,7 +49,22 @@ interface PProxiedFactoryInterface extends Interface {
     }>;
   };
 
-  events: {};
+  events: {
+    OwnerChanged: TypedEventDescription<{
+      encodeTopics([previousOwner, newOwner]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+
+    SmartPoolCreated: TypedEventDescription<{
+      encodeTopics([poolAddress, name, symbol]: [
+        string | null,
+        null,
+        null
+      ]): string[];
+    }>;
+  };
 }
 
 export class PProxiedFactory extends Contract {
@@ -122,7 +137,18 @@ export class PProxiedFactory extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
-  filters: {};
+  filters: {
+    OwnerChanged(
+      previousOwner: string | null,
+      newOwner: string | null
+    ): EventFilter;
+
+    SmartPoolCreated(
+      poolAddress: string | null,
+      name: null,
+      symbol: null
+    ): EventFilter;
+  };
 
   estimate: {
     balancerFactory(): Promise<BigNumber>;
