@@ -4,6 +4,9 @@ import "./PBasicSmartPool.sol";
 contract PCappedSmartPool is PBasicSmartPool {
 
     bytes32 constant public pcsSlot = keccak256("PCappedSmartPool.storage.location");
+
+    event CapChanged(address indexed setter, uint256 oldCap, uint256 newCap);
+
     struct pcs {
         uint256 cap;
     }
@@ -18,6 +21,7 @@ contract PCappedSmartPool is PBasicSmartPool {
         @param _cap New cap in wei
     */
     function setCap(uint256 _cap) onlyController external {
+        emit CapChanged(msg.sender, lpcs().cap, _cap);
         lpcs().cap = _cap;
     }
 

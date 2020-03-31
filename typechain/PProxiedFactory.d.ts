@@ -14,13 +14,6 @@ interface PProxiedFactoryInterface extends Interface {
   functions: {
     balancerFactory: TypedFunctionDescription<{ encode([]: []): string }>;
 
-<<<<<<< HEAD
-    init: TypedFunctionDescription<{
-      encode([_balancerFactory]: [string]): string;
-    }>;
-
-=======
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
     isPool: TypedFunctionDescription<{ encode([]: [string]): string }>;
 
     newProxiedSmartPool: TypedFunctionDescription<{
@@ -56,7 +49,6 @@ interface PProxiedFactoryInterface extends Interface {
     }>;
   };
 
-<<<<<<< HEAD
   events: {
     OwnerChanged: TypedEventDescription<{
       encodeTopics([previousOwner, newOwner]: [
@@ -73,9 +65,6 @@ interface PProxiedFactoryInterface extends Interface {
       ]): string[];
     }>;
   };
-=======
-  events: {};
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
 }
 
 export class PProxiedFactory extends Contract {
@@ -97,14 +86,6 @@ export class PProxiedFactory extends Contract {
   functions: {
     balancerFactory(): Promise<string>;
 
-<<<<<<< HEAD
-    init(
-      _balancerFactory: string,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-=======
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
     isPool(arg0: string): Promise<boolean>;
 
     newProxiedSmartPool(
@@ -132,14 +113,6 @@ export class PProxiedFactory extends Contract {
 
   balancerFactory(): Promise<string>;
 
-<<<<<<< HEAD
-  init(
-    _balancerFactory: string,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-=======
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
   isPool(arg0: string): Promise<boolean>;
 
   newProxiedSmartPool(
@@ -164,7 +137,6 @@ export class PProxiedFactory extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
-<<<<<<< HEAD
   filters: {
     OwnerChanged(
       previousOwner: string | null,
@@ -177,18 +149,10 @@ export class PProxiedFactory extends Contract {
       symbol: null
     ): EventFilter;
   };
-=======
-  filters: {};
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
 
   estimate: {
     balancerFactory(): Promise<BigNumber>;
 
-<<<<<<< HEAD
-    init(_balancerFactory: string): Promise<BigNumber>;
-
-=======
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
     isPool(arg0: string): Promise<BigNumber>;
 
     newProxiedSmartPool(
