@@ -1,3 +1,5 @@
+pragma solidity ^0.6.4;
+
 interface IERC20 {
     event Approval(address indexed _src, address indexed _dst, uint _amount);
     event Transfer(address indexed _src, address indexed _dst, uint _amount);

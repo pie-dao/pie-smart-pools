@@ -36,6 +36,8 @@ interface PCappedSmartPoolInterface extends Interface {
       encode([_dst, _amount]: [string, BigNumberish]): string;
     }>;
 
+    approveTokens: TypedFunctionDescription<{ encode([]: []): string }>;
+
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
     calcTokensForAmount: TypedFunctionDescription<{
@@ -58,6 +60,10 @@ interface PCappedSmartPoolInterface extends Interface {
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    getPublicSwapSetter: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
+
     getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
 
     increaseApproval: TypedFunctionDescription<{
@@ -73,6 +79,8 @@ interface PCappedSmartPoolInterface extends Interface {
       ]): string;
     }>;
 
+    isPublicSwap: TypedFunctionDescription<{ encode([]: []): string }>;
+
     joinPool: TypedFunctionDescription<{
       encode([_amount]: [BigNumberish]): string;
     }>;
@@ -85,12 +93,26 @@ interface PCappedSmartPoolInterface extends Interface {
 
     ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    rpSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     setCap: TypedFunctionDescription<{
       encode([_cap]: [BigNumberish]): string;
     }>;
 
     setController: TypedFunctionDescription<{
       encode([_controller]: [string]): string;
+    }>;
+
+    setPublicSwap: TypedFunctionDescription<{
+      encode([_public]: [boolean]): string;
+    }>;
+
+    setPublicSwapSetter: TypedFunctionDescription<{
+      encode([_newPublicSwapSetter]: [string]): string;
+    }>;
+
+    setSwapFee: TypedFunctionDescription<{
+      encode([_swapFee]: [BigNumberish]): string;
     }>;
 
     symbol: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -182,6 +204,10 @@ export class PCappedSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    approveTokens(
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     balanceOf(_whom: string): Promise<BigNumber>;
 
     calcTokensForAmount(
@@ -212,6 +238,10 @@ export class PCappedSmartPool extends Contract {
 
     getController(): Promise<string>;
 
+    getPublicSwapSetter(): Promise<string>;
+
+    getSwapFee(): Promise<BigNumber>;
+
     getTokens(): Promise<string[]>;
 
     increaseApproval(
@@ -228,6 +258,8 @@ export class PCappedSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    isPublicSwap(): Promise<boolean>;
+
     joinPool(
       _amount: BigNumberish,
       overrides?: TransactionOverrides
@@ -241,6 +273,8 @@ export class PCappedSmartPool extends Contract {
 
     ptSlot(): Promise<string>;
 
+    rpSlot(): Promise<string>;
+
     setCap(
       _cap: BigNumberish,
       overrides?: TransactionOverrides
@@ -248,6 +282,21 @@ export class PCappedSmartPool extends Contract {
 
     setController(
       _controller: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setPublicSwap(
+      _public: boolean,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setPublicSwapSetter(
+      _newPublicSwapSetter: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setSwapFee(
+      _swapFee: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -293,6 +342,8 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  approveTokens(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
   balanceOf(_whom: string): Promise<BigNumber>;
 
   calcTokensForAmount(
@@ -323,6 +374,10 @@ export class PCappedSmartPool extends Contract {
 
   getController(): Promise<string>;
 
+  getPublicSwapSetter(): Promise<string>;
+
+  getSwapFee(): Promise<BigNumber>;
+
   getTokens(): Promise<string[]>;
 
   increaseApproval(
@@ -339,6 +394,8 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  isPublicSwap(): Promise<boolean>;
+
   joinPool(
     _amount: BigNumberish,
     overrides?: TransactionOverrides
@@ -352,6 +409,8 @@ export class PCappedSmartPool extends Contract {
 
   ptSlot(): Promise<string>;
 
+  rpSlot(): Promise<string>;
+
   setCap(
     _cap: BigNumberish,
     overrides?: TransactionOverrides
@@ -359,6 +418,21 @@ export class PCappedSmartPool extends Contract {
 
   setController(
     _controller: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setPublicSwap(
+    _public: boolean,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setPublicSwapSetter(
+    _newPublicSwapSetter: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setSwapFee(
+    _swapFee: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -426,6 +500,8 @@ export class PCappedSmartPool extends Contract {
 
     approve(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
+    approveTokens(): Promise<BigNumber>;
+
     balanceOf(_whom: string): Promise<BigNumber>;
 
     calcTokensForAmount(_amount: BigNumberish): Promise<BigNumber>;
@@ -442,6 +518,10 @@ export class PCappedSmartPool extends Contract {
 
     getController(): Promise<BigNumber>;
 
+    getPublicSwapSetter(): Promise<BigNumber>;
+
+    getSwapFee(): Promise<BigNumber>;
+
     getTokens(): Promise<BigNumber>;
 
     increaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
@@ -453,6 +533,8 @@ export class PCappedSmartPool extends Contract {
       _initialSupply: BigNumberish
     ): Promise<BigNumber>;
 
+    isPublicSwap(): Promise<BigNumber>;
+
     joinPool(_amount: BigNumberish): Promise<BigNumber>;
 
     name(): Promise<BigNumber>;
@@ -463,9 +545,17 @@ export class PCappedSmartPool extends Contract {
 
     ptSlot(): Promise<BigNumber>;
 
+    rpSlot(): Promise<BigNumber>;
+
     setCap(_cap: BigNumberish): Promise<BigNumber>;
 
     setController(_controller: string): Promise<BigNumber>;
+
+    setPublicSwap(_public: boolean): Promise<BigNumber>;
+
+    setPublicSwapSetter(_newPublicSwapSetter: string): Promise<BigNumber>;
+
+    setSwapFee(_swapFee: BigNumberish): Promise<BigNumber>;
 
     symbol(): Promise<BigNumber>;
 

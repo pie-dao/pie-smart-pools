@@ -127,12 +127,12 @@ contract PUniswapPoolRecipe {
         return address(luprs().pool);
     }
 
-    fallback() external payable {
+    receive() external payable {
 
     }
 
     // Load uniswap pool recipe
-    function luprs() internal view returns (uprs storage s) {
+    function luprs() internal pure returns (uprs storage s) {
         bytes32 loc = uprSlot;
         assembly {
             s_slot := loc

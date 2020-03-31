@@ -265,6 +265,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getSwapFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
     name: "getTotalDenormalizedWeight",
     outputs: [
       {
@@ -285,6 +298,19 @@ const _abi = [
       }
     ],
     name: "isBound",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "isPublicSwap",
     outputs: [
       {
         internalType: "bool",
@@ -327,6 +353,19 @@ const _abi = [
       }
     ],
     name: "setController",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bool",
+        name: "_public",
+        type: "bool"
+      }
+    ],
+    name: "setPublicSwap",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"

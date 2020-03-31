@@ -13,20 +13,36 @@ contract PCappedSmartPool is PBasicSmartPool {
         require(totalSupply() < lpcs().cap, "PCappedSmartPool.withinCap: Cap limit reached");
     }
 
+    /**
+        @notice Set the maximum cap of the contract
+        @param _cap New cap in wei
+    */
     function setCap(uint256 _cap) onlyController external {
         lpcs().cap = _cap;
     }
 
-    // Override joinPool to enforce cap
+    /**
+        @notice Takes underlying assets and mints smart pool tokens. Enforces the cap
+        @param _amount Amount of pool tokens to mint
+    */
     function joinPool(uint256 _amount) external override withinCap {
         super._joinPool(_amount);
     }
 
+
+    /**
+        @notice Get the current cap
+        @return The current cap in wei
+    */
     function getCap() external view returns(uint256) {
         return lpcs().cap;
     }
 
-    function lpcs() internal view returns (pcs storage s) {
+    /**
+        @notice Load the PCappedSmartPool storage
+        @return s Pointer to the storage struct
+    */
+    function lpcs() internal pure returns (pcs storage s) {
         bytes32 loc = pcsSlot;
         assembly {
             s_slot := loc
