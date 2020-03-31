@@ -6,7 +6,6 @@ import "../interfaces/IKyberNetwork.sol";
 
 contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
-    // TODO use diamond storage
     bytes32 constant public ukprSlot = keccak256("PUniswapKyberPoolRecipe.storage.location");
 
     // Uniswap pool recipe struct
@@ -18,7 +17,7 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
 
     address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     
-    function init(address _pool, address _uniswapFactory) public override {
+    function init(address, address) public override {
         require(false, "not enabled");
     }
 
@@ -73,7 +72,7 @@ contract PUniswapKyberPoolRecipe is PUniswapPoolRecipe, Ownable {
     }
 
     // Load uniswap pool recipe
-    function lukprs() internal view returns (ukprs storage s) {
+    function lukprs() internal pure returns (ukprs storage s) {
         bytes32 loc = ukprSlot;
         assembly {
             s_slot := loc

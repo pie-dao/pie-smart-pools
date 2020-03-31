@@ -15,19 +15,31 @@ contract PProxiedFactory is Ownable {
     mapping(address => bool) public isPool;
     address[] public pools;
 
+<<<<<<< HEAD
     event SmartPoolCreated(address indexed poolAddress, string name, string symbol);
 
     function init(address _balancerFactory) public {
         require(smartPoolImplementation == address(0), "Already initialised");
+=======
+    constructor(address _balancerFactory) public {
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
         _setOwner(msg.sender);
         balancerFactory = IBFactory(_balancerFactory);
         
         PCappedSmartPool implementation = new PCappedSmartPool();
         // function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
+<<<<<<< HEAD
         implementation.init(address(1), "IMPL", "IMPL", 1 ether);
         smartPoolImplementation = address(implementation);
     }
 
+=======
+        implementation.init(address(0), "IMPL", "IMPL", 1 ether);
+        smartPoolImplementation = address(implementation);
+    }
+
+
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
     function newProxiedSmartPool(
         string memory _name, 
         string memory _symbol,
@@ -43,7 +55,12 @@ contract PProxiedFactory is Ownable {
         // Setup proxy
         proxy.setImplementation(smartPoolImplementation);
         proxy.setPauzer(msg.sender);
+<<<<<<< HEAD
         proxy.setProxyOwner(msg.sender); 
+=======
+        proxy.setProxyOwner(msg.sender);
+        
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
         
         // Setup balancer pool
         address balancerPoolAddress = balancerFactory.newBPool();
@@ -60,23 +77,33 @@ contract PProxiedFactory is Ownable {
         }
         bPool.setController(address(proxy));
         
+<<<<<<< HEAD
+=======
+
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
         // Setup smart pool
         PCappedSmartPool smartPool = PCappedSmartPool(address(proxy));
     
         smartPool.init(balancerPoolAddress, _name, _symbol, _initialSupply);
         smartPool.setCap(_cap);
         smartPool.setPublicSwapSetter(msg.sender);
+<<<<<<< HEAD
         smartPool.setTokenBinder(msg.sender);
+=======
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
         smartPool.setController(msg.sender);
         smartPool.approveTokens();
         
         isPool[address(smartPool)] = true;
         pools.push(address(smartPool));
 
+<<<<<<< HEAD
         emit SmartPoolCreated(address(smartPool), _name, _symbol);
 
         smartPool.transfer(msg.sender, _initialSupply);
 
+=======
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
         return address(smartPool);
     }
 

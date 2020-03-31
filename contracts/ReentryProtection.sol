@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 pragma solidity 0.6.4;
+=======
+pragma solidity ^0.6.4;
+>>>>>>> 245b1b6... Feature/informal audit fixes (#12)
 
 // TODO move this generic contract to a seperate repo with all generic smart contracts
 
