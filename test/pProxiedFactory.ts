@@ -35,7 +35,7 @@ describe("PCappedSmartPool", function() {
 
         const balancerFactoryAddress = await deployBalancerFactory(signers[0]);
 
-        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [balancerFactoryAddress], {gasLimit: 8000000}) as PProxiedFactory;
+        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [balancerFactoryAddress], {gasLimit: 100000000}) as PProxiedFactory;
 
         const tokenFactory = new MockTokenFactory(signers[0]);
         for(let i = 0; i < 3; i ++) {

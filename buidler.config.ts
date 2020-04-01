@@ -26,11 +26,16 @@ interface ExtendedBuidlerConfig extends BuidlerConfig {
 const config: ExtendedBuidlerConfig = {
   defaultNetwork: "buidlerevm",
   solc: {
-    version: "0.6.4"
+    version: "0.6.4",
+    optimizer: {
+      runs: 200,
+      enabled: true,
+    }
   },
   networks: {
     buidlerevm: {
       gasPrice: 0,
+      blockGasLimit: 100000000,
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
@@ -42,7 +47,8 @@ const config: ExtendedBuidlerConfig = {
     },
     coverage: {
       url: 'http://127.0.0.1:8555', // Coverage launches its own ganache-cli client
-      gasPrice: 0
+      gasPrice: 0,
+      blockGasLimit: 100000000,
     }
   },
   etherscan: {

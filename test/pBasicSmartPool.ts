@@ -34,12 +34,9 @@ describe("PBasicSmartPool", function() {
     beforeEach(async() => {
         signers = await ethers.signers();
         account = await signers[0].getAddress();
-
         pool = IBPoolFactory.connect((await deployBalancerPool(signers[0])), signers[0]);
-
         const tokenFactory = new MockTokenFactory(signers[0]);
-        tokens = [];
-
+        tokens = [];        
         for(let i = 0; i < 8; i ++) {
             const token: MockToken = (await tokenFactory.deploy(`Mock ${i}`, `M${i}`, 18));
             await token.mint(account, constants.WeiPerEther.mul(1000000));
@@ -48,16 +45,15 @@ describe("PBasicSmartPool", function() {
             pool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther.mul(1));
             tokens.push(token);
         }
-
         // Deploy this way to get the coverage provider to pick it up
-        smartpool = await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {gasLimit: 8000000}) as PBasicSmartPool
+        smartpool = await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {gasLimit: 100000000}) as PBasicSmartPool
         await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
         await smartpool.approveTokens();
-
+        
         await pool.setController(smartpool.address);
-
+        
         for(const token of tokens) {
-            await token.approve(smartpool.address, constants.MaxUint256);
+            await token.approve(smartpool.address, constants.MaxUint256);    
             // Attach alt signer to token and approve pool
             await MockTokenFactory.connect(token.address, signers[1]).approve(smartpool.address, constants.MaxUint256);
         }
