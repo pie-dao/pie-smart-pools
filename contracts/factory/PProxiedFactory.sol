@@ -73,6 +73,8 @@ contract PProxiedFactory is Ownable {
 
         emit SmartPoolCreated(address(smartPool), _name, _symbol);
 
+        smartPool.transfer(msg.sender, _initialSupply);
+
         return address(smartPool);
     }
 
