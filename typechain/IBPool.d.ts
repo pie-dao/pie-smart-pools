@@ -106,6 +106,8 @@ interface IBPoolInterface extends Interface {
       encode([]: []): string;
     }>;
 
+    gulp: TypedFunctionDescription<{ encode([token]: [string]): string }>;
+
     isBound: TypedFunctionDescription<{ encode([token]: [string]): string }>;
 
     isPublicSwap: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -203,6 +205,11 @@ export class IBPool extends Contract {
 
     getTotalDenormalizedWeight(): Promise<BigNumber>;
 
+    gulp(
+      token: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     isBound(token: string): Promise<boolean>;
 
     isPublicSwap(): Promise<boolean>;
@@ -287,6 +294,11 @@ export class IBPool extends Contract {
   getSwapFee(): Promise<BigNumber>;
 
   getTotalDenormalizedWeight(): Promise<BigNumber>;
+
+  gulp(
+    token: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   isBound(token: string): Promise<boolean>;
 
@@ -373,6 +385,8 @@ export class IBPool extends Contract {
     getSwapFee(): Promise<BigNumber>;
 
     getTotalDenormalizedWeight(): Promise<BigNumber>;
+
+    gulp(token: string): Promise<BigNumber>;
 
     isBound(token: string): Promise<BigNumber>;
 

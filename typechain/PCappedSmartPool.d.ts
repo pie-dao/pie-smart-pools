@@ -40,6 +40,14 @@ interface PCappedSmartPoolInterface extends Interface {
 
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
+    bind: TypedFunctionDescription<{
+      encode([_token, _balance, _denorm]: [
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
+    }>;
+
     calcTokensForAmount: TypedFunctionDescription<{
       encode([_amount]: [BigNumberish]): string;
     }>;
@@ -63,6 +71,8 @@ interface PCappedSmartPoolInterface extends Interface {
     getPublicSwapSetter: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getTokenBinder: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -93,6 +103,14 @@ interface PCappedSmartPoolInterface extends Interface {
 
     ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    rebind: TypedFunctionDescription<{
+      encode([_token, _balance, _denorm]: [
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
+    }>;
+
     rpSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     setCap: TypedFunctionDescription<{
@@ -115,6 +133,10 @@ interface PCappedSmartPoolInterface extends Interface {
       encode([_swapFee]: [BigNumberish]): string;
     }>;
 
+    setTokenBinder: TypedFunctionDescription<{
+      encode([_newTokenBinder]: [string]): string;
+    }>;
+
     symbol: TypedFunctionDescription<{ encode([]: []): string }>;
 
     totalSupply: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -126,6 +148,8 @@ interface PCappedSmartPoolInterface extends Interface {
     transferFrom: TypedFunctionDescription<{
       encode([_src, _dst, _amount]: [string, string, BigNumberish]): string;
     }>;
+
+    unbind: TypedFunctionDescription<{ encode([_token]: [string]): string }>;
   };
 
   events: {
@@ -191,6 +215,13 @@ interface PCappedSmartPoolInterface extends Interface {
       encodeTopics([setter, newFee]: [string | null, null]): string[];
     }>;
 
+    TokenBinderChanged: TypedEventDescription<{
+      encodeTopics([previousTokenBinder, newTokenBinder]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+
     TokensApproved: TypedEventDescription<{ encodeTopics([]: []): string[] }>;
 
     Transfer: TypedEventDescription<{
@@ -250,6 +281,13 @@ export class PCappedSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
+    bind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     calcTokensForAmount(
       _amount: BigNumberish
     ): Promise<{
@@ -282,6 +320,8 @@ export class PCappedSmartPool extends Contract {
 
     getSwapFee(): Promise<BigNumber>;
 
+    getTokenBinder(): Promise<string>;
+
     getTokens(): Promise<string[]>;
 
     increaseApproval(
@@ -313,6 +353,13 @@ export class PCappedSmartPool extends Contract {
 
     ptSlot(): Promise<string>;
 
+    rebind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     rpSlot(): Promise<string>;
 
     setCap(
@@ -340,6 +387,11 @@ export class PCappedSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    setTokenBinder(
+      _newTokenBinder: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     symbol(): Promise<string>;
 
     totalSupply(): Promise<BigNumber>;
@@ -354,6 +406,11 @@ export class PCappedSmartPool extends Contract {
       _src: string,
       _dst: string,
       _amount: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    unbind(
+      _token: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
   };
@@ -385,6 +442,13 @@ export class PCappedSmartPool extends Contract {
   approveTokens(overrides?: TransactionOverrides): Promise<ContractTransaction>;
 
   balanceOf(_whom: string): Promise<BigNumber>;
+
+  bind(
+    _token: string,
+    _balance: BigNumberish,
+    _denorm: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   calcTokensForAmount(
     _amount: BigNumberish
@@ -418,6 +482,8 @@ export class PCappedSmartPool extends Contract {
 
   getSwapFee(): Promise<BigNumber>;
 
+  getTokenBinder(): Promise<string>;
+
   getTokens(): Promise<string[]>;
 
   increaseApproval(
@@ -449,6 +515,13 @@ export class PCappedSmartPool extends Contract {
 
   ptSlot(): Promise<string>;
 
+  rebind(
+    _token: string,
+    _balance: BigNumberish,
+    _denorm: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   rpSlot(): Promise<string>;
 
   setCap(
@@ -476,6 +549,11 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  setTokenBinder(
+    _newTokenBinder: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   symbol(): Promise<string>;
 
   totalSupply(): Promise<BigNumber>;
@@ -490,6 +568,11 @@ export class PCappedSmartPool extends Contract {
     _src: string,
     _dst: string,
     _amount: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  unbind(
+    _token: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -532,6 +615,11 @@ export class PCappedSmartPool extends Contract {
 
     SwapFeeSet(setter: string | null, newFee: null): EventFilter;
 
+    TokenBinderChanged(
+      previousTokenBinder: string | null,
+      newTokenBinder: string | null
+    ): EventFilter;
+
     TokensApproved(): EventFilter;
 
     Transfer(
@@ -566,6 +654,12 @@ export class PCappedSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
+    bind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish
+    ): Promise<BigNumber>;
+
     calcTokensForAmount(_amount: BigNumberish): Promise<BigNumber>;
 
     decimals(): Promise<BigNumber>;
@@ -583,6 +677,8 @@ export class PCappedSmartPool extends Contract {
     getPublicSwapSetter(): Promise<BigNumber>;
 
     getSwapFee(): Promise<BigNumber>;
+
+    getTokenBinder(): Promise<BigNumber>;
 
     getTokens(): Promise<BigNumber>;
 
@@ -607,6 +703,12 @@ export class PCappedSmartPool extends Contract {
 
     ptSlot(): Promise<BigNumber>;
 
+    rebind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish
+    ): Promise<BigNumber>;
+
     rpSlot(): Promise<BigNumber>;
 
     setCap(_cap: BigNumberish): Promise<BigNumber>;
@@ -619,6 +721,8 @@ export class PCappedSmartPool extends Contract {
 
     setSwapFee(_swapFee: BigNumberish): Promise<BigNumber>;
 
+    setTokenBinder(_newTokenBinder: string): Promise<BigNumber>;
+
     symbol(): Promise<BigNumber>;
 
     totalSupply(): Promise<BigNumber>;
@@ -630,5 +734,7 @@ export class PCappedSmartPool extends Contract {
       _dst: string,
       _amount: BigNumberish
     ): Promise<BigNumber>;
+
+    unbind(_token: string): Promise<BigNumber>;
   };
 }

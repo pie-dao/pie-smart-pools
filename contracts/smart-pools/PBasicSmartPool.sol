@@ -13,6 +13,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         IBPool bPool;
         address controller;
         address publicSwapSetter;
+        address tokenBinder;
     }
     
     modifier ready() {
@@ -35,6 +36,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     event TokensApproved();
     event ControllerChanged(address indexed previousController, address indexed newController);
     event PublicSwapSetterChanged(address indexed previousSetter, address indexed newSetter);
+    event TokenBinderChanged(address indexed previousTokenBinder, address indexed newTokenBinder);
     event PublicSwapSet(address indexed setter, bool indexed value);
     event SwapFeeSet(address indexed setter, uint256 newFee);
     event PoolJoined(address indexed from, uint256 amount);
@@ -46,7 +48,12 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
 
     modifier onlyPublicSwapSetter() {
-        require(msg.sender == lpbs().controller, "PBasicSmartPool.publicSwapSetter: not owner");
+        require(msg.sender == lpbs().publicSwapSetter, "PBasicSmartPool.onlyPublicSwapSetter: not public swap setter");
+        _;
+    }
+
+    modifier onlyTokenBinder() {
+        require(msg.sender == lpbs().tokenBinder, "PBasicSmartPool.onlyTokenBinder: not token binder");
         _;
     }
 
@@ -63,6 +70,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         s.bPool = IBPool(_bPool);
         s.controller = msg.sender;
         s.publicSwapSetter = msg.sender;
+        s.tokenBinder = msg.sender;
         lpts().name = _name;
         lpts().symbol = _symbol;
         _mintPoolShare(_initialSupply);
@@ -83,7 +91,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
 
     /**
-        @notice Sets the controller address. Can only be called by the current controller
+        @notice Sets the controller address. Can only be set by the current controller
         @param _controller Address of the new controller
     */
     function setController(address _controller) onlyController noReentry external {
@@ -91,27 +99,53 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         lpbs().controller = _controller;
     }
 
+    /**
+        @notice Sets public swap setter address. Can only be set by the controller
+        @param _newPublicSwapSetter Address of the new public swap setter
+    */
     function setPublicSwapSetter(address _newPublicSwapSetter) onlyController external {
         emit PublicSwapSetterChanged(lpbs().publicSwapSetter, _newPublicSwapSetter);
         lpbs().publicSwapSetter = _newPublicSwapSetter;
     }
 
+    /**
+        @notice Sets the token binder address. Can only be set by the controller
+        @param _newTokenBinder Address of the new token binder
+    */
+    function setTokenBinder(address _newTokenBinder) onlyController external {
+        emit TokenBinderChanged(lpbs().tokenBinder, _newTokenBinder);
+        lpbs().tokenBinder = _newTokenBinder;
+    }
+
+    /**
+        @notice Enables or disables public swapping on the underlying balancer pool. Can only be set by the controller
+        @param _public Public or not
+    */
     function setPublicSwap(bool _public) onlyPublicSwapSetter external {
         emit PublicSwapSet(msg.sender, _public);
         lpbs().bPool.setPublicSwap(_public);
     }
 
+    /**
+        @notice Set the swap fee on the underlying balancer pool. Can only be called by the controller
+        @param _swapFee The new swap fee
+    */
     function setSwapFee(uint256 _swapFee) onlyController external {
         emit SwapFeeSet(msg.sender, _swapFee);
         lpbs().bPool.setSwapFee(_swapFee);
     }
 
+    /** 
+        @notice Mints pool shares in exchange for underlying assets
+        @param _amount Amount of pool shares to mint
+    */
     function joinPool(uint256 _amount) external override virtual ready {
         _joinPool(_amount);
     }
 
     /**
         @notice Internal join pool function. See joinPool for more info
+        @param _amount Amount of pool shares to mint
     */
     function _joinPool(uint256 _amount) internal virtual ready {
         IBPool bPool = lpbs().bPool;
@@ -158,6 +192,66 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         emit PoolExited(msg.sender, _amount);
     }
 
+    /**
+        @notice Bind a token to the underlying balancer pool. Can only be called by the token binder
+        @param _token Token to bind
+        @param _balance Amount to bind
+        @param _denorm Denormalised weight
+    */
+    function bind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder {
+        IBPool bPool = lpbs().bPool;
+        IERC20 token = IERC20(_token);
+        token.transferFrom(msg.sender, address(this), _balance);
+        token.approve(address(bPool), uint256(-1));
+        bPool.bind(_token, _balance, _denorm);
+    }
+
+    /**
+        @notice Rebind a token to the pool
+        @param _token Token to bind
+        @param _balance Amount to bind
+        @param _denorm Denormalised weight
+    */
+    function rebind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder {
+        IBPool bPool = lpbs().bPool;
+        IERC20 token = IERC20(_token);
+        
+        // gulp old non acounted for token balance in the contract
+        bPool.gulp(_token);
+
+        uint256 oldBalance = token.balanceOf(address(bPool));
+        // If tokens need to be pulled from msg.sender
+        if(_balance > oldBalance) {
+            token.transferFrom(msg.sender, address(bPool), bsub(_balance, oldBalance));
+            token.approve(address(bPool), uint256(-1));
+        }
+
+        bPool.rebind(_token, _balance, _denorm);
+
+        // If any tokens are in this contract send them to msg.sender
+        uint256 tokenBalance = token.balanceOf(address(this));
+        if(tokenBalance > 0) {
+            token.transfer(msg.sender, tokenBalance);
+        }
+    }
+
+    /**
+        @notice Unbind a token
+        @param _token Token to unbind
+    */
+    function unbind(address _token) external onlyTokenBinder {
+        IBPool bPool = lpbs().bPool;
+        IERC20 token = IERC20(_token);
+        // unbind the token in the bPool
+        bPool.unbind(_token);
+
+        // If any tokens are in this contract send them to msg.sender
+        uint256 tokenBalance = token.balanceOf(address(this));
+        if(tokenBalance > 0) {
+            token.transfer(msg.sender, tokenBalance);
+        }
+    }
+
     function getTokens() external view override returns(address[] memory) {
         return lpbs().bPool.getCurrentTokens();
     }
@@ -189,14 +283,34 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         return lpbs().controller;
     }
 
+    /** 
+        @notice Get the address of the public swap setter
+        @return The public swap setter address
+    */
     function getPublicSwapSetter() external view returns(address) {
         return lpbs().publicSwapSetter;
     }
 
+    /**
+        @notice Get the address of the token binder
+        @return The token binder address
+    */
+    function getTokenBinder() external view returns(address) {
+        return lpbs().tokenBinder;
+    }
+
+    /**
+        @notice Get if public swapping is enabled
+        @return If public swapping is enabled
+    */
     function isPublicSwap() external view returns (bool) {
         return lpbs().bPool.isPublicSwap();
     }
 
+    /**
+        @notice Get the current swap fee
+        @return The current swap fee
+    */
     function getSwapFee() external view returns (uint256) {
         return lpbs().bPool.getSwapFee();
     }

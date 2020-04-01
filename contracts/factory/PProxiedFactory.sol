@@ -65,6 +65,7 @@ contract PProxiedFactory is Ownable {
         smartPool.init(balancerPoolAddress, _name, _symbol, _initialSupply);
         smartPool.setCap(_cap);
         smartPool.setPublicSwapSetter(msg.sender);
+        smartPool.setTokenBinder(msg.sender);
         smartPool.setController(msg.sender);
         smartPool.approveTokens();
         

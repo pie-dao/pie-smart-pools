@@ -40,6 +40,14 @@ interface PBasicSmartPoolInterface extends Interface {
 
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
+    bind: TypedFunctionDescription<{
+      encode([_token, _balance, _denorm]: [
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
+    }>;
+
     calcTokensForAmount: TypedFunctionDescription<{
       encode([_amount]: [BigNumberish]): string;
     }>;
@@ -61,6 +69,8 @@ interface PBasicSmartPoolInterface extends Interface {
     getPublicSwapSetter: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getTokenBinder: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -89,6 +99,14 @@ interface PBasicSmartPoolInterface extends Interface {
 
     ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    rebind: TypedFunctionDescription<{
+      encode([_token, _balance, _denorm]: [
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
+    }>;
+
     rpSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     setController: TypedFunctionDescription<{
@@ -107,6 +125,10 @@ interface PBasicSmartPoolInterface extends Interface {
       encode([_swapFee]: [BigNumberish]): string;
     }>;
 
+    setTokenBinder: TypedFunctionDescription<{
+      encode([_newTokenBinder]: [string]): string;
+    }>;
+
     symbol: TypedFunctionDescription<{ encode([]: []): string }>;
 
     totalSupply: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -118,6 +140,8 @@ interface PBasicSmartPoolInterface extends Interface {
     transferFrom: TypedFunctionDescription<{
       encode([_src, _dst, _amount]: [string, string, BigNumberish]): string;
     }>;
+
+    unbind: TypedFunctionDescription<{ encode([_token]: [string]): string }>;
   };
 
   events: {
@@ -173,6 +197,13 @@ interface PBasicSmartPoolInterface extends Interface {
 
     SwapFeeSet: TypedEventDescription<{
       encodeTopics([setter, newFee]: [string | null, null]): string[];
+    }>;
+
+    TokenBinderChanged: TypedEventDescription<{
+      encodeTopics([previousTokenBinder, newTokenBinder]: [
+        string | null,
+        string | null
+      ]): string[];
     }>;
 
     TokensApproved: TypedEventDescription<{ encodeTopics([]: []): string[] }>;
@@ -234,6 +265,13 @@ export class PBasicSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
+    bind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     calcTokensForAmount(
       _amount: BigNumberish
     ): Promise<{
@@ -264,6 +302,8 @@ export class PBasicSmartPool extends Contract {
 
     getSwapFee(): Promise<BigNumber>;
 
+    getTokenBinder(): Promise<string>;
+
     getTokens(): Promise<string[]>;
 
     increaseApproval(
@@ -293,6 +333,13 @@ export class PBasicSmartPool extends Contract {
 
     ptSlot(): Promise<string>;
 
+    rebind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     rpSlot(): Promise<string>;
 
     setController(
@@ -315,6 +362,11 @@ export class PBasicSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    setTokenBinder(
+      _newTokenBinder: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     symbol(): Promise<string>;
 
     totalSupply(): Promise<BigNumber>;
@@ -329,6 +381,11 @@ export class PBasicSmartPool extends Contract {
       _src: string,
       _dst: string,
       _amount: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    unbind(
+      _token: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
   };
@@ -361,6 +418,13 @@ export class PBasicSmartPool extends Contract {
 
   balanceOf(_whom: string): Promise<BigNumber>;
 
+  bind(
+    _token: string,
+    _balance: BigNumberish,
+    _denorm: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   calcTokensForAmount(
     _amount: BigNumberish
   ): Promise<{
@@ -391,6 +455,8 @@ export class PBasicSmartPool extends Contract {
 
   getSwapFee(): Promise<BigNumber>;
 
+  getTokenBinder(): Promise<string>;
+
   getTokens(): Promise<string[]>;
 
   increaseApproval(
@@ -420,6 +486,13 @@ export class PBasicSmartPool extends Contract {
 
   ptSlot(): Promise<string>;
 
+  rebind(
+    _token: string,
+    _balance: BigNumberish,
+    _denorm: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   rpSlot(): Promise<string>;
 
   setController(
@@ -442,6 +515,11 @@ export class PBasicSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  setTokenBinder(
+    _newTokenBinder: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   symbol(): Promise<string>;
 
   totalSupply(): Promise<BigNumber>;
@@ -456,6 +534,11 @@ export class PBasicSmartPool extends Contract {
     _src: string,
     _dst: string,
     _amount: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  unbind(
+    _token: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -496,6 +579,11 @@ export class PBasicSmartPool extends Contract {
 
     SwapFeeSet(setter: string | null, newFee: null): EventFilter;
 
+    TokenBinderChanged(
+      previousTokenBinder: string | null,
+      newTokenBinder: string | null
+    ): EventFilter;
+
     TokensApproved(): EventFilter;
 
     Transfer(
@@ -530,6 +618,12 @@ export class PBasicSmartPool extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
+    bind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish
+    ): Promise<BigNumber>;
+
     calcTokensForAmount(_amount: BigNumberish): Promise<BigNumber>;
 
     decimals(): Promise<BigNumber>;
@@ -545,6 +639,8 @@ export class PBasicSmartPool extends Contract {
     getPublicSwapSetter(): Promise<BigNumber>;
 
     getSwapFee(): Promise<BigNumber>;
+
+    getTokenBinder(): Promise<BigNumber>;
 
     getTokens(): Promise<BigNumber>;
 
@@ -567,6 +663,12 @@ export class PBasicSmartPool extends Contract {
 
     ptSlot(): Promise<BigNumber>;
 
+    rebind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish
+    ): Promise<BigNumber>;
+
     rpSlot(): Promise<BigNumber>;
 
     setController(_controller: string): Promise<BigNumber>;
@@ -576,6 +678,8 @@ export class PBasicSmartPool extends Contract {
     setPublicSwapSetter(_newPublicSwapSetter: string): Promise<BigNumber>;
 
     setSwapFee(_swapFee: BigNumberish): Promise<BigNumber>;
+
+    setTokenBinder(_newTokenBinder: string): Promise<BigNumber>;
 
     symbol(): Promise<BigNumber>;
 
@@ -588,5 +692,7 @@ export class PBasicSmartPool extends Contract {
       _dst: string,
       _amount: BigNumberish
     ): Promise<BigNumber>;
+
+    unbind(_token: string): Promise<BigNumber>;
   };
 }

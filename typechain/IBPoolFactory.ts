@@ -297,6 +297,19 @@ const _abi = [
         type: "address"
       }
     ],
+    name: "gulp",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      }
+    ],
     name: "isBound",
     outputs: [
       {

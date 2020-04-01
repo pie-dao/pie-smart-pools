@@ -27,6 +27,7 @@ interface IBPool {
     function setController(address manager) external;
     function isPublicSwap() external view returns(bool);
     function getSwapFee() external view returns (uint256);
+    function gulp(address token) external;
 
     function calcPoolOutGivenSingleIn(
         uint tokenBalanceIn,
