@@ -57,7 +57,7 @@ const config: ExtendedBuidlerConfig = {
   },
   etherscan: {
     // The url for the Etherscan API you want to use.
-    url: "https://api.etherscan.io/api",
+    url: "https://api-kovan.etherscan.io/api",
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: ETHERSCAN_API_KEY
