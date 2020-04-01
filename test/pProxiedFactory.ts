@@ -20,11 +20,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-<<<<<<< HEAD
-describe("PProxiedFactory", function() {
-=======
 describe("PCappedSmartPool", function() {
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
     let signers: Signer[];
     let account: string;
     let factory: PProxiedFactory;
@@ -39,12 +35,7 @@ describe("PCappedSmartPool", function() {
 
         const balancerFactoryAddress = await deployBalancerFactory(signers[0]);
 
-<<<<<<< HEAD
-        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [], {gasLimit: 100000000}) as PProxiedFactory;
-        await factory.init(balancerFactoryAddress);
-=======
-        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [balancerFactoryAddress], {gasLimit: 8000000}) as PProxiedFactory;
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
+        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [balancerFactoryAddress], {gasLimit: 100000000}) as PProxiedFactory;
 
         const tokenFactory = new MockTokenFactory(signers[0]);
         for(let i = 0; i < 3; i ++) {
@@ -56,19 +47,12 @@ describe("PCappedSmartPool", function() {
             amounts.push(constants.WeiPerEther.mul(10));
         }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
     });
 
 
     it("Creating a new proxied pool should work", async() => {
         await factory.newProxiedSmartPool("TEST", "TST", constants.WeiPerEther, tokenAddresses, amounts, weights, INITIAL_SUPPLY);
-<<<<<<< HEAD
-    });
-=======
     })
->>>>>>> 245b1b6... Feature/informal audit fixes (#12)
 
 })
