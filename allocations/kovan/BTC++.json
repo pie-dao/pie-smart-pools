@@ -2,7 +2,11 @@
     "name": "PieDAO BTC++",
     "symbol": "BTC++",
     "initialValue": "1",
+<<<<<<< HEAD
     "initialSupply": "0.04",
+=======
+    "initialSupply": "0.1",
+>>>>>>> b910600... Fixed factory
     "cap": "10",
     "tokens": [
         {

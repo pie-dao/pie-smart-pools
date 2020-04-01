@@ -3,7 +3,6 @@ import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
 import { utils, constants } from "ethers";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
-import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
 import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
 import { deployBalancerFactory } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
@@ -20,8 +19,6 @@ const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
 const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-
-const PLACE_HOLDER_ADDRESS = "0x1000000000000000000000000000000000000001";
 
 interface ExtendedBuidlerConfig extends BuidlerConfig {
   [x:string]: any
@@ -75,9 +72,8 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
   .addParam("balancerFactory", "Address of the balancer factory")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
+    const factory = await (new PProxiedFactoryFactory(signers[0])).deploy(taskArgs.balancerFactory);
     console.log(`Factory deployed at: ${factory.address}`);
-    await factory.init(taskArgs.balancerFactory);
 });
 
 task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
@@ -108,6 +104,8 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
       
       // Calc amount
       let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
+      // let amount = (new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply) * 10 ** token.decimals));
+      // let amount = parseUnits(config.initialValue, token.decimals).div()
       tokenAmounts.push(amount);
 
       // Approve factory to spend token
@@ -137,15 +135,6 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     console.log(`PBasicSmartPool deployed at: ${smartpool.address}`);
 });
 
-task("deploy-pie-capped-smart-pool", "deploys a capped pie smart pool")
-  .setAction(async(taskArgs, { ethers }) => {
-    const signers = await ethers.getSigners();
-    const factory = new PCappedSmartPoolFactory(signers[0]);
-    const smartpool = await factory.deploy();
-
-    console.log(`PCappedSmartPool deployed at: ${smartpool.address}`);
-});
-
 task("init-smart-pool", "initialises a smart pool")
   .addParam("smartPool", "Smart pool address")
   .addParam("pool", "Balancer pool address (should have tokens binded)")
@@ -160,71 +149,6 @@ task("init-smart-pool", "initialises a smart pool")
 
     console.log(`Smart pool initialised: ${receipt.transactionHash}`);
 });
-
-task("deploy-smart-pool-implementation-complete")
-  .addParam("implName")
-  .setAction(async(taskArgs, { ethers }) => {
-    const signers = await ethers.getSigners();
-    const factory = new PCappedSmartPoolFactory(signers[0]);
-
-    // Deploy capped pool
-    const implementation = await factory.deploy();
-    console.log(`Deployed implementation at: ${implementation.address}`);
-
-    // Init implementation
-    const tx = await implementation.init(PLACE_HOLDER_ADDRESS, taskArgs.implName, taskArgs.implName, constants.WeiPerEther);
-
-    console.log(`Initialised tx: ${tx.hash}`);
-});
-
-task("deploy-smart-pool-complete")
-  .addParam("balancerFactory", "Address of the balancer factory. defaults to mainnet balancer factory", "0x9424B1412450D0f8Fc2255FAf6046b98213B76Bd")
-  .addParam("allocation", "path to allocation")
-  .setAction(async(taskArgs, { ethers }) => {
-    const signers = await ethers.getSigners();
-    const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
-    console.log(`Factory deployed at: ${factory.address}`);
-    const initTx = await factory.init(taskArgs.balancerFactory);
-    console.log(`Initialised smart pool factory tx: {${initTx.hash}}`);
-
-    const config = require(taskArgs.allocation);
-
-    const name = config.name;
-    const symbol = config.symbol
-    const initialSupply = parseEther(config.initialSupply);
-    const cap = parseEther(config.cap);
-    const tokens = config.tokens;
-
-
-    const tokenAddresses: string[] = [];
-    const tokenAmounts: BigNumberish[] = [];
-    const tokenWeights: BigNumberish[] = [];
-
-    for (const token of tokens) {
-      tokenAddresses.push(token.address);
-      tokenWeights.push(constants.WeiPerEther.mul(token.weight).div(2));
-      
-      // Calc amount
-      let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
-      tokenAmounts.push(amount);
-
-      // Approve factory to spend token
-      const tokenContract = IERC20Factory.connect(token.address, signers[0]);
-
-      const allowance = await tokenContract.allowance(await signers[0].getAddress(), factory.address);
-      if(allowance.lt(amount)) {
-        const approveTx = await tokenContract.approve(factory.address, constants.WeiPerEther);
-        console.log(`Approved: ${token.address} tx: ${approveTx.hash}`);
-        await approveTx.wait(1);
-      }
-      
-    }
-
-    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap);
-    const receipt = await tx.wait(2); //wait for 2 confirmations
-    const event = receipt.events.pop();
-    console.log(`Deployed smart pool at : ${event.address}`);
-  });
 
 task("join-smart-pool")
   .addParam("pool")
