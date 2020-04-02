@@ -22,8 +22,9 @@ const PLACE_HOLDER_ADDRESS = "0x0000000000000000000000000000000000000001";
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
+let tokenFactory: MockTokenFactory;
 
-describe("PBasicSmartPool", function() {
+describe.only("PBasicSmartPool", function() {
     this.timeout(30000)
     let signers: Signer[];
     let account: string;
@@ -35,9 +36,9 @@ describe("PBasicSmartPool", function() {
         signers = await ethers.signers();
         account = await signers[0].getAddress();
         pool = IBPoolFactory.connect((await deployBalancerPool(signers[0])), signers[0]);
-        const tokenFactory = new MockTokenFactory(signers[0]);
+        tokenFactory = new MockTokenFactory(signers[0]);
         tokens = [];        
-        for(let i = 0; i < 8; i ++) {
+        for(let i = 0; i < 7; i ++) {
             const token: MockToken = (await tokenFactory.deploy(`Mock ${i}`, `M${i}`, 18));
             await token.mint(account, constants.WeiPerEther.mul(1000000));
             await token.mint(await signers[1].getAddress(), constants.WeiPerEther.mul(1000000));
@@ -76,9 +77,13 @@ describe("PBasicSmartPool", function() {
             const controller = await smartpool.getController();
             expect(controller).to.eq(account);
         })
-        it("PublicSwapSetter should be correctly set", async() => {
+        it("Public swap setter should be correctly set", async() => {
             const publicSwapSetter = await smartpool.getPublicSwapSetter();
             expect(publicSwapSetter).to.eq(account);
+        })
+        it("Token binder should be correctly set", async() => {
+            const tokenBinder = await smartpool.getTokenBinder();
+            expect(tokenBinder).to.eq(account);
         })
         it("Calling init when already initialized should fail", async() => {
             await expect(smartpool.init(PLACE_HOLDER_ADDRESS, NAME, SYMBOL, constants.WeiPerEther)).to.be.reverted;
@@ -109,6 +114,15 @@ describe("PBasicSmartPool", function() {
             smartpool = smartpool.connect(signers[1]);
             await expect(smartpool.setPublicSwapSetter(PLACE_HOLDER_ADDRESS)).to.be.reverted;
         });
+        it("Setting the token binder should work", async() => {
+            await smartpool.setTokenBinder(PLACE_HOLDER_ADDRESS);
+            const tokenBinder = await smartpool.getTokenBinder();
+            expect(tokenBinder).to.eq(PLACE_HOLDER_ADDRESS);
+        });
+        it("Setting the token binder from a non controller address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.setTokenBinder(PLACE_HOLDER_ADDRESS)).to.be.reverted;
+        })
         it("Setting public swap should work", async() => {
             await smartpool.setPublicSwap(true);
             const publicSwap = await smartpool.isPublicSwap();
@@ -166,6 +180,46 @@ describe("PBasicSmartPool", function() {
             await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
         });
     })
+
+    describe("Token binding", async() => {
+        it("Binding a new token should work", async() => {
+            const mintAmount = constants.WeiPerEther.mul(1000000)
+            const token: MockToken = (await tokenFactory.deploy("Mock", "M", 18));
+            await token.mint(account, mintAmount);
+            await token.approve(smartpool.address, constants.MaxUint256);
+            
+            await smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther);
+
+            const tokenBalance = await token.balanceOf(account);
+            expect(tokenBalance).to.eq(mintAmount.sub(constants.WeiPerEther));
+            // TODO checks for balances
+        });
+        it("Binding from a non token binder address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            const mintAmount = constants.WeiPerEther.mul(1000000)
+            const token: MockToken = (await tokenFactory.deploy("Mock", "M", 18));
+            await token.mint(account, mintAmount);
+            await token.approve(smartpool.address, constants.MaxUint256);
+            
+            await expect(smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther)).to.be.reverted;
+        });
+        it("Rebinding a token should work", async() => {
+            // Doubles the weight in the pool
+            await smartpool.rebind(tokens[0].address, constants.WeiPerEther.mul(2), constants.WeiPerEther.mul(2));
+        });
+        it("Rebinding a token from a non token binder address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.rebind(tokens[0].address, constants.WeiPerEther.mul(2), constants.WeiPerEther.mul(2))).to.be.reverted;
+        });
+        it("Unbinding a token should work", async() => {
+            smartpool.unbind(tokens[0].address);
+            // TODO balance checks
+        });
+        it("Unbinding a token from a non token binder address should fail", async() => {
+            smartpool = smartpool.connect(signers[1]);
+            await expect(smartpool.unbind(tokens[0].address)).to.be.reverted;
+        });
+    });
 
     async function getTokenBalances(address: string) {
         const balances:BigNumber[] = [];
