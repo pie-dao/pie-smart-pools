@@ -222,7 +222,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint256 oldBalance = token.balanceOf(address(bPool));
         // If tokens need to be pulled from msg.sender
         if(_balance > oldBalance) {
-            token.transferFrom(msg.sender, address(bPool), bsub(_balance, oldBalance));
+            token.transferFrom(msg.sender, address(this), bsub(_balance, oldBalance));
             token.approve(address(bPool), uint256(-1));
         }
 
