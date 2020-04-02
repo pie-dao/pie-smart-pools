@@ -18,6 +18,7 @@ contract PProxiedFactory is Ownable {
     event SmartPoolCreated(address indexed poolAddress, string name, string symbol);
 
     function init(address _balancerFactory) public {
+        require(smartPoolImplementation == address(0), "Already initialised");
         _setOwner(msg.sender);
         balancerFactory = IBFactory(_balancerFactory);
         
