@@ -2,7 +2,7 @@
     "name": "PieDAO BTC++",
     "symbol": "BTC++",
     "initialValue": "1",
-    "initialSupply": "0.1",
+    "initialSupply": "0.04",
     "cap": "10",
     "tokens": [
         {
