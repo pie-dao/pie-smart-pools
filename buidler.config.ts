@@ -72,8 +72,9 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
   .addParam("balancerFactory", "Address of the balancer factory")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const factory = await (new PProxiedFactoryFactory(signers[0])).deploy(taskArgs.balancerFactory);
+    const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
     console.log(`Factory deployed at: ${factory.address}`);
+    await factory.init(taskArgs.balancerFactory);
 });
 
 task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")

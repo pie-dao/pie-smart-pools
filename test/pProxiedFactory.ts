@@ -20,7 +20,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PCappedSmartPool", function() {
+describe.only("PProxiedFactory", function() {
     let signers: Signer[];
     let account: string;
     let factory: PProxiedFactory;
@@ -35,7 +35,8 @@ describe("PCappedSmartPool", function() {
 
         const balancerFactoryAddress = await deployBalancerFactory(signers[0]);
 
-        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [balancerFactoryAddress], {gasLimit: 100000000}) as PProxiedFactory;
+        factory = await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [], {gasLimit: 100000000}) as PProxiedFactory;
+        await factory.init(balancerFactoryAddress);
 
         const tokenFactory = new MockTokenFactory(signers[0]);
         for(let i = 0; i < 3; i ++) {

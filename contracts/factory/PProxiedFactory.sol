@@ -17,7 +17,7 @@ contract PProxiedFactory is Ownable {
 
     event SmartPoolCreated(address indexed poolAddress, string name, string symbol);
 
-    constructor(address _balancerFactory) public {
+    function init(address _balancerFactory) public {
         _setOwner(msg.sender);
         balancerFactory = IBFactory(_balancerFactory);
         
