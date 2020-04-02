@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 pragma solidity 0.6.4;
+=======
+pragma solidity ^0.6.4;
+>>>>>>> 43ea6bf... Reentry protection test
 
 import "../ReentryProtection.sol";
 

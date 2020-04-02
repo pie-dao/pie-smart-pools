@@ -23,7 +23,11 @@ describe("ReentryProtection", function() {
         testContract = await deployContract(signers[0] as Wallet, TestReentryArtifact, []) as TestReentryProtection;
     });
 
+<<<<<<< HEAD
     it("Should prevent reentry", async() => {
+=======
+    it.only("Should prevent reentry", async() => {
+>>>>>>> 43ea6bf... Reentry protection test
         await expect(testContract.test()).to.be.reverted;
     })
 
