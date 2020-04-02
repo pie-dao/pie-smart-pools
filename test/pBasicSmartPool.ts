@@ -24,7 +24,7 @@ const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 let tokenFactory: MockTokenFactory;
 
-describe.only("PBasicSmartPool", function() {
+describe("PBasicSmartPool", function() {
     this.timeout(30000)
     let signers: Signer[];
     let account: string;

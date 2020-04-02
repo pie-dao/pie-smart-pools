@@ -14,6 +14,10 @@ interface PProxiedFactoryInterface extends Interface {
   functions: {
     balancerFactory: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    init: TypedFunctionDescription<{
+      encode([_balancerFactory]: [string]): string;
+    }>;
+
     isPool: TypedFunctionDescription<{ encode([]: [string]): string }>;
 
     newProxiedSmartPool: TypedFunctionDescription<{
@@ -86,6 +90,11 @@ export class PProxiedFactory extends Contract {
   functions: {
     balancerFactory(): Promise<string>;
 
+    init(
+      _balancerFactory: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     isPool(arg0: string): Promise<boolean>;
 
     newProxiedSmartPool(
@@ -112,6 +121,11 @@ export class PProxiedFactory extends Contract {
   };
 
   balancerFactory(): Promise<string>;
+
+  init(
+    _balancerFactory: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   isPool(arg0: string): Promise<boolean>;
 
@@ -152,6 +166,8 @@ export class PProxiedFactory extends Contract {
 
   estimate: {
     balancerFactory(): Promise<BigNumber>;
+
+    init(_balancerFactory: string): Promise<BigNumber>;
 
     isPool(arg0: string): Promise<BigNumber>;
 
