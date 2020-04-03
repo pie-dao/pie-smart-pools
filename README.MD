@@ -40,6 +40,27 @@ Get the address of the underlying balancer pool
 ```solidity
 function getBPool() external view returns(address);
 ```
+
+Get the swap fee
+
+```solidity
+function getSwapFee() external view returns (uint256);
+```
+
+Get if trading is enabled on the underlying balancer pool
+
+```solidity
+function isPublicSwap() external view returns (bool);
+```
+
+
+#### Capped pool specific
+Some pools have a cap which limits the totalSupply of the pool shares token. To get the cap you call:
+
+```solidity
+function getCap() external view returns(uint256);
+```
+
 ## Development
 
 To install the dependencies and run the tests, run the following commands.
