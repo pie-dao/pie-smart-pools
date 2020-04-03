@@ -35,19 +35,19 @@ function calcTokensForAmount(uint256 _amount) external view returns(address[] me
 ```
 
 #### Balancer smart pool specific
-Get the address of the underlying balancer pool
+Get the address of the underlying balancer pool:
 
 ```solidity
 function getBPool() external view returns(address);
 ```
 
-Get the swap fee
+Get the swap fee:
 
 ```solidity
 function getSwapFee() external view returns (uint256);
 ```
 
-Get if trading is enabled on the underlying balancer pool
+Get if trading is enabled on the underlying balancer pool:
 
 ```solidity
 function isPublicSwap() external view returns (bool);
