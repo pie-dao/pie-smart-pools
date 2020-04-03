@@ -65,7 +65,7 @@ function getCap() external view returns(uint256);
 
 | Name         | Symbol | Address                                                                                                                       | Type            |
 |--------------|--------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| PieDAO BTC++ | BTC++  | [0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd](https://https://etherscan.io/address/0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd) | Balancer Capped |
+| PieDAO BTC++ | BTC++  | [0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd](https://etherscan.io/address/0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd) | Balancer Capped |
 
 ## Development
 
