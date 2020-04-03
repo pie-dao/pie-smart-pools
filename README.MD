@@ -61,6 +61,12 @@ Some pools have a cap which limits the totalSupply of the pool shares token. To 
 function getCap() external view returns(uint256);
 ```
 
+## Deployed Pools
+
+| Name         | Symbol | Address                                                                                                                       | Type            |
+|--------------|--------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| PieDAO BTC++ | BTC++  | [0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd](https://https://etherscan.io/address/0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd) | Balancer Capped |
+
 ## Development
 
 To install the dependencies and run the tests, run the following commands.
