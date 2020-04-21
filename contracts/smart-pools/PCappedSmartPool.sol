@@ -20,7 +20,7 @@ contract PCappedSmartPool is PBasicSmartPool {
         @notice Set the maximum cap of the contract
         @param _cap New cap in wei
     */
-    function setCap(uint256 _cap) onlyController external {
+    function setCap(uint256 _cap) onlyController noReentry external {
         emit CapChanged(msg.sender, lpcs().cap, _cap);
         lpcs().cap = _cap;
     }
@@ -29,7 +29,7 @@ contract PCappedSmartPool is PBasicSmartPool {
         @notice Takes underlying assets and mints smart pool tokens. Enforces the cap
         @param _amount Amount of pool tokens to mint
     */
-    function joinPool(uint256 _amount) external override withinCap {
+    function joinPool(uint256 _amount) external override withinCap noReentry {
         super._joinPool(_amount);
     }
 
