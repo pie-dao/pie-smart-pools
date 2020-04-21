@@ -61,6 +61,14 @@ describe("PBasicSmartPool", function() {
     });
 
     describe("init", async() => {
+        it("Initialising with invalid bPool address should fail", async() => {
+            smartpool = await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {gasLimit: 100000000}) as PBasicSmartPool
+            await expect(smartpool.init(ethers.constants.AddressZero, "TEST", "TEST", ethers.constants.WeiPerEther)).to.be.reverted;
+        });
+        it("Initialising with zero supply should fail", async() => {
+            smartpool = await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {gasLimit: 100000000}) as PBasicSmartPool
+            await expect(smartpool.init(PLACE_HOLDER_ADDRESS, "TEST", "TEST", ethers.constants.Zero)).to.be.reverted;
+        });
         it("Token symbol should be correct", async() => {
             const name = await smartpool.name();
             expect(name).to.eq(NAME);
