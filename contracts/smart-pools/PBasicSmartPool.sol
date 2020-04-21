@@ -81,7 +81,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets approval to all tokens to the underlying balancer pool
         @dev It uses this function to save on gas in joinPool
     */
-    function approveTokens() public {
+    function approveTokens() public noReentry {
         IBPool bPool = lpbs().bPool;
         address[] memory tokens = bPool.getCurrentTokens();
         for(uint256 i = 0; i < tokens.length; i ++) {
@@ -103,7 +103,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets public swap setter address. Can only be set by the controller
         @param _newPublicSwapSetter Address of the new public swap setter
     */
-    function setPublicSwapSetter(address _newPublicSwapSetter) onlyController external {
+    function setPublicSwapSetter(address _newPublicSwapSetter) onlyController noReentry external {
         emit PublicSwapSetterChanged(lpbs().publicSwapSetter, _newPublicSwapSetter);
         lpbs().publicSwapSetter = _newPublicSwapSetter;
     }
@@ -112,7 +112,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets the token binder address. Can only be set by the controller
         @param _newTokenBinder Address of the new token binder
     */
-    function setTokenBinder(address _newTokenBinder) onlyController external {
+    function setTokenBinder(address _newTokenBinder) onlyController noReentry external {
         emit TokenBinderChanged(lpbs().tokenBinder, _newTokenBinder);
         lpbs().tokenBinder = _newTokenBinder;
     }
@@ -121,7 +121,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Enables or disables public swapping on the underlying balancer pool. Can only be set by the controller
         @param _public Public or not
     */
-    function setPublicSwap(bool _public) onlyPublicSwapSetter external {
+    function setPublicSwap(bool _public) onlyPublicSwapSetter noReentry external {
         emit PublicSwapSet(msg.sender, _public);
         lpbs().bPool.setPublicSwap(_public);
     }
@@ -130,7 +130,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Set the swap fee on the underlying balancer pool. Can only be called by the controller
         @param _swapFee The new swap fee
     */
-    function setSwapFee(uint256 _swapFee) onlyController external {
+    function setSwapFee(uint256 _swapFee) onlyController noReentry external {
         emit SwapFeeSet(msg.sender, _swapFee);
         lpbs().bPool.setSwapFee(_swapFee);
     }
@@ -139,7 +139,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Mints pool shares in exchange for underlying assets
         @param _amount Amount of pool shares to mint
     */
-    function joinPool(uint256 _amount) external override virtual ready {
+    function joinPool(uint256 _amount) external override virtual ready noReentry {
         _joinPool(_amount);
     }
 
@@ -198,7 +198,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _balance Amount to bind
         @param _denorm Denormalised weight
     */
-    function bind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder {
+    function bind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder noReentry {
         IBPool bPool = lpbs().bPool;
         IERC20 token = IERC20(_token);
         token.transferFrom(msg.sender, address(this), _balance);
@@ -212,7 +212,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _balance Amount to bind
         @param _denorm Denormalised weight
     */
-    function rebind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder {
+    function rebind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder noReentry {
         IBPool bPool = lpbs().bPool;
         IERC20 token = IERC20(_token);
         
@@ -239,7 +239,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Unbind a token
         @param _token Token to unbind
     */
-    function unbind(address _token) external onlyTokenBinder {
+    function unbind(address _token) external onlyTokenBinder noReentry {
         IBPool bPool = lpbs().bPool;
         IERC20 token = IERC20(_token);
         // unbind the token in the bPool
