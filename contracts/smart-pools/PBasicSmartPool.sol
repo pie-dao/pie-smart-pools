@@ -67,6 +67,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
         pbs storage s = lpbs();
         require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
+        require(_bPool != address(0), "PBasicSmartPool.init: _bPool cannot be 0x00....000");
+        require(_initialSupply != 0, "PBasicSmartPool.init: _initialSupply can not zero");
         s.bPool = IBPool(_bPool);
         s.controller = msg.sender;
         s.publicSwapSetter = msg.sender;
