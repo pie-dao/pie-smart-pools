@@ -41,6 +41,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     event SwapFeeSet(address indexed setter, uint256 newFee);
     event PoolJoined(address indexed from, uint256 amount);
     event PoolExited(address indexed from, uint256 amount);
+    event PoolExitedWithLoss(address indexed from, uint256 amount, address[] lossTokens);
 
     modifier onlyController() {
         require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not controller");
@@ -195,6 +196,36 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
 
     /**
+        @notice Burns pool shares and sends back the underlying assets leaving some in the pool
+        @param _amount Amount of pool tokens to burn
+        @param _lossTokens Tokens skipped on redemption
+    */
+    function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens) external ready noReentry {
+        IBPool bPool = lpbs().bPool;
+        uint poolTotal = totalSupply();
+        uint ratio = bdiv(_amount, poolTotal);
+        require(ratio != 0);
+
+        _pullPoolShare(msg.sender, _amount);
+        _burnPoolShare(_amount);
+
+        address[] memory tokens = bPool.getCurrentTokens();
+
+        for (uint i = 0; i < tokens.length; i++) {
+            // If taking loss on token skip one iteration of the loop
+            if(_contains(tokens[i], _lossTokens)){
+                continue;
+            }
+            address t = tokens[i];
+            uint bal = bPool.getBalance(t);
+            uint tAo = bmul(ratio, bal);
+            emit LOG_EXIT(msg.sender, t, tAo);  
+            _pushUnderlying(t, msg.sender, tAo, bal);
+        }
+        emit PoolExitedWithLoss(msg.sender, _amount, _lossTokens);
+    }
+
+    /**
         @notice Bind a token to the underlying balancer pool. Can only be called by the token binder
         @param _token Token to bind
         @param _balance Amount to bind
@@ -203,7 +234,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     function bind(address _token, uint256 _balance, uint256 _denorm) external onlyTokenBinder noReentry {
         IBPool bPool = lpbs().bPool;
         IERC20 token = IERC20(_token);
-        token.transferFrom(msg.sender, address(this), _balance);
+        require(token.transferFrom(msg.sender, address(this), _balance), "PBasicSmartPool.bind: transferFrom failed");
         token.approve(address(bPool), uint256(-1));
         bPool.bind(_token, _balance, _denorm);
     }
@@ -224,7 +255,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint256 oldBalance = token.balanceOf(address(bPool));
         // If tokens need to be pulled from msg.sender
         if(_balance > oldBalance) {
-            token.transferFrom(msg.sender, address(this), bsub(_balance, oldBalance));
+            require(token.transferFrom(msg.sender, address(this), bsub(_balance, oldBalance)), "PBasicSmartPool.rebind: transferFrom failed");
             token.approve(address(bPool), uint256(-1));
         }
 
@@ -233,7 +264,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         // If any tokens are in this contract send them to msg.sender
         uint256 tokenBalance = token.balanceOf(address(this));
         if(tokenBalance > 0) {
-            token.transfer(msg.sender, tokenBalance);
+            require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.rebind: transfer failed");
         }
     }
 
@@ -250,7 +281,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         // If any tokens are in this contract send them to msg.sender
         uint256 tokenBalance = token.balanceOf(address(this));
         if(tokenBalance > 0) {
-            token.transfer(msg.sender, tokenBalance);
+            require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.unbind: transfer failed");
         }
     }
 
@@ -339,8 +370,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
 
-        bool xfer = IERC20(_token).transferFrom(_from, address(this), _amount);
-        require(xfer, "ERR_ERC20_FALSE");
+        require(IERC20(_token).transferFrom(_from, address(this), _amount), "PBasicSmartPool._pullUnderlying: transferFrom failed");
         bPool.rebind(_token, badd(_tokenBalance, _amount), tokenWeight);
     }
 
@@ -359,8 +389,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
         bPool.rebind(_token, bsub(_tokenBalance, _amount), tokenWeight);
 
-        bool xfer = IERC20(_token).transfer(_to, _amount);
-        require(xfer, "ERR_ERC20_FALSE");
+        require(IERC20(_token).transfer(_to, _amount), "PBasicSmartPool._pushUnderlying: transfer failed");
     }
 
     /**
@@ -403,6 +432,21 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         internal
     {
         _push(_to, _amount);
+    }
+
+    /**
+        @notice searches for an address in an array of addresses and returns if it contains the address
+        @param _needle Address to look for
+        @param _haystack Array to search
+        @return If value is found
+    */
+    function _contains(address _needle, address[] memory _haystack) internal pure returns(bool) {
+        for(uint256 i = 0; i < _haystack.length; i ++) {
+            if(_haystack[i] == _needle) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -167,6 +167,11 @@ describe("PBasicSmartPool", function() {
             await tokens[1].approve(smartpool.address, constants.Zero);
             await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
         });
+        it("Adding liquidity when a token transfer returns fails should fail", async() => {
+            const mintAmount = constants.WeiPerEther;
+            await tokens[1].setTransferFromReturnFalse(true);
+            await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
+        });
         it("Removing liquidity should work", async() => {
             const removeAmount = constants.WeiPerEther.div(2);
 
@@ -175,7 +180,7 @@ describe("PBasicSmartPool", function() {
             expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
             // TODO check all balances
-        })
+        });
         it("Removing all liquidity should fail", async() => {
             const removeAmount = constants.WeiPerEther;
             await expect(smartpool.exitPool(removeAmount)).to.be.reverted;
@@ -187,6 +192,38 @@ describe("PBasicSmartPool", function() {
 
             await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
         });
+
+        it("Removing liquidity when a token transfer fails should fail", async() => {
+            await tokens[0].setTransferFailed(true);
+            await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.reverted;
+        });
+
+        it("Removing liquidity when a token transfer returns false should fail", async() => {
+            await tokens[0].setTransferReturnFalse(true);
+            await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.reverted;
+        });
+
+        it("Removing liquidity leaving a single token should work", async() => {
+            const removeAmount = constants.WeiPerEther.div(2);
+
+            await smartpool.exitPoolTakingloss(removeAmount, [tokens[0].address]);
+            const balance = await smartpool.balanceOf(account);
+            expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
+
+            // TODO check all balances
+        });
+        it("Removing all liquidity leaving a single token should fail", async() => {
+            const removeAmount = constants.WeiPerEther;
+            await expect(smartpool.exitPool(removeAmount)).to.be.reverted;
+        });
+        it("Removing liquidity leaving a single token should fail when removing more than balance", async() => {
+            // First mint some more in another account to not withdraw all total liquidity in the actual test
+            const altSignerSmartPool = PBasicSmartPoolFactory.connect(smartpool.address, signers[1]);
+            await altSignerSmartPool.joinPool(constants.WeiPerEther);
+
+            await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
+        });
+
     })
 
     describe("Token binding", async() => {
