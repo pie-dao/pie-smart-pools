@@ -48,7 +48,6 @@ describe("PProxiedFactory", function() {
             amounts.push(constants.WeiPerEther.mul(10));
         }
 
-
     });
 
 

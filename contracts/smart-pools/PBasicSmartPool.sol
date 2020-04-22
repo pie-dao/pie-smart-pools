@@ -153,7 +153,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     function _joinPool(uint256 _amount) internal virtual ready {
         IBPool bPool = lpbs().bPool;
         uint poolTotal = totalSupply();
-        uint ratio = bdiv(_amount, poolTotal);
+        uint ratio = _amount.bdiv(poolTotal);
         require(ratio != 0);
 
         address[] memory tokens = bPool.getCurrentTokens();
@@ -161,7 +161,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         for (uint i = 0; i < tokens.length; i++) {
             address t = tokens[i];
             uint bal = bPool.getBalance(t);
-            uint tokenAmountIn = bmul(ratio, bal);
+            uint tokenAmountIn = ratio.bmul(bal);
             emit LOG_JOIN(msg.sender, t, tokenAmountIn);
             _pullUnderlying(t, msg.sender, tokenAmountIn, bal);
         }
@@ -177,7 +177,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     function exitPool(uint256 _amount) external override ready noReentry {
         IBPool bPool = lpbs().bPool;
         uint poolTotal = totalSupply();
-        uint ratio = bdiv(_amount, poolTotal);
+        uint ratio = _amount.bdiv(poolTotal);
         require(ratio != 0);
 
         _pullPoolShare(msg.sender, _amount);
@@ -188,7 +188,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         for (uint i = 0; i < tokens.length; i++) {
             address t = tokens[i];
             uint bal = bPool.getBalance(t);
-            uint tAo = bmul(ratio, bal);
+            uint tAo = ratio.bmul(bal);
             emit LOG_EXIT(msg.sender, t, tAo);  
             _pushUnderlying(t, msg.sender, tAo, bal);
         }
@@ -203,7 +203,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens) external ready noReentry {
         IBPool bPool = lpbs().bPool;
         uint poolTotal = totalSupply();
-        uint ratio = bdiv(_amount, poolTotal);
+        uint ratio = _amount.bdiv(poolTotal);
         require(ratio != 0);
 
         _pullPoolShare(msg.sender, _amount);
@@ -218,7 +218,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
             }
             address t = tokens[i];
             uint bal = bPool.getBalance(t);
-            uint tAo = bmul(ratio, bal);
+            uint tAo = ratio.bmul(bal);
             emit LOG_EXIT(msg.sender, t, tAo);  
             _pushUnderlying(t, msg.sender, tAo, bal);
         }
@@ -255,7 +255,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint256 oldBalance = token.balanceOf(address(bPool));
         // If tokens need to be pulled from msg.sender
         if(_balance > oldBalance) {
-            require(token.transferFrom(msg.sender, address(this), bsub(_balance, oldBalance)), "PBasicSmartPool.rebind: transferFrom failed");
+            require(token.transferFrom(msg.sender, address(this), _balance.bsub(oldBalance)), "PBasicSmartPool.rebind: transferFrom failed");
             token.approve(address(bPool), uint256(-1));
         }
 
@@ -298,12 +298,12 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     function calcTokensForAmount(uint256 _amount) external view override returns(address[] memory tokens, uint256[] memory amounts) {
         tokens = lpbs().bPool.getCurrentTokens();
         amounts = new uint256[](tokens.length);
-        uint256 ratio = bdiv(_amount, totalSupply());
+        uint256 ratio = _amount.bdiv(totalSupply());
 
         for(uint256 i = 0; i < tokens.length; i ++) {
             address t = tokens[i];
             uint256 bal = lpbs().bPool.getBalance(t);
-            uint256 amount = bmul(ratio, bal);
+            uint256 amount = ratio.bmul(bal);
             amounts[i] = amount;
         }
     }
@@ -371,7 +371,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
 
         require(IERC20(_token).transferFrom(_from, address(this), _amount), "PBasicSmartPool._pullUnderlying: transferFrom failed");
-        bPool.rebind(_token, badd(_tokenBalance, _amount), tokenWeight);
+        bPool.rebind(_token, _tokenBalance.badd(_amount), tokenWeight);
     }
 
     /** 
@@ -387,7 +387,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         IBPool bPool = lpbs().bPool;
         // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
         uint tokenWeight = bPool.getDenormalizedWeight(_token);
-        bPool.rebind(_token, bsub(_tokenBalance, _amount), tokenWeight);
+        bPool.rebind(_token, _tokenBalance.bsub(_amount), tokenWeight);
 
         require(IERC20(_token).transfer(_to, _amount), "PBasicSmartPool._pushUnderlying: transfer failed");
     }
