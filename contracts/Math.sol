@@ -1,6 +1,8 @@
 library Math {
 
     uint internal constant BONE = 10**18;
+
+    // Add two numbers together checking for overflows
     function badd(uint a, uint b)
         internal pure
         returns (uint)
@@ -10,6 +12,7 @@ library Math {
         return c;
     }
 
+    // Subtract two numbers checking for underflows
     function bsub(uint a, uint b)
         internal pure
         returns (uint)
@@ -19,17 +22,7 @@ library Math {
         return c;
     }
 
-    function bsubSign(uint a, uint b)
-        internal pure
-        returns (uint, bool)
-    {
-        if (a >= b) {
-            return (a - b, false);
-        } else {
-            return (b - a, true);
-        }
-    }
-
+    // Multiply two 18 decimals numbers
     function bmul(uint a, uint b)
         internal pure
         returns (uint)
@@ -42,6 +35,7 @@ library Math {
         return c2;
     }
 
+    // Divide two 18 decimals numbers
     function bdiv(uint a, uint b)
         internal pure
         returns (uint)
