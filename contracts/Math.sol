@@ -12,6 +12,18 @@ library Math {
         return c;
     }
 
+    // subtract two numbers and return diffecerence when it underflows
+    function bsubSign(uint a, uint b)
+        internal pure
+        returns (uint, bool)
+    {
+        if (a >= b) {
+            return (a - b, false);
+        } else {
+            return (b - a, true);
+        }
+    }
+
     // Subtract two numbers checking for underflows
     function bsub(uint a, uint b)
         internal pure
