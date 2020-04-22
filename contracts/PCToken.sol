@@ -26,15 +26,7 @@ contract PCToken is IERC20, PCTokenStorage {
     event Transfer(address indexed _src, address indexed _dst, uint _amount);
 
     uint8 public constant decimals = 18;
-    uint public constant BONE              = 10**18;
-    uint public constant MAX_BOUND_TOKENS  = 8;
-    uint public constant MIN_WEIGHT        = BONE;
-    uint public constant MAX_WEIGHT        = BONE * 50;
-    uint public constant MAX_TOTAL_WEIGHT  = BONE * 50;
-    uint public constant MIN_BALANCE       = BONE / 10**6;
-    uint public constant MAX_BALANCE       = BONE * 10**12;
-
-    uint public constant MIN_POOL_SUPPLY   = BONE;
+    uint public constant BONE = 10**18;
 
     function badd(uint a, uint b)
         internal pure
