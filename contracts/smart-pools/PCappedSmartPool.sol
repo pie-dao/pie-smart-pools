@@ -1,4 +1,4 @@
-pragma solidity ^0.6.4;
+pragma solidity 0.6.4;
 
 import "./PBasicSmartPool.sol";
 contract PCappedSmartPool is PBasicSmartPool {

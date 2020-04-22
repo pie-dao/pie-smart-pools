@@ -1,4 +1,4 @@
-pragma solidity ^0.6.4;
+pragma solidity 0.6.4;
 
 // TODO move this generic contract to a seperate repo with all generic smart contracts
 
