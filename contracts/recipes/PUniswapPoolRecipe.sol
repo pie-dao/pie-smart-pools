@@ -1,4 +1,4 @@
-pragma solidity ^0.6.4;
+pragma solidity 0.6.4;
 
 import "../interfaces/IERC20.sol";
 import "../interfaces/IPSmartPool.sol";
