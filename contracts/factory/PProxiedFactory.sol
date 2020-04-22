@@ -24,7 +24,7 @@ contract PProxiedFactory is Ownable {
         
         PCappedSmartPool implementation = new PCappedSmartPool();
         // function init(address _bPool, string calldata _name, string calldata _symbol, uint256 _initialSupply) external {
-        implementation.init(address(0), "IMPL", "IMPL", 1 ether);
+        implementation.init(address(1), "IMPL", "IMPL", 1 ether);
         smartPoolImplementation = address(implementation);
     }
 
