@@ -62,6 +62,10 @@ interface PCappedSmartPoolInterface extends Interface {
       encode([_amount]: [BigNumberish]): string;
     }>;
 
+    exitPoolTakingloss: TypedFunctionDescription<{
+      encode([_amount, _lossTokens]: [BigNumberish, string[]]): string;
+    }>;
+
     getBPool: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getCap: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -196,6 +200,14 @@ interface PCappedSmartPoolInterface extends Interface {
       encodeTopics([from, amount]: [string | null, null]): string[];
     }>;
 
+    PoolExitedWithLoss: TypedEventDescription<{
+      encodeTopics([from, amount, lossTokens]: [
+        string | null,
+        null,
+        null
+      ]): string[];
+    }>;
+
     PoolJoined: TypedEventDescription<{
       encodeTopics([from, amount]: [string | null, null]): string[];
     }>;
@@ -307,6 +319,12 @@ export class PCappedSmartPool extends Contract {
 
     exitPool(
       _amount: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    exitPoolTakingloss(
+      _amount: BigNumberish,
+      _lossTokens: string[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -472,6 +490,12 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  exitPoolTakingloss(
+    _amount: BigNumberish,
+    _lossTokens: string[],
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   getBPool(): Promise<string>;
 
   getCap(): Promise<BigNumber>;
@@ -604,6 +628,12 @@ export class PCappedSmartPool extends Contract {
 
     PoolExited(from: string | null, amount: null): EventFilter;
 
+    PoolExitedWithLoss(
+      from: string | null,
+      amount: null,
+      lossTokens: null
+    ): EventFilter;
+
     PoolJoined(from: string | null, amount: null): EventFilter;
 
     PublicSwapSet(setter: string | null, value: boolean | null): EventFilter;
@@ -667,6 +697,11 @@ export class PCappedSmartPool extends Contract {
     decreaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
     exitPool(_amount: BigNumberish): Promise<BigNumber>;
+
+    exitPoolTakingloss(
+      _amount: BigNumberish,
+      _lossTokens: string[]
+    ): Promise<BigNumber>;
 
     getBPool(): Promise<BigNumber>;
 
