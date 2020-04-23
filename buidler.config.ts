@@ -3,6 +3,7 @@ import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
 import { utils, constants } from "ethers";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
+import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
 import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
 import { deployBalancerFactory } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
@@ -134,6 +135,15 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     const smartpool = await factory.deploy();
 
     console.log(`PBasicSmartPool deployed at: ${smartpool.address}`);
+});
+
+task("deploy-pie-capped-smart-pool", "deploys a capped pie smart pool")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const factory = new PCappedSmartPoolFactory(signers[0]);
+    const smartpool = await factory.deploy();
+
+    console.log(`PCappedSmartPool deployed at: ${smartpool.address}`);
 });
 
 task("init-smart-pool", "initialises a smart pool")
