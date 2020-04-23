@@ -10,7 +10,7 @@ import {
   TypedFunctionDescription
 } from ".";
 
-interface PCTokenInterface extends Interface {
+interface TestPCTokenInterface extends Interface {
   functions: {
     allowance: TypedFunctionDescription<{
       encode([_src, _dst]: [string, string]): string;
@@ -30,6 +30,10 @@ interface PCTokenInterface extends Interface {
 
     increaseApproval: TypedFunctionDescription<{
       encode([_dst, _amount]: [string, BigNumberish]): string;
+    }>;
+
+    mint: TypedFunctionDescription<{
+      encode([_to, _amount]: [string, BigNumberish]): string;
     }>;
 
     name: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -68,18 +72,18 @@ interface PCTokenInterface extends Interface {
   };
 }
 
-export class PCToken extends Contract {
-  connect(signerOrProvider: Signer | Provider | string): PCToken;
-  attach(addressOrName: string): PCToken;
-  deployed(): Promise<PCToken>;
+export class TestPCToken extends Contract {
+  connect(signerOrProvider: Signer | Provider | string): TestPCToken;
+  attach(addressOrName: string): TestPCToken;
+  deployed(): Promise<TestPCToken>;
 
-  on(event: EventFilter | string, listener: Listener): PCToken;
-  once(event: EventFilter | string, listener: Listener): PCToken;
-  addListener(eventName: EventFilter | string, listener: Listener): PCToken;
-  removeAllListeners(eventName: EventFilter | string): PCToken;
-  removeListener(eventName: any, listener: Listener): PCToken;
+  on(event: EventFilter | string, listener: Listener): TestPCToken;
+  once(event: EventFilter | string, listener: Listener): TestPCToken;
+  addListener(eventName: EventFilter | string, listener: Listener): TestPCToken;
+  removeAllListeners(eventName: EventFilter | string): TestPCToken;
+  removeListener(eventName: any, listener: Listener): TestPCToken;
 
-  interface: PCTokenInterface;
+  interface: TestPCTokenInterface;
 
   functions: {
     allowance(_src: string, _dst: string): Promise<BigNumber>;
@@ -102,6 +106,12 @@ export class PCToken extends Contract {
 
     increaseApproval(
       _dst: string,
+      _amount: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    mint(
+      _to: string,
       _amount: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -148,6 +158,12 @@ export class PCToken extends Contract {
 
   increaseApproval(
     _dst: string,
+    _amount: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  mint(
+    _to: string,
     _amount: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
@@ -199,6 +215,8 @@ export class PCToken extends Contract {
     decreaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
     increaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
+
+    mint(_to: string, _amount: BigNumberish): Promise<BigNumber>;
 
     name(): Promise<BigNumber>;
 
