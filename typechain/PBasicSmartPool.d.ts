@@ -12,22 +12,6 @@ import {
 
 interface PBasicSmartPoolInterface extends Interface {
   functions: {
-    BONE: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_BALANCE: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_BOUND_TOKENS: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_TOTAL_WEIGHT: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_WEIGHT: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MIN_BALANCE: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MIN_POOL_SUPPLY: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MIN_WEIGHT: TypedFunctionDescription<{ encode([]: []): string }>;
-
     allowance: TypedFunctionDescription<{
       encode([_src, _dst]: [string, string]): string;
     }>;
@@ -247,22 +231,6 @@ export class PBasicSmartPool extends Contract {
   interface: PBasicSmartPoolInterface;
 
   functions: {
-    BONE(): Promise<BigNumber>;
-
-    MAX_BALANCE(): Promise<BigNumber>;
-
-    MAX_BOUND_TOKENS(): Promise<BigNumber>;
-
-    MAX_TOTAL_WEIGHT(): Promise<BigNumber>;
-
-    MAX_WEIGHT(): Promise<BigNumber>;
-
-    MIN_BALANCE(): Promise<BigNumber>;
-
-    MIN_POOL_SUPPLY(): Promise<BigNumber>;
-
-    MIN_WEIGHT(): Promise<BigNumber>;
-
     allowance(_src: string, _dst: string): Promise<BigNumber>;
 
     approve(
@@ -407,22 +375,6 @@ export class PBasicSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
   };
-
-  BONE(): Promise<BigNumber>;
-
-  MAX_BALANCE(): Promise<BigNumber>;
-
-  MAX_BOUND_TOKENS(): Promise<BigNumber>;
-
-  MAX_TOTAL_WEIGHT(): Promise<BigNumber>;
-
-  MAX_WEIGHT(): Promise<BigNumber>;
-
-  MIN_BALANCE(): Promise<BigNumber>;
-
-  MIN_POOL_SUPPLY(): Promise<BigNumber>;
-
-  MIN_WEIGHT(): Promise<BigNumber>;
 
   allowance(_src: string, _dst: string): Promise<BigNumber>;
 
@@ -624,22 +576,6 @@ export class PBasicSmartPool extends Contract {
   };
 
   estimate: {
-    BONE(): Promise<BigNumber>;
-
-    MAX_BALANCE(): Promise<BigNumber>;
-
-    MAX_BOUND_TOKENS(): Promise<BigNumber>;
-
-    MAX_TOTAL_WEIGHT(): Promise<BigNumber>;
-
-    MAX_WEIGHT(): Promise<BigNumber>;
-
-    MIN_BALANCE(): Promise<BigNumber>;
-
-    MIN_POOL_SUPPLY(): Promise<BigNumber>;
-
-    MIN_WEIGHT(): Promise<BigNumber>;
-
     allowance(_src: string, _dst: string): Promise<BigNumber>;
 
     approve(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
