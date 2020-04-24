@@ -16,27 +16,17 @@ const { expect } = chai;
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 
-<<<<<<< HEAD
 describe("PCToken", function() {
     this.timeout(300000);
     let signers: Signer[];
     let account: string;
     let account2: string;
-=======
-describe.only("PCappedSmartPool", function() {
-    this.timeout(300000);
-    let signers: Signer[];
-    let account: string;
->>>>>>> 388266b... work on tests
     let pcToken: TestPCToken;
     
     beforeEach(async() => {
         signers = await ethers.signers();
         account = await signers[0].getAddress();
-<<<<<<< HEAD
         account2 = await signers[1].getAddress();
-=======
->>>>>>> 388266b... work on tests
 
         pcToken = await deployContract(signers[0] as Wallet, TestPCTokenArtifact, [NAME, SYMBOL], {gasLimit: 100000000}) as TestPCToken
     })
@@ -74,14 +64,11 @@ describe.only("PCappedSmartPool", function() {
             const totalSupply = await pcToken.totalSupply();
             expect(totalSupply).to.eq(mintAmount.div(2));
         });
-<<<<<<< HEAD
         it("Burning more than an address's balance should fail", async() => {
             const mintAmount = constants.WeiPerEther;
             await pcToken.mint(account, mintAmount);
             await expect(pcToken.burn(account, constants.WeiPerEther.add(1))).to.be.reverted;
         });
-=======
->>>>>>> 388266b... work on tests
     });
     describe("balanceOf", async() => {
         it("Should return zero if no balance", async() => {
@@ -96,7 +83,6 @@ describe.only("PCappedSmartPool", function() {
         });
     });
     describe("transfer", async() => {
-<<<<<<< HEAD
         it("Should fail when the sender does not have enought balance", async() => {
             await pcToken.mint(account, constants.WeiPerEther);
             await expect(pcToken.transfer(account2, constants.WeiPerEther.add(1))).to.be.reverted;
@@ -230,8 +216,4 @@ describe.only("PCappedSmartPool", function() {
         });
     });
 
-=======
-
-    });
->>>>>>> 388266b... work on tests
 });

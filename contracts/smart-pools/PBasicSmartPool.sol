@@ -142,7 +142,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Mints pool shares in exchange for underlying assets
         @param _amount Amount of pool shares to mint
     */
-    function joinPool(uint256 _amount) external override virtual ready noReentry {
+    function joinPool(uint256 _amount) external override virtual noReentry {
         _joinPool(_amount);
     }
 

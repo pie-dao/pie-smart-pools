@@ -22,13 +22,10 @@ interface TestPCTokenInterface extends Interface {
 
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
 
-<<<<<<< HEAD
     burn: TypedFunctionDescription<{
       encode([_from, _amount]: [string, BigNumberish]): string;
     }>;
 
-=======
->>>>>>> 388266b... work on tests
     decimals: TypedFunctionDescription<{ encode([]: []): string }>;
 
     decreaseApproval: TypedFunctionDescription<{
@@ -103,15 +100,12 @@ export class TestPCToken extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
-<<<<<<< HEAD
     burn(
       _from: string,
       _amount: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-=======
->>>>>>> 388266b... work on tests
     decimals(): Promise<number>;
 
     decreaseApproval(
@@ -164,15 +158,12 @@ export class TestPCToken extends Contract {
 
   balanceOf(_whom: string): Promise<BigNumber>;
 
-<<<<<<< HEAD
   burn(
     _from: string,
     _amount: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
-=======
->>>>>>> 388266b... work on tests
   decimals(): Promise<number>;
 
   decreaseApproval(
@@ -235,11 +226,8 @@ export class TestPCToken extends Contract {
 
     balanceOf(_whom: string): Promise<BigNumber>;
 
-<<<<<<< HEAD
     burn(_from: string, _amount: BigNumberish): Promise<BigNumber>;
 
-=======
->>>>>>> 388266b... work on tests
     decimals(): Promise<BigNumber>;
 
     decreaseApproval(_dst: string, _amount: BigNumberish): Promise<BigNumber>;

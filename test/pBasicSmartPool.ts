@@ -40,10 +40,10 @@ describe("PBasicSmartPool", function() {
         tokens = [];        
         for(let i = 0; i < 7; i ++) {
             const token: MockToken = (await tokenFactory.deploy(`Mock ${i}`, `M${i}`, 18));
-            await token.mint(account, constants.WeiPerEther.mul(1000000));
+            await token.mint(account, constants.WeiPerEther.mul(constants.WeiPerEther.mul(1000000)));
             await token.mint(await signers[1].getAddress(), constants.WeiPerEther.mul(1000000));
             await token.approve(pool.address, constants.MaxUint256);
-            pool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther.mul(1));
+            pool.bind(token.address, constants.WeiPerEther.div(2), constants.WeiPerEther);
             tokens.push(token);
         }
         // Deploy this way to get the coverage provider to pick it up
@@ -84,15 +84,31 @@ describe("PBasicSmartPool", function() {
         it("Controller should be correctly set", async() => {
             const controller = await smartpool.getController();
             expect(controller).to.eq(account);
-        })
+        });
         it("Public swap setter should be correctly set", async() => {
             const publicSwapSetter = await smartpool.getPublicSwapSetter();
             expect(publicSwapSetter).to.eq(account);
-        })
+        });
         it("Token binder should be correctly set", async() => {
             const tokenBinder = await smartpool.getTokenBinder();
             expect(tokenBinder).to.eq(account);
-        })
+        });
+        it("bPool should be correctly set", async() => {
+            const bPool = await smartpool.getBPool();
+            expect(bPool).to.eq(pool.address);
+        });
+        it("Tokens should be correctly set", async() => {
+            const actualTokens = await smartpool.getTokens();
+            const tokenAddresses = tokens.map(token => token.address);
+            expect(actualTokens).eql(tokenAddresses);
+        });
+        it("calcTokensForAmount should work", async() => {
+            const amountAndTokens = await smartpool.calcTokensForAmount(constants.WeiPerEther);
+            const tokenAddresses = tokens.map(token => token.address);
+            const expectedAmounts = tokens.map(() => constants.WeiPerEther.div(2));
+            expect(amountAndTokens.tokens).to.eql(tokenAddresses);
+            expect(amountAndTokens.amounts).to.eql(expectedAmounts);
+        });
         it("Calling init when already initialized should fail", async() => {
             await expect(smartpool.init(PLACE_HOLDER_ADDRESS, NAME, SYMBOL, constants.WeiPerEther)).to.be.reverted;
         });
@@ -100,7 +116,6 @@ describe("PBasicSmartPool", function() {
             const smartPoolBalances = await getTokenBalances(smartpool.address);
             expectZero(smartPoolBalances);
         });
-        
     });
 
     describe("Controller functions", async() => {
@@ -223,7 +238,10 @@ describe("PBasicSmartPool", function() {
 
             await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
         });
-
+        // it.only("Exiting the entire pool should fail", async() => {
+        //     smartpool.joinPool(constants.WeiPerEther.mul(constants.WeiPerEther).mul(10));
+        //     await smartpool.exitPool(1);
+        // });
     })
 
     describe("Token binding", async() => {
@@ -239,6 +257,15 @@ describe("PBasicSmartPool", function() {
             expect(tokenBalance).to.eq(mintAmount.sub(constants.WeiPerEther));
             // TODO checks for balances
         });
+        it("Binding a token when transferFrom returns false should fail", async() => {
+            const mintAmount = constants.WeiPerEther.mul(1000000)
+            const token: MockToken = (await tokenFactory.deploy("Mock", "M", 18));
+            await token.mint(account, mintAmount);
+            await token.approve(smartpool.address, constants.MaxUint256);
+            await token.setTransferFromReturnFalse(true);
+            
+            await expect(smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther)).to.be.reverted;
+        });
         it("Binding from a non token binder address should fail", async() => {
             smartpool = smartpool.connect(signers[1]);
             const mintAmount = constants.WeiPerEther.mul(1000000)
@@ -252,6 +279,13 @@ describe("PBasicSmartPool", function() {
             // Doubles the weight in the pool
             await smartpool.rebind(tokens[0].address, constants.WeiPerEther.mul(2), constants.WeiPerEther.mul(2));
         });
+        it("Rebinding a token reducing the balance should work", async() => {
+            await smartpool.rebind(tokens[0].address, constants.WeiPerEther.div(4), constants.WeiPerEther.mul(2));
+        });
+        it("Rebinding a token reducing the balance when the the token token transfer returns false should fail", async() => {
+            await tokens[0].setTransferReturnFalse(true);
+            await expect(smartpool.rebind(tokens[0].address, constants.WeiPerEther.div(4), constants.WeiPerEther.mul(2))).to.be.reverted;
+        });
         it("Rebinding a token from a non token binder address should fail", async() => {
             smartpool = smartpool.connect(signers[1]);
             await expect(smartpool.rebind(tokens[0].address, constants.WeiPerEther.mul(2), constants.WeiPerEther.mul(2))).to.be.reverted;
@@ -264,6 +298,13 @@ describe("PBasicSmartPool", function() {
             smartpool = smartpool.connect(signers[1]);
             await expect(smartpool.unbind(tokens[0].address)).to.be.reverted;
         });
+    });
+
+    describe("ready modifier", async() => {
+        it("should revert when not ready", async() => {
+            smartpool = await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {gasLimit: 100000000}) as PBasicSmartPool
+            await expect(smartpool.joinPool(constants.WeiPerEther)).to.be.revertedWith("PBasicSmartPool.ready: not ready");
+        })
     });
 
     async function getTokenBalances(address: string) {
