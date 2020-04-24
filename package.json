@@ -47,6 +47,6 @@
     "@pie-dao/mock-contracts": "^0.0.7",
     "@pie-dao/proxy": "^0.0.6",
     "dotenv": "^8.2.0",
-    "solidity-coverage": "^0.7.2"
+    "solidity-coverage": "^0.7.4"
   }
 }
