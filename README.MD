@@ -4,6 +4,28 @@
 
 All Smart Pools are fully upgradeable to make it easy to add features and optimise gas usage at later stages.
 
+## Development
+
+### Setup the dev enviroment
+
+Clone this repo. And copy the contents of ``env.example`` to a new file called ``.env`` and edit the the relevant values inside. **DO NOT** share this file with anyone as it will contain sensitive data.
+
+Install all dependencies: 
+```
+yarn
+```
+Build the project:
+```
+yarn build
+```
+Run the tests:
+```
+yarn test
+```
+Create coverage report:
+```
+yarn coverage
+```
 ## Integration
 
 ### Adding and removing liquidity
