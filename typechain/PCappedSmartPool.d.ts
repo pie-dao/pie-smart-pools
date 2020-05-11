@@ -12,22 +12,6 @@ import {
 
 interface PCappedSmartPoolInterface extends Interface {
   functions: {
-    BONE: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_BALANCE: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_BOUND_TOKENS: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_TOTAL_WEIGHT: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MAX_WEIGHT: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MIN_BALANCE: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MIN_POOL_SUPPLY: TypedFunctionDescription<{ encode([]: []): string }>;
-
-    MIN_WEIGHT: TypedFunctionDescription<{ encode([]: []): string }>;
-
     allowance: TypedFunctionDescription<{
       encode([_src, _dst]: [string, string]): string;
     }>;
@@ -36,7 +20,21 @@ interface PCappedSmartPoolInterface extends Interface {
       encode([_dst, _amount]: [string, BigNumberish]): string;
     }>;
 
+    approveTokens: TypedFunctionDescription<{ encode([]: []): string }>;
+
     balanceOf: TypedFunctionDescription<{ encode([_whom]: [string]): string }>;
+
+    bind: TypedFunctionDescription<{
+      encode([_token, _balance, _denorm]: [
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
+    }>;
+
+    calcTokensForAmount: TypedFunctionDescription<{
+      encode([_amount]: [BigNumberish]): string;
+    }>;
 
     decimals: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -48,11 +46,21 @@ interface PCappedSmartPoolInterface extends Interface {
       encode([_amount]: [BigNumberish]): string;
     }>;
 
+    exitPoolTakingloss: TypedFunctionDescription<{
+      encode([_amount, _lossTokens]: [BigNumberish, string[]]): string;
+    }>;
+
     getBPool: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getCap: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getPublicSwapSetter: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getTokenBinder: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getTokens: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -69,6 +77,8 @@ interface PCappedSmartPoolInterface extends Interface {
       ]): string;
     }>;
 
+    isPublicSwap: TypedFunctionDescription<{ encode([]: []): string }>;
+
     joinPool: TypedFunctionDescription<{
       encode([_amount]: [BigNumberish]): string;
     }>;
@@ -81,12 +91,38 @@ interface PCappedSmartPoolInterface extends Interface {
 
     ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    rebind: TypedFunctionDescription<{
+      encode([_token, _balance, _denorm]: [
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
+    }>;
+
+    rpSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     setCap: TypedFunctionDescription<{
       encode([_cap]: [BigNumberish]): string;
     }>;
 
     setController: TypedFunctionDescription<{
       encode([_controller]: [string]): string;
+    }>;
+
+    setPublicSwap: TypedFunctionDescription<{
+      encode([_public]: [boolean]): string;
+    }>;
+
+    setPublicSwapSetter: TypedFunctionDescription<{
+      encode([_newPublicSwapSetter]: [string]): string;
+    }>;
+
+    setSwapFee: TypedFunctionDescription<{
+      encode([_swapFee]: [BigNumberish]): string;
+    }>;
+
+    setTokenBinder: TypedFunctionDescription<{
+      encode([_newTokenBinder]: [string]): string;
     }>;
 
     symbol: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -100,6 +136,8 @@ interface PCappedSmartPoolInterface extends Interface {
     transferFrom: TypedFunctionDescription<{
       encode([_src, _dst, _amount]: [string, string, BigNumberish]): string;
     }>;
+
+    unbind: TypedFunctionDescription<{ encode([_token]: [string]): string }>;
   };
 
   events: {
@@ -108,6 +146,21 @@ interface PCappedSmartPoolInterface extends Interface {
         string | null,
         string | null,
         null
+      ]): string[];
+    }>;
+
+    CapChanged: TypedEventDescription<{
+      encodeTopics([setter, oldCap, newCap]: [
+        string | null,
+        null,
+        null
+      ]): string[];
+    }>;
+
+    ControllerChanged: TypedEventDescription<{
+      encodeTopics([previousController, newController]: [
+        string | null,
+        string | null
       ]): string[];
     }>;
 
@@ -126,6 +179,46 @@ interface PCappedSmartPoolInterface extends Interface {
         null
       ]): string[];
     }>;
+
+    PoolExited: TypedEventDescription<{
+      encodeTopics([from, amount]: [string | null, null]): string[];
+    }>;
+
+    PoolExitedWithLoss: TypedEventDescription<{
+      encodeTopics([from, amount, lossTokens]: [
+        string | null,
+        null,
+        null
+      ]): string[];
+    }>;
+
+    PoolJoined: TypedEventDescription<{
+      encodeTopics([from, amount]: [string | null, null]): string[];
+    }>;
+
+    PublicSwapSet: TypedEventDescription<{
+      encodeTopics([setter, value]: [string | null, boolean | null]): string[];
+    }>;
+
+    PublicSwapSetterChanged: TypedEventDescription<{
+      encodeTopics([previousSetter, newSetter]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+
+    SwapFeeSet: TypedEventDescription<{
+      encodeTopics([setter, newFee]: [string | null, null]): string[];
+    }>;
+
+    TokenBinderChanged: TypedEventDescription<{
+      encodeTopics([previousTokenBinder, newTokenBinder]: [
+        string | null,
+        string | null
+      ]): string[];
+    }>;
+
+    TokensApproved: TypedEventDescription<{ encodeTopics([]: []): string[] }>;
 
     Transfer: TypedEventDescription<{
       encodeTopics([_src, _dst, _amount]: [
@@ -154,22 +247,6 @@ export class PCappedSmartPool extends Contract {
   interface: PCappedSmartPoolInterface;
 
   functions: {
-    BONE(): Promise<BigNumber>;
-
-    MAX_BALANCE(): Promise<BigNumber>;
-
-    MAX_BOUND_TOKENS(): Promise<BigNumber>;
-
-    MAX_TOTAL_WEIGHT(): Promise<BigNumber>;
-
-    MAX_WEIGHT(): Promise<BigNumber>;
-
-    MIN_BALANCE(): Promise<BigNumber>;
-
-    MIN_POOL_SUPPLY(): Promise<BigNumber>;
-
-    MIN_WEIGHT(): Promise<BigNumber>;
-
     allowance(_src: string, _dst: string): Promise<BigNumber>;
 
     approve(
@@ -178,7 +255,27 @@ export class PCappedSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    approveTokens(
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     balanceOf(_whom: string): Promise<BigNumber>;
+
+    bind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    calcTokensForAmount(
+      _amount: BigNumberish
+    ): Promise<{
+      tokens: string[];
+      amounts: BigNumber[];
+      0: string[];
+      1: BigNumber[];
+    }>;
 
     decimals(): Promise<number>;
 
@@ -193,11 +290,23 @@ export class PCappedSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    exitPoolTakingloss(
+      _amount: BigNumberish,
+      _lossTokens: string[],
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     getBPool(): Promise<string>;
 
     getCap(): Promise<BigNumber>;
 
     getController(): Promise<string>;
+
+    getPublicSwapSetter(): Promise<string>;
+
+    getSwapFee(): Promise<BigNumber>;
+
+    getTokenBinder(): Promise<string>;
 
     getTokens(): Promise<string[]>;
 
@@ -215,6 +324,8 @@ export class PCappedSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    isPublicSwap(): Promise<boolean>;
+
     joinPool(
       _amount: BigNumberish,
       overrides?: TransactionOverrides
@@ -228,6 +339,15 @@ export class PCappedSmartPool extends Contract {
 
     ptSlot(): Promise<string>;
 
+    rebind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    rpSlot(): Promise<string>;
+
     setCap(
       _cap: BigNumberish,
       overrides?: TransactionOverrides
@@ -235,6 +355,26 @@ export class PCappedSmartPool extends Contract {
 
     setController(
       _controller: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setPublicSwap(
+      _public: boolean,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setPublicSwapSetter(
+      _newPublicSwapSetter: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setSwapFee(
+      _swapFee: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setTokenBinder(
+      _newTokenBinder: string,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -254,23 +394,12 @@ export class PCappedSmartPool extends Contract {
       _amount: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
+
+    unbind(
+      _token: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
   };
-
-  BONE(): Promise<BigNumber>;
-
-  MAX_BALANCE(): Promise<BigNumber>;
-
-  MAX_BOUND_TOKENS(): Promise<BigNumber>;
-
-  MAX_TOTAL_WEIGHT(): Promise<BigNumber>;
-
-  MAX_WEIGHT(): Promise<BigNumber>;
-
-  MIN_BALANCE(): Promise<BigNumber>;
-
-  MIN_POOL_SUPPLY(): Promise<BigNumber>;
-
-  MIN_WEIGHT(): Promise<BigNumber>;
 
   allowance(_src: string, _dst: string): Promise<BigNumber>;
 
@@ -280,7 +409,25 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  approveTokens(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
   balanceOf(_whom: string): Promise<BigNumber>;
+
+  bind(
+    _token: string,
+    _balance: BigNumberish,
+    _denorm: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  calcTokensForAmount(
+    _amount: BigNumberish
+  ): Promise<{
+    tokens: string[];
+    amounts: BigNumber[];
+    0: string[];
+    1: BigNumber[];
+  }>;
 
   decimals(): Promise<number>;
 
@@ -295,11 +442,23 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  exitPoolTakingloss(
+    _amount: BigNumberish,
+    _lossTokens: string[],
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   getBPool(): Promise<string>;
 
   getCap(): Promise<BigNumber>;
 
   getController(): Promise<string>;
+
+  getPublicSwapSetter(): Promise<string>;
+
+  getSwapFee(): Promise<BigNumber>;
+
+  getTokenBinder(): Promise<string>;
 
   getTokens(): Promise<string[]>;
 
@@ -317,6 +476,8 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  isPublicSwap(): Promise<boolean>;
+
   joinPool(
     _amount: BigNumberish,
     overrides?: TransactionOverrides
@@ -330,6 +491,15 @@ export class PCappedSmartPool extends Contract {
 
   ptSlot(): Promise<string>;
 
+  rebind(
+    _token: string,
+    _balance: BigNumberish,
+    _denorm: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  rpSlot(): Promise<string>;
+
   setCap(
     _cap: BigNumberish,
     overrides?: TransactionOverrides
@@ -337,6 +507,26 @@ export class PCappedSmartPool extends Contract {
 
   setController(
     _controller: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setPublicSwap(
+    _public: boolean,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setPublicSwapSetter(
+    _newPublicSwapSetter: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setSwapFee(
+    _swapFee: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setTokenBinder(
+    _newTokenBinder: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -357,11 +547,23 @@ export class PCappedSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  unbind(
+    _token: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   filters: {
     Approval(
       _src: string | null,
       _dst: string | null,
       _amount: null
+    ): EventFilter;
+
+    CapChanged(setter: string | null, oldCap: null, newCap: null): EventFilter;
+
+    ControllerChanged(
+      previousController: string | null,
+      newController: string | null
     ): EventFilter;
 
     LOG_EXIT(
@@ -376,6 +578,32 @@ export class PCappedSmartPool extends Contract {
       tokenAmountIn: null
     ): EventFilter;
 
+    PoolExited(from: string | null, amount: null): EventFilter;
+
+    PoolExitedWithLoss(
+      from: string | null,
+      amount: null,
+      lossTokens: null
+    ): EventFilter;
+
+    PoolJoined(from: string | null, amount: null): EventFilter;
+
+    PublicSwapSet(setter: string | null, value: boolean | null): EventFilter;
+
+    PublicSwapSetterChanged(
+      previousSetter: string | null,
+      newSetter: string | null
+    ): EventFilter;
+
+    SwapFeeSet(setter: string | null, newFee: null): EventFilter;
+
+    TokenBinderChanged(
+      previousTokenBinder: string | null,
+      newTokenBinder: string | null
+    ): EventFilter;
+
+    TokensApproved(): EventFilter;
+
     Transfer(
       _src: string | null,
       _dst: string | null,
@@ -384,27 +612,21 @@ export class PCappedSmartPool extends Contract {
   };
 
   estimate: {
-    BONE(): Promise<BigNumber>;
-
-    MAX_BALANCE(): Promise<BigNumber>;
-
-    MAX_BOUND_TOKENS(): Promise<BigNumber>;
-
-    MAX_TOTAL_WEIGHT(): Promise<BigNumber>;
-
-    MAX_WEIGHT(): Promise<BigNumber>;
-
-    MIN_BALANCE(): Promise<BigNumber>;
-
-    MIN_POOL_SUPPLY(): Promise<BigNumber>;
-
-    MIN_WEIGHT(): Promise<BigNumber>;
-
     allowance(_src: string, _dst: string): Promise<BigNumber>;
 
     approve(_dst: string, _amount: BigNumberish): Promise<BigNumber>;
 
+    approveTokens(): Promise<BigNumber>;
+
     balanceOf(_whom: string): Promise<BigNumber>;
+
+    bind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish
+    ): Promise<BigNumber>;
+
+    calcTokensForAmount(_amount: BigNumberish): Promise<BigNumber>;
 
     decimals(): Promise<BigNumber>;
 
@@ -412,11 +634,22 @@ export class PCappedSmartPool extends Contract {
 
     exitPool(_amount: BigNumberish): Promise<BigNumber>;
 
+    exitPoolTakingloss(
+      _amount: BigNumberish,
+      _lossTokens: string[]
+    ): Promise<BigNumber>;
+
     getBPool(): Promise<BigNumber>;
 
     getCap(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
+
+    getPublicSwapSetter(): Promise<BigNumber>;
+
+    getSwapFee(): Promise<BigNumber>;
+
+    getTokenBinder(): Promise<BigNumber>;
 
     getTokens(): Promise<BigNumber>;
 
@@ -429,6 +662,8 @@ export class PCappedSmartPool extends Contract {
       _initialSupply: BigNumberish
     ): Promise<BigNumber>;
 
+    isPublicSwap(): Promise<BigNumber>;
+
     joinPool(_amount: BigNumberish): Promise<BigNumber>;
 
     name(): Promise<BigNumber>;
@@ -439,9 +674,25 @@ export class PCappedSmartPool extends Contract {
 
     ptSlot(): Promise<BigNumber>;
 
+    rebind(
+      _token: string,
+      _balance: BigNumberish,
+      _denorm: BigNumberish
+    ): Promise<BigNumber>;
+
+    rpSlot(): Promise<BigNumber>;
+
     setCap(_cap: BigNumberish): Promise<BigNumber>;
 
     setController(_controller: string): Promise<BigNumber>;
+
+    setPublicSwap(_public: boolean): Promise<BigNumber>;
+
+    setPublicSwapSetter(_newPublicSwapSetter: string): Promise<BigNumber>;
+
+    setSwapFee(_swapFee: BigNumberish): Promise<BigNumber>;
+
+    setTokenBinder(_newTokenBinder: string): Promise<BigNumber>;
 
     symbol(): Promise<BigNumber>;
 
@@ -454,5 +705,7 @@ export class PCappedSmartPool extends Contract {
       _dst: string,
       _amount: BigNumberish
     ): Promise<BigNumber>;
+
+    unbind(_token: string): Promise<BigNumber>;
   };
 }

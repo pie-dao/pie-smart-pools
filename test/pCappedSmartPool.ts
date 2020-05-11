@@ -50,8 +50,9 @@ describe("PCappedSmartPool", function() {
         }
 
         // Deploy this way to get the coverage provider to pick it up
-        smartpool = await deployContract(signers[0] as Wallet, PCappedSmartPoolArtifact, [], {gasLimit: 8000000}) as PCappedSmartPool
+        smartpool = await deployContract(signers[0] as Wallet, PCappedSmartPoolArtifact, [], {gasLimit: 100000000}) as PCappedSmartPool
         await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY)
+        await smartpool.approveTokens();
         await pool.setController(smartpool.address);
 
         for(const token of tokens) {

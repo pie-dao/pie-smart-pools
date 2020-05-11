@@ -67,7 +67,6 @@ async function main() {
 
     const { ethers } = bre;
     const signers = await ethers.getSigners();
-    console.log(signers);
     const account = await signers[0].getAddress();
     const pool = IBPoolFactory.connect(config.pool, signers[0]);
 

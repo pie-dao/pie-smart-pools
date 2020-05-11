@@ -100,11 +100,17 @@ interface IBPoolInterface extends Interface {
       encode([token]: [string]): string;
     }>;
 
+    getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
+
     getTotalDenormalizedWeight: TypedFunctionDescription<{
       encode([]: []): string;
     }>;
 
+    gulp: TypedFunctionDescription<{ encode([token]: [string]): string }>;
+
     isBound: TypedFunctionDescription<{ encode([token]: [string]): string }>;
+
+    isPublicSwap: TypedFunctionDescription<{ encode([]: []): string }>;
 
     rebind: TypedFunctionDescription<{
       encode([token, balance, denorm]: [
@@ -116,6 +122,10 @@ interface IBPoolInterface extends Interface {
 
     setController: TypedFunctionDescription<{
       encode([manager]: [string]): string;
+    }>;
+
+    setPublicSwap: TypedFunctionDescription<{
+      encode([_public]: [boolean]): string;
     }>;
 
     setSwapFee: TypedFunctionDescription<{
@@ -191,9 +201,18 @@ export class IBPool extends Contract {
 
     getDenormalizedWeight(token: string): Promise<BigNumber>;
 
+    getSwapFee(): Promise<BigNumber>;
+
     getTotalDenormalizedWeight(): Promise<BigNumber>;
 
+    gulp(
+      token: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     isBound(token: string): Promise<boolean>;
+
+    isPublicSwap(): Promise<boolean>;
 
     rebind(
       token: string,
@@ -204,6 +223,11 @@ export class IBPool extends Contract {
 
     setController(
       manager: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setPublicSwap(
+      _public: boolean,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -267,9 +291,18 @@ export class IBPool extends Contract {
 
   getDenormalizedWeight(token: string): Promise<BigNumber>;
 
+  getSwapFee(): Promise<BigNumber>;
+
   getTotalDenormalizedWeight(): Promise<BigNumber>;
 
+  gulp(
+    token: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   isBound(token: string): Promise<boolean>;
+
+  isPublicSwap(): Promise<boolean>;
 
   rebind(
     token: string,
@@ -280,6 +313,11 @@ export class IBPool extends Contract {
 
   setController(
     manager: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setPublicSwap(
+    _public: boolean,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -344,9 +382,15 @@ export class IBPool extends Contract {
 
     getDenormalizedWeight(token: string): Promise<BigNumber>;
 
+    getSwapFee(): Promise<BigNumber>;
+
     getTotalDenormalizedWeight(): Promise<BigNumber>;
 
+    gulp(token: string): Promise<BigNumber>;
+
     isBound(token: string): Promise<BigNumber>;
+
+    isPublicSwap(): Promise<BigNumber>;
 
     rebind(
       token: string,
@@ -355,6 +399,8 @@ export class IBPool extends Contract {
     ): Promise<BigNumber>;
 
     setController(manager: string): Promise<BigNumber>;
+
+    setPublicSwap(_public: boolean): Promise<BigNumber>;
 
     setSwapFee(swapFee: BigNumberish): Promise<BigNumber>;
 

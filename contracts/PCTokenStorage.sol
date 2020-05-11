@@ -1,4 +1,4 @@
-pragma solidity ^0.6.4;
+pragma solidity 0.6.4;
 
 contract PCTokenStorage {
 
@@ -11,7 +11,11 @@ contract PCTokenStorage {
         mapping(address => mapping(address=>uint256)) allowance;
     }
 
-    function lpts() internal view returns (pts storage s) {
+    /**
+        @notice Load pool token storage
+        @return s Storage pointer to the pool token struct
+    */
+    function lpts() internal pure returns (pts storage s) {
         bytes32 loc = ptSlot;
         assembly {
             s_slot := loc
