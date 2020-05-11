@@ -110,3 +110,4 @@ artifacts
 
 .DS_Store
 coverage.json
+flats.sol
