@@ -4,8 +4,9 @@
 ##### Checklist
 <!-- Remove items that do not apply. For completed items, change [ ] to [x]. -->
 
+- [ ] Linter status: 100% pass
 - [ ] Changes don't break existing behavior
-- [ ] Tests coverage hasn't decreased
+- [ ] Test coverage hasn't decreased
 
 ##### Testing
 <!-- Why should the PR reviewer trust that this change doesn't break
