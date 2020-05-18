@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 <!--
-Provide a general summary of the issue in the title above and use relevant
+Provide a general summary of the issue in the title above and use relevant 
 fields below to define the problem.
 -->
 
@@ -17,6 +17,9 @@ fields below to define the problem.
 - Audience or user can include a person or system, i.e. dev, user, api.
 - An action or task this issue will accomplish.
 - What is the desired outcome or goal?
+
+NOTE: Feel free to replace this with a general description if a user story doesn't make sense, but
+be willing to defend your choice to exclude a user story.
 -->
 - As an <audience/user>: 
 - I want to <action/task>: 
@@ -35,16 +38,13 @@ fields below to define the problem.
 - Describe the problem and why this task is needed.
 -->
 
-#### Solution
-<!--
-- If known, provide a summary of the solution and a task list of what
-needs to be added, changed, or fixed.
--->
-
 #### Definition of Done
 <!--
 - How do you know when this issue is completed?
 - List acceptance criteria, bullet points are always preferred.
 -->
+
+- [ ] Thing One...
+- [ ] Thing Two...
 
 #### Attach files or screenshots if it's helpful for this issue.
