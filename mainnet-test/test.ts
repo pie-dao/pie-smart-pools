@@ -99,15 +99,22 @@ describe("MAINNET TEST", function() {
     });
 
     it("Exit pool taking loss should work", async() => {
-        const exitAmount = parseEther("0.001")
-        const tokenBalanceBefore = await tokens[0].balanceOf(account);
+        const exitAmount = parseEther("0.001");
+
+        const expectedAmounts = await pool.calcTokensForAmount(exitAmount);
+
+        const tokenBalancesBefore = await getBalances(account);
         const balanceBefore = await pool.balanceOf(account);
         await (await pool.exitPoolTakingloss(exitAmount, [tokens[0].address])).wait(1);
         const balanceAfter = await pool.balanceOf(account);
-        const tokenBalanceAfter = await tokens[0].balanceOf(account);
+        const tokenBalancesAfter = await getBalances(account);
+
+        for(let i = 1; i < tokenBalancesAfter.length; i ++) {
+            expect(tokenBalancesAfter[i]).to.eq(tokenBalancesBefore[i].add(expectedAmounts.amounts[i]));
+        }
 
         expect(balanceAfter).to.eq(balanceBefore.sub(exitAmount));
-        expect(tokenBalanceBefore).to.eq(tokenBalanceAfter);
+        expect(tokenBalancesBefore[0]).to.eq(tokenBalancesAfter[0]);
     });
 
     it("Setting the cap back to zero should work", async() => {
@@ -206,7 +213,19 @@ describe("MAINNET TEST", function() {
     it("Binding a token should fail", async() => {
         expect(await transactionFails(pool.bind(mockToken.address, constants.WeiPerEther, constants.WeiPerEther, { gasLimit: 2000000 }))).to.be.true;
     });
+
+    async function getBalances(address: string) {
+        const balances: BigNumber[] = [];
+
+        for(const token of tokens) {
+            balances.push(await token.balanceOf(address));
+        }
+
+        return balances;
+    }
 });
+
+
 
 async function transactionFails(transaction: Promise<ContractTransaction>) {
     let e:any = { reason: ""};
