@@ -1,6 +1,6 @@
 require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
-import { utils, constants } from "ethers";
+import { utils, constants, ContractTransaction } from "ethers";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
 import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
@@ -18,7 +18,11 @@ usePlugin("solidity-coverage");
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
+const KOVAN_PRIVATE_KEY_SECONDARY = process.env.KOVAN_PRIVATE_KEY_SECONDARY || "";
+const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || "";
+const RINKEBY_PRIVATE_KEY_SECONDARY = process.env.RINKEBY_PRIVATE_KEY_SECONDARY || "";
 const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "";
+const MAINNET_PRIVATE_KEY_SECONDARY = process.env.MAINNET_PRIVATE_KEY_SECONDARY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 
 const PLACE_HOLDER_ADDRESS = "0x1000000000000000000000000000000000000001";
@@ -46,11 +50,26 @@ const config: ExtendedBuidlerConfig = {
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [MAINNET_PRIVATE_KEY]
+      accounts: [
+        MAINNET_PRIVATE_KEY,
+        MAINNET_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item != "")
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [KOVAN_PRIVATE_KEY]
+      accounts: [
+        KOVAN_PRIVATE_KEY,
+        KOVAN_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item != "")
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
+      blockGasLimit: 8000000,
+      gas: 8000000,
+      accounts: [
+        RINKEBY_PRIVATE_KEY,
+        RINKEBY_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item != "")
     },
     coverage: {
       url: 'http://127.0.0.1:8555', // Coverage launches its own ganache-cli client
@@ -68,6 +87,9 @@ const config: ExtendedBuidlerConfig = {
   typechain: {
     outDir: "typechain",
     target: "ethers"
+  },
+  mocha: {
+
   }
 };
 
@@ -224,7 +246,19 @@ task("deploy-smart-pool-complete")
     const receipt = await tx.wait(2); //wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
-  });
+});
+
+task("set-cap", "Sets the cap on a capped pool")
+  .addParam("pool")
+  .addParam("cap")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const smartpool = PCappedSmartPoolFactory.connect(taskArgs.pool, signers[0]);
+    const tx = await smartpool.setCap(parseEther(taskArgs.cap), {gasLimit: 2000000});
+
+    console.log(`Cap set tx: ${tx.hash}`);
+});
+
 
 task("join-smart-pool")
   .addParam("pool")
@@ -234,14 +268,15 @@ task("join-smart-pool")
     const smartpool = PBasicSmartPoolFactory.connect(taskArgs.pool, signers[0]);
 
     // TODO fix this confusing line
-    const tokens = await IBPoolFactory.connect(await smartpool.bPool(), signers[0]).getCurrentTokens();
+    const tokens = await IBPoolFactory.connect(await smartpool.getBPool(), signers[0]).getCurrentTokens();
 
     for(const tokenAddress of tokens) {
       const token = IERC20Factory.connect(tokenAddress, signers[0]);
       // TODO make below more readable
+      console.log("approving tokens");
       await (await token.approve(smartpool.address, constants.MaxUint256)).wait(1);
     }
-    const tx = await smartpool.joinPool(parseEther(taskArgs.amount));
+    const tx = await smartpool.joinPool(parseEther(taskArgs.amount), {gasLimit: 2000000});
     const receipt = await tx.wait(1);
 
     console.log(`Pool joined tx: ${receipt.transactionHash}`)
@@ -347,7 +382,7 @@ task("balancer-set-controller")
     const tx = await pool.setController(taskArgs.controller);
     const receipt = await tx.wait(1);
 
-    console.log(`Controller set tx: ${receipt.transactionHash}`); 
+    console.log(`Controller set tx: ${receipt.transactionHash}`);
 });
 
 
