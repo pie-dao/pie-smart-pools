@@ -71,14 +71,14 @@ describe("MAINNET TEST", function() {
 
     it("Exiting the pool should work", async() => {
         const balanceBefore = await pool.balanceOf(account);
-        await (await (await pool.exitPool(mintAmount, { gasLimit: 2000000})).wait(1));
+        await (await (await pool.exitPool(mintAmount, { gasLimit: 2000000 })).wait(1));
         const balanceAfter = await pool.balanceOf(account);
         expect(balanceAfter).to.eq(balanceBefore.sub(mintAmount));
     });
 
     it("Cap should be enforced", async() => {
         const balanceBefore = await pool.balanceOf(account);
-        expect(await transactionFails(pool.joinPool(parseEther("0.001"), {gasLimit: 2000000}))).to.be.true;
+        expect(await transactionFails(pool.joinPool(parseEther("0.001"), { gasLimit: 2000000 }))).to.be.true;
         const balanceAfter = await pool.balanceOf(account);
         expect(balanceBefore).to.eq(balanceAfter);
     });
@@ -154,7 +154,7 @@ describe("MAINNET TEST", function() {
     });
 
     it("Setting public swap to true should fail", async() => {
-        expect(await transactionFails(pool.setPublicSwap(true, {gasLimit: 2000000 }))).to.eq(true);
+        expect(await transactionFails(pool.setPublicSwap(true, { gasLimit: 2000000 }))).to.eq(true);
     });
 
     it("Changing tokenBinder should work", async() => {
