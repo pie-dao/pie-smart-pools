@@ -5,10 +5,16 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run compile && npx buidler typechain",
-    "typechain": "npx buidler typechain",
     "compile": "npx buidler compile",
+    "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage",
+    "lint:solidity": "npx solhint ./contracts/**/*.sol",
+    "lint:typescript": "tslint -c tslint.json {test,typechain,utils}/**/*.ts",
+    "lint": "yarn lint:solidity && yarn lint:typescript",
+    "prettier:solidity": "npx prettier --write ./contracts/**/*.sol --print-width 100",
+    "prettier:typescript": "npx prettier --write {test,typechain,utils}/**/*.ts --print-width 100",
+    "prettier": "yarn prettier:solidity && yarn prettier:typescript",
     "test": "npx buidler test",
-    "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage"
+    "typechain": "npx buidler typechain"
   },
   "repository": {
     "type": "git",
@@ -32,8 +38,12 @@
     "chai": "^4.2.0",
     "ethereum-waffle": "^2.3.2",
     "ethers": "^4.0.44",
+    "prettier": "^2.0.5",
+    "prettier-plugin-solidity": "^1.0.0-alpha.52",
+    "solhint": "^3.0.0",
     "ts-generator": "0.0.8",
     "ts-node": "^8.6.2",
+    "tslint": "^6.1.2",
     "typechain": "^1.0.4",
     "typechain-target-ethers": "^1.0.3",
     "typechain-target-truffle": "^1.0.2",

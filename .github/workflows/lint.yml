@@ -1,0 +1,23 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  lint:
+    name: with tslint and solhint
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: borales/actions-yarn@master
+        with:
+          cmd: install # will run `yarn install` command
+      - uses: borales/actions-yarn@master
+        with:
+          cmd: lint # will run `yarn lint` command
