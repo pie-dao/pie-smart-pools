@@ -135,7 +135,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         lpbs().bPool.setSwapFee(_swapFee);
     }
 
-    /** 
+    /**
         @notice Mints pool shares in exchange for underlying assets
         @param _amount Amount of pool shares to mint
     */
