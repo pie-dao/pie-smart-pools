@@ -52,7 +52,6 @@ describe("MAINNET TEST", function() {
           tokens.push(token);
 
           if((await token.allowance(account, pool.address)).gt(constants.MaxUint256.div(2))) {
-            // TODO make below more readable
             console.log(`Approving ${tokenAddress}`);
             await (await token.approve(pool.address, constants.MaxUint256)).wait(1);
           }
