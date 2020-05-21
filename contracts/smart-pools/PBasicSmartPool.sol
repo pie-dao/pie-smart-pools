@@ -115,9 +115,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets the token binder address. Can only be set by the controller
         @param _newTokenBinder Address of the new token binder
     */
-  function setTokenBinder(
-    address _newTokenBinder
-  ) external onlyController noReentry {
+  function setTokenBinder(address _newTokenBinder) external onlyController noReentry {
     emit TokenBinderChanged(lpbs().tokenBinder, _newTokenBinder);
     lpbs().tokenBinder = _newTokenBinder;
   }
