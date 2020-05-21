@@ -1,0 +1,38 @@
+{   
+    "name": "PieDAO BTC++",
+    "symbol": "BTC++",
+    "initialValue": "1",
+    "initialSupply": "0.04",
+    "cap": "10",
+    "tokens": [
+        {
+            "name": "wBTC",
+            "decimals": "8",
+            "address": "0x2018b7214d959E5e3180eb87B9dfFf58ab721704",
+            "weight": "25",
+            "value": "1"
+        },
+        {
+            "name": "pBTC",
+            "decimals": "18",
+            "address": "0x68A0e427AFcF4A4544220d67d02Ccbff93BbE404",
+            "weight": "25",
+            "value": "1"
+        },
+        {
+            "name": "imBTC",
+            "decimals": "8",
+            "address": "0x4AF6b3698D959b17899B3AC2E49fa5e19556EE75",
+            "weight": "25",
+            "value": "1"
+        },
+        {
+            "name": "sBTC",
+            "decimals": "18",
+            "address": "0xC875BEc084e50Dbbdfe223b6ED4e8d9c1392E303",
+            "weight": "25",
+            "value": "1"
+        }
+    ]
+}
+
