@@ -10,7 +10,7 @@ import {
   TypedFunctionDescription
 } from ".";
 
-interface PBasicSmartPoolInterface extends Interface {
+interface PCappedFLSmartPoolInterface extends Interface {
   functions: {
     allowance: TypedFunctionDescription<{
       encode([_src, _dst]: [string, string]): string;
@@ -50,7 +50,18 @@ interface PBasicSmartPoolInterface extends Interface {
       encode([_amount, _lossTokens]: [BigNumberish, string[]]): string;
     }>;
 
+    flashLoan: TypedFunctionDescription<{
+      encode([_receiver, _token, _amount, _params]: [
+        string,
+        string,
+        BigNumberish,
+        Arrayish
+      ]): string;
+    }>;
+
     getBPool: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    getCap: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
@@ -85,6 +96,10 @@ interface PBasicSmartPoolInterface extends Interface {
 
     pbsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    pcflsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
+    pcsSlot: TypedFunctionDescription<{ encode([]: []): string }>;
+
     ptSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
     rebind: TypedFunctionDescription<{
@@ -97,8 +112,16 @@ interface PBasicSmartPoolInterface extends Interface {
 
     rpSlot: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    setCap: TypedFunctionDescription<{
+      encode([_cap]: [BigNumberish]): string;
+    }>;
+
     setController: TypedFunctionDescription<{
       encode([_controller]: [string]): string;
+    }>;
+
+    setFlashLoanFee: TypedFunctionDescription<{
+      encode([_newFee]: [BigNumberish]): string;
     }>;
 
     setPublicSwap: TypedFunctionDescription<{
@@ -137,6 +160,14 @@ interface PBasicSmartPoolInterface extends Interface {
       encodeTopics([_src, _dst, _amount]: [
         string | null,
         string | null,
+        null
+      ]): string[];
+    }>;
+
+    CapChanged: TypedEventDescription<{
+      encodeTopics([setter, oldCap, newCap]: [
+        string | null,
+        null,
         null
       ]): string[];
     }>;
@@ -214,21 +245,21 @@ interface PBasicSmartPoolInterface extends Interface {
   };
 }
 
-export class PBasicSmartPool extends Contract {
-  connect(signerOrProvider: Signer | Provider | string): PBasicSmartPool;
-  attach(addressOrName: string): PBasicSmartPool;
-  deployed(): Promise<PBasicSmartPool>;
+export class PCappedFLSmartPool extends Contract {
+  connect(signerOrProvider: Signer | Provider | string): PCappedFLSmartPool;
+  attach(addressOrName: string): PCappedFLSmartPool;
+  deployed(): Promise<PCappedFLSmartPool>;
 
-  on(event: EventFilter | string, listener: Listener): PBasicSmartPool;
-  once(event: EventFilter | string, listener: Listener): PBasicSmartPool;
+  on(event: EventFilter | string, listener: Listener): PCappedFLSmartPool;
+  once(event: EventFilter | string, listener: Listener): PCappedFLSmartPool;
   addListener(
     eventName: EventFilter | string,
     listener: Listener
-  ): PBasicSmartPool;
-  removeAllListeners(eventName: EventFilter | string): PBasicSmartPool;
-  removeListener(eventName: any, listener: Listener): PBasicSmartPool;
+  ): PCappedFLSmartPool;
+  removeAllListeners(eventName: EventFilter | string): PCappedFLSmartPool;
+  removeListener(eventName: any, listener: Listener): PCappedFLSmartPool;
 
-  interface: PBasicSmartPoolInterface;
+  interface: PCappedFLSmartPoolInterface;
 
   functions: {
     allowance(_src: string, _dst: string): Promise<BigNumber>;
@@ -280,7 +311,17 @@ export class PBasicSmartPool extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    flashLoan(
+      _receiver: string,
+      _token: string,
+      _amount: BigNumberish,
+      _params: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     getBPool(): Promise<string>;
+
+    getCap(): Promise<BigNumber>;
 
     getController(): Promise<string>;
 
@@ -317,6 +358,10 @@ export class PBasicSmartPool extends Contract {
 
     pbsSlot(): Promise<string>;
 
+    pcflsSlot(): Promise<string>;
+
+    pcsSlot(): Promise<string>;
+
     ptSlot(): Promise<string>;
 
     rebind(
@@ -328,8 +373,18 @@ export class PBasicSmartPool extends Contract {
 
     rpSlot(): Promise<string>;
 
+    setCap(
+      _cap: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     setController(
       _controller: string,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setFlashLoanFee(
+      _newFee: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -423,7 +478,17 @@ export class PBasicSmartPool extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
+  flashLoan(
+    _receiver: string,
+    _token: string,
+    _amount: BigNumberish,
+    _params: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   getBPool(): Promise<string>;
+
+  getCap(): Promise<BigNumber>;
 
   getController(): Promise<string>;
 
@@ -460,6 +525,10 @@ export class PBasicSmartPool extends Contract {
 
   pbsSlot(): Promise<string>;
 
+  pcflsSlot(): Promise<string>;
+
+  pcsSlot(): Promise<string>;
+
   ptSlot(): Promise<string>;
 
   rebind(
@@ -471,8 +540,18 @@ export class PBasicSmartPool extends Contract {
 
   rpSlot(): Promise<string>;
 
+  setCap(
+    _cap: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   setController(
     _controller: string,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setFlashLoanFee(
+    _newFee: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -524,6 +603,8 @@ export class PBasicSmartPool extends Contract {
       _dst: string | null,
       _amount: null
     ): EventFilter;
+
+    CapChanged(setter: string | null, oldCap: null, newCap: null): EventFilter;
 
     ControllerChanged(
       previousController: string | null,
@@ -603,7 +684,16 @@ export class PBasicSmartPool extends Contract {
       _lossTokens: string[]
     ): Promise<BigNumber>;
 
+    flashLoan(
+      _receiver: string,
+      _token: string,
+      _amount: BigNumberish,
+      _params: Arrayish
+    ): Promise<BigNumber>;
+
     getBPool(): Promise<BigNumber>;
+
+    getCap(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
 
@@ -632,6 +722,10 @@ export class PBasicSmartPool extends Contract {
 
     pbsSlot(): Promise<BigNumber>;
 
+    pcflsSlot(): Promise<BigNumber>;
+
+    pcsSlot(): Promise<BigNumber>;
+
     ptSlot(): Promise<BigNumber>;
 
     rebind(
@@ -642,7 +736,11 @@ export class PBasicSmartPool extends Contract {
 
     rpSlot(): Promise<BigNumber>;
 
+    setCap(_cap: BigNumberish): Promise<BigNumber>;
+
     setController(_controller: string): Promise<BigNumber>;
+
+    setFlashLoanFee(_newFee: BigNumberish): Promise<BigNumber>;
 
     setPublicSwap(_public: boolean): Promise<BigNumber>;
 

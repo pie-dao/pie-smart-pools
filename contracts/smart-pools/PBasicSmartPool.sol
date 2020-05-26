@@ -447,8 +447,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _burn(_amount);
   }
 
-  /** 
-        @notice Mint pool shares 
+  /**
+        @notice Mint pool shares
         @param _amount Amount of pool shares to mint
     */
   function _mintPoolShare(uint256 _amount) internal {
