@@ -213,6 +213,13 @@ const _abi = [
     type: "function"
   },
   {
+    inputs: [],
+    name: "finalize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -393,6 +400,50 @@ const _abi = [
     ],
     name: "setSwapFee",
     outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "tokenAmountIn",
+        type: "uint256"
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "minAmountOut",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "maxPrice",
+        type: "uint256"
+      }
+    ],
+    name: "swapExactAmountIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokenAmountOut",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "spotPriceAfter",
+        type: "uint256"
+      }
+    ],
     stateMutability: "nonpayable",
     type: "function"
   },

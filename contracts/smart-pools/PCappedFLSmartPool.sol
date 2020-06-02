@@ -58,7 +58,7 @@ contract PCappedFLSmartPool is PCappedSmartPool {
         // gulp tokens to prevent attacks by calling gulp during the flashloan
         bPool.gulp(_token);
         // rebind token again (returning tokens to pool)
-        bPool.rebind(_token, _amount.badd(feeAmount), denorm);
+        bPool.rebind(_token, liquidityBefore.badd(feeAmount), denorm);
     }
 
     function lpcfls() internal pure returns (pcfls storage s) {

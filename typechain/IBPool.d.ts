@@ -92,6 +92,8 @@ interface IBPoolInterface extends Interface {
       ]): string;
     }>;
 
+    finalize: TypedFunctionDescription<{ encode([]: []): string }>;
+
     getBalance: TypedFunctionDescription<{ encode([token]: [string]): string }>;
 
     getCurrentTokens: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -130,6 +132,16 @@ interface IBPoolInterface extends Interface {
 
     setSwapFee: TypedFunctionDescription<{
       encode([swapFee]: [BigNumberish]): string;
+    }>;
+
+    swapExactAmountIn: TypedFunctionDescription<{
+      encode([tokenIn, tokenAmountIn, tokenOut, minAmountOut, maxPrice]: [
+        string,
+        BigNumberish,
+        string,
+        BigNumberish,
+        BigNumberish
+      ]): string;
     }>;
 
     unbind: TypedFunctionDescription<{ encode([token]: [string]): string }>;
@@ -195,6 +207,8 @@ export class IBPool extends Contract {
       swapFee: BigNumberish
     ): Promise<BigNumber>;
 
+    finalize(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
     getBalance(token: string): Promise<BigNumber>;
 
     getCurrentTokens(): Promise<string[]>;
@@ -233,6 +247,15 @@ export class IBPool extends Contract {
 
     setSwapFee(
       swapFee: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    swapExactAmountIn(
+      tokenIn: string,
+      tokenAmountIn: BigNumberish,
+      tokenOut: string,
+      minAmountOut: BigNumberish,
+      maxPrice: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -285,6 +308,8 @@ export class IBPool extends Contract {
     swapFee: BigNumberish
   ): Promise<BigNumber>;
 
+  finalize(overrides?: TransactionOverrides): Promise<ContractTransaction>;
+
   getBalance(token: string): Promise<BigNumber>;
 
   getCurrentTokens(): Promise<string[]>;
@@ -323,6 +348,15 @@ export class IBPool extends Contract {
 
   setSwapFee(
     swapFee: BigNumberish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  swapExactAmountIn(
+    tokenIn: string,
+    tokenAmountIn: BigNumberish,
+    tokenOut: string,
+    minAmountOut: BigNumberish,
+    maxPrice: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
@@ -376,6 +410,8 @@ export class IBPool extends Contract {
       swapFee: BigNumberish
     ): Promise<BigNumber>;
 
+    finalize(): Promise<BigNumber>;
+
     getBalance(token: string): Promise<BigNumber>;
 
     getCurrentTokens(): Promise<BigNumber>;
@@ -403,6 +439,14 @@ export class IBPool extends Contract {
     setPublicSwap(_public: boolean): Promise<BigNumber>;
 
     setSwapFee(swapFee: BigNumberish): Promise<BigNumber>;
+
+    swapExactAmountIn(
+      tokenIn: string,
+      tokenAmountIn: BigNumberish,
+      tokenOut: string,
+      minAmountOut: BigNumberish,
+      maxPrice: BigNumberish
+    ): Promise<BigNumber>;
 
     unbind(token: string): Promise<BigNumber>;
   };

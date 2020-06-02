@@ -2,14 +2,18 @@ require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
 import { utils, constants, ContractTransaction } from "ethers";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
+import { MockToken } from "@pie-dao/mock-contracts/typechain/MockToken";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
 import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
 import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
-import { deployBalancerFactory } from "./utils";
+import { deployBalancerFactory, deployBalancerPool } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
 import { IERC20Factory } from "./typechain/IERC20Factory";
 import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
+import { PCappedFLSmartPool } from "./typechain/PCappedFLSmartPool";
+import { PCappedFLSmartPoolFactory } from "./typechain/PCappedFLSmartPoolFactory";
+import { FlashLoanDemoFactory } from "./typechain/FlashLoanDemoFactory";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -66,8 +70,9 @@ const config: ExtendedBuidlerConfig = {
       url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
       blockGasLimit: 8000000,
       gas: 8000000,
+      gasPrice: 20e9,
       accounts: [
-        RINKEBY_PRIVATE_KEY,
+        "0xe91504ebefc2e8ca15678bf1f70b6736331950a50feaacbc09d8c0adc80cfd45",
         RINKEBY_PRIVATE_KEY_SECONDARY
       ].filter((item) => item != "")
     },
@@ -329,7 +334,6 @@ task("deploy-balancer-pool", "deploys a balancer pool from a factory")
     console.log(`Deployed balancer pool at : ${event.address}`);
 });
 
-//npx buidler balancer-bind-token --pool 0xfE682598599015d9f0EE4A4B56dE1CEfd27Cb7d5 --token 0x363BE4b8F3a341f720AbCDC666b1FB769BE73852 --balance 0.07 --decimals 6 --weight 3.5 --network kovan
 task("balancer-bind-token", "binds a token to a balancer pool")
   .addParam("pool", "the address of the Balancer pool")
   .addParam("token", "address of the token to bind")
@@ -378,12 +382,71 @@ task("balancer-set-controller")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
     const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
-    
     const tx = await pool.setController(taskArgs.controller);
     const receipt = await tx.wait(1);
 
     console.log(`Controller set tx: ${receipt.transactionHash}`);
 });
+
+task("deploy-flash-loan-demo")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+
+    const account = await signers[0].getAddress();
+
+    const contracts: any[] = [];
+
+    // Deploy Mock tokens
+
+    const mockTokenFactory = new MockTokenFactory(signers[0]);
+
+    const tokenA: MockToken = await mockTokenFactory.deploy("Token A", "Token A", 18);
+    const tokenB: MockToken = await mockTokenFactory.deploy("Token B", "Token B", 18);
+
+    // mint tokens
+    await (await tokenA.mint(account, constants.WeiPerEther.mul(1000000000000))).wait(1);
+    await (await tokenB.mint(account, constants.WeiPerEther.mul(1000000000000))).wait(1);
+
+    const poolFactory = new PCappedFLSmartPoolFactory(signers[0]);
+
+    // Deploy FlashLoan Pool and bind tokens
+    const flashLoanPool: PCappedFLSmartPool = await poolFactory.deploy();
+    const fBPool = IBPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
+
+    await (await tokenA.approve(fBPool.address, constants.MaxUint256)).wait(1);
+    await (await tokenB.approve(fBPool.address, constants.MaxUint256)).wait(1);
+
+    await (await fBPool.bind(tokenA.address, constants.WeiPerEther.mul(1000), constants.WeiPerEther.mul(10))).wait(1);
+    await (await fBPool.bind(tokenB.address, constants.WeiPerEther.mul(1000), constants.WeiPerEther.mul(10))).wait(1);
+    await (await fBPool.setController(flashLoanPool.address)).wait(1);
+
+    await (await flashLoanPool.init(fBPool.address, "Flash Loan Pool", "FLP", constants.WeiPerEther.mul(100))).wait(1);
+    await (await flashLoanPool.approveTokens()).wait(1);
+
+    // Deploy Pool A
+    const aPool = IBPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
+    await (await tokenA.approve(aPool.address, constants.MaxUint256)).wait(1);
+    await (await tokenB.approve(aPool.address, constants.MaxUint256)).wait(1);
+    await (await aPool.bind(tokenA.address, constants.WeiPerEther.mul(1000), constants.WeiPerEther.mul(10))).wait(1);
+    await (await aPool.bind(tokenB.address, constants.WeiPerEther.mul(2000), constants.WeiPerEther.mul(10))).wait(1);
+    await (await aPool.finalize()).wait(1);
+
+    // Deploy Pool B
+    const bPool = IBPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
+    await (await tokenA.approve(bPool.address, constants.MaxUint256)).wait(1);
+    await (await tokenB.approve(bPool.address, constants.MaxUint256)).wait(1);
+    await (await bPool.bind(tokenA.address, constants.WeiPerEther.mul(2000), constants.WeiPerEther.mul(10))).wait(1);
+    await (await bPool.bind(tokenB.address, constants.WeiPerEther.mul(1000), constants.WeiPerEther.mul(10))).wait(1);
+    await (await bPool.finalize()).wait(1);
+
+    // Deploy FlashLoan Demo
+
+    const flashLoanDemo = await(new FlashLoanDemoFactory(signers[0])).deploy(flashLoanPool.address, aPool.address, bPool.address, tokenA.address, tokenB.address);
+
+    console.log(await (await flashLoanDemo.excecuteFlashLoan()).hash);
+
+});
+
 
 
 export default config;
