@@ -122,12 +122,10 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
     const tokenAmounts: BigNumberish[] = [];
     const tokenWeights: BigNumberish[] = [];
 
-    
-
     for (const token of tokens) {
       tokenAddresses.push(token.address);
-      tokenWeights.push(constants.WeiPerEther.mul(token.weight).div(2));
-      
+      tokenWeights.push(parseEther(token.weight).div(2));
+
       // Calc amount
       let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
       tokenAmounts.push(amount);
@@ -224,8 +222,8 @@ task("deploy-smart-pool-complete")
 
     for (const token of tokens) {
       tokenAddresses.push(token.address);
-      tokenWeights.push(constants.WeiPerEther.mul(token.weight).div(2));
-      
+      tokenWeights.push(parseEther(token.weight).div(2));
+
       // Calc amount
       let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
       tokenAmounts.push(amount);
@@ -235,14 +233,14 @@ task("deploy-smart-pool-complete")
 
       const allowance = await tokenContract.allowance(await signers[0].getAddress(), factory.address);
       if(allowance.lt(amount)) {
-        const approveTx = await tokenContract.approve(factory.address, constants.WeiPerEther);
+        const approveTx = await tokenContract.approve(factory.address, constants.MaxUint256);
         console.log(`Approved: ${token.address} tx: ${approveTx.hash}`);
         await approveTx.wait(1);
       }
       
     }
 
-    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap);
+    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap, {gasLimit: 10000000});
     const receipt = await tx.wait(2); //wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
