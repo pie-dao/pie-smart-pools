@@ -346,18 +346,6 @@ describe("PBasicSmartPool", function () {
     });
   });
 
-  describe("Utility Functions", async () => {
-    describe("getDenormalizedWeight(address _token)", async () => {
-      it("Should return denormalized weight of underlying token in bPool", async () => {
-        smartpool = smartpool.connect(signers[1]);
-
-        const tokenWeight = await smartpool.getDenormalizedWeight(tokens[0].address);
-
-        expect(tokenWeight).to.equal(constants.WeiPerEther);
-      });
-    });
-  });
-
   async function getTokenBalances(address: string) {
     const balances: BigNumber[] = [];
 
