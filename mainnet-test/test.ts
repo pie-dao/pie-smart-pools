@@ -239,6 +239,12 @@ describe("MAINNET TEST", function () {
     ).to.be.true;
   });
 
+  it("Gets denormalized weight of underlying token in balancer pool", async () => {
+    const tokenWeight = await pool.getDenormalizedWeight(mockToken.address);
+
+    expect(tokenWeight).to.eq(constants.WeiPerEther);
+  });
+
   async function getBalances(address: string) {
     const balances: BigNumber[] = [];
 

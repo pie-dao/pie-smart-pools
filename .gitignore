@@ -111,3 +111,5 @@ artifacts
 .DS_Store
 coverage.json
 flats.sol
+.coverage_cache/
+.coverage_contracts/

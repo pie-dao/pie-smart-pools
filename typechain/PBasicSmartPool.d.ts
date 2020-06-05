@@ -54,6 +54,10 @@ interface PBasicSmartPoolInterface extends Interface {
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    getDenormalizedWeight: TypedFunctionDescription<{
+      encode([_token]: [string]): string;
+    }>;
+
     getPublicSwapSetter: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -284,6 +288,8 @@ export class PBasicSmartPool extends Contract {
 
     getController(): Promise<string>;
 
+    getDenormalizedWeight(_token: string): Promise<BigNumber>;
+
     getPublicSwapSetter(): Promise<string>;
 
     getSwapFee(): Promise<BigNumber>;
@@ -426,6 +432,8 @@ export class PBasicSmartPool extends Contract {
   getBPool(): Promise<string>;
 
   getController(): Promise<string>;
+
+  getDenormalizedWeight(_token: string): Promise<BigNumber>;
 
   getPublicSwapSetter(): Promise<string>;
 
@@ -606,6 +614,8 @@ export class PBasicSmartPool extends Contract {
     getBPool(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
+
+    getDenormalizedWeight(_token: string): Promise<BigNumber>;
 
     getPublicSwapSetter(): Promise<BigNumber>;
 
