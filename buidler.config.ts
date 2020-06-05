@@ -225,7 +225,7 @@ task("deploy-smart-pool-complete")
       tokenWeights.push(parseEther(token.weight).div(2));
 
       // Calc amount
-      let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
+      const amount = new BigNumber(Math.floor((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals)).toString());
       tokenAmounts.push(amount);
 
       // Approve factory to spend token
@@ -237,10 +237,10 @@ task("deploy-smart-pool-complete")
         console.log(`Approved: ${token.address} tx: ${approveTx.hash}`);
         await approveTx.wait(1);
       }
-      
+
     }
 
-    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap, {gasLimit: 10000000});
+    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap, {gasLimit: 8000000});
     const receipt = await tx.wait(2); //wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
@@ -327,7 +327,6 @@ task("deploy-balancer-pool", "deploys a balancer pool from a factory")
     console.log(`Deployed balancer pool at : ${event.address}`);
 });
 
-//npx buidler balancer-bind-token --pool 0xfE682598599015d9f0EE4A4B56dE1CEfd27Cb7d5 --token 0x363BE4b8F3a341f720AbCDC666b1FB769BE73852 --balance 0.07 --decimals 6 --weight 3.5 --network kovan
 task("balancer-bind-token", "binds a token to a balancer pool")
   .addParam("pool", "the address of the Balancer pool")
   .addParam("token", "address of the token to bind")
@@ -376,7 +375,7 @@ task("balancer-set-controller")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
     const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
-    
+
     const tx = await pool.setController(taskArgs.controller);
     const receipt = await tx.wait(1);
 
