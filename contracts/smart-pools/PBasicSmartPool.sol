@@ -383,6 +383,14 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   /**
+        @notice Get the denormalized weight of a specific token in the underlying balancer pool
+        @return the normalized weight of the token in uint
+  */
+  function getDenormalizedWeight(address _token) external view returns (uint256) {
+    return lpbs().bPool.getDenormalizedWeight(_token);
+  }
+
+  /**
         @notice Pull the underlying token from an address and rebind it to the balancer pool
         @param _token Address of the token to pull
         @param _from Address to pull the token from

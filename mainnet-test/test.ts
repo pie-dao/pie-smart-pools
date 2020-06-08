@@ -217,6 +217,12 @@ describe("MAINNET TEST", function () {
     expect(poolTokens[poolTokens.length - 1]).to.eq(mockToken.address);
   });
 
+  it("Gets denormalized weight of underlying token in balancer pool", async () => {
+    const tokenWeight = await pool.getDenormalizedWeight(mockToken.address);
+
+    expect(tokenWeight).to.eq(constants.WeiPerEther);
+  });
+
   it("Unbinding a token should work", async () => {
     await (await pool.unbind(mockToken.address, {gasLimit: 2000000})).wait(1);
     const poolTokens = await bPool.getCurrentTokens();

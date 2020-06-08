@@ -56,6 +56,10 @@ interface PCappedSmartPoolInterface extends Interface {
 
     getController: TypedFunctionDescription<{ encode([]: []): string }>;
 
+    getDenormalizedWeight: TypedFunctionDescription<{
+      encode([_token]: [string]): string;
+    }>;
+
     getPublicSwapSetter: TypedFunctionDescription<{ encode([]: []): string }>;
 
     getSwapFee: TypedFunctionDescription<{ encode([]: []): string }>;
@@ -302,6 +306,8 @@ export class PCappedSmartPool extends Contract {
 
     getController(): Promise<string>;
 
+    getDenormalizedWeight(_token: string): Promise<BigNumber>;
+
     getPublicSwapSetter(): Promise<string>;
 
     getSwapFee(): Promise<BigNumber>;
@@ -453,6 +459,8 @@ export class PCappedSmartPool extends Contract {
   getCap(): Promise<BigNumber>;
 
   getController(): Promise<string>;
+
+  getDenormalizedWeight(_token: string): Promise<BigNumber>;
 
   getPublicSwapSetter(): Promise<string>;
 
@@ -644,6 +652,8 @@ export class PCappedSmartPool extends Contract {
     getCap(): Promise<BigNumber>;
 
     getController(): Promise<BigNumber>;
+
+    getDenormalizedWeight(_token: string): Promise<BigNumber>;
 
     getPublicSwapSetter(): Promise<BigNumber>;
 
