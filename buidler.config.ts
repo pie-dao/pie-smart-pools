@@ -13,7 +13,6 @@ import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
-usePlugin("buidler-typechain");
 usePlugin("solidity-coverage");
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
@@ -84,13 +83,6 @@ const config: ExtendedBuidlerConfig = {
     // Obtain one at https://etherscan.io/
     apiKey: ETHERSCAN_API_KEY
   },
-  typechain: {
-    outDir: "typechain",
-    target: "ethers"
-  },
-  mocha: {
-
-  }
 };
 
 task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")

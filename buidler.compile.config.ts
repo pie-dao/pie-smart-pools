@@ -1,5 +1,7 @@
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
 
+usePlugin("buidler-typechain");
+
 interface ExtendedBuidlerConfig extends BuidlerConfig {
     [x:string]: any
 }
