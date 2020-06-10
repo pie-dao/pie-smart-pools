@@ -8,8 +8,8 @@ import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
 import { deployBalancerFactory } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
 import { IERC20Factory } from "./typechain/IERC20Factory";
-import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
+import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -139,7 +139,6 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
         console.log(`Approved: ${token.address} tx: ${approveTx.hash}`);
         await approveTx.wait(1);
       }
-      
     }
 
     const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap);
