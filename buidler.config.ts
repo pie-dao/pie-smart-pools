@@ -92,6 +92,7 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
     const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
     console.log(`Factory deployed at: ${factory.address}`);
     await factory.init(taskArgs.balancerFactory);
+    return factory.address;
 });
 
 task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
@@ -119,8 +120,7 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
       tokenWeights.push(parseEther(token.weight).div(2));
 
       // Calc amount
-      let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
-      tokenAmounts.push(amount);
+      const amount = new BigNumber(Math.floor((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals)).toString());
 
       // Approve factory to spend token
       const tokenContract = IERC20Factory.connect(token.address, signers[0]);
@@ -137,6 +137,7 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
     const receipt = await tx.wait(2); //wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
+    return event.address;
 });
 
 task("deploy-pie-smart-pool", "deploys a pie smart pool")
@@ -191,50 +192,11 @@ task("deploy-smart-pool-implementation-complete")
 task("deploy-smart-pool-complete")
   .addParam("balancerFactory", "Address of the balancer factory. defaults to mainnet balancer factory", "0x9424B1412450D0f8Fc2255FAf6046b98213B76Bd")
   .addParam("allocation", "path to allocation")
-  .setAction(async(taskArgs, { ethers }) => {
-    const signers = await ethers.getSigners();
-    const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
-    console.log(`Factory deployed at: ${factory.address}`);
-    const initTx = await factory.init(taskArgs.balancerFactory);
-    console.log(`Initialised smart pool factory tx: {${initTx.hash}}`);
-
-    const config = require(taskArgs.allocation);
-
-    const name = config.name;
-    const symbol = config.symbol
-    const initialSupply = parseEther(config.initialSupply);
-    const cap = parseEther(config.cap);
-    const tokens = config.tokens;
-
-
-    const tokenAddresses: string[] = [];
-    const tokenAmounts: BigNumberish[] = [];
-    const tokenWeights: BigNumberish[] = [];
-
-    for (const token of tokens) {
-      tokenAddresses.push(token.address);
-      tokenWeights.push(parseEther(token.weight).div(2));
-
-      // Calc amount
-      const amount = new BigNumber(Math.floor((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals)).toString());
-      tokenAmounts.push(amount);
-
-      // Approve factory to spend token
-      const tokenContract = IERC20Factory.connect(token.address, signers[0]);
-
-      const allowance = await tokenContract.allowance(await signers[0].getAddress(), factory.address);
-      if(allowance.lt(amount)) {
-        const approveTx = await tokenContract.approve(factory.address, constants.MaxUint256);
-        console.log(`Approved: ${token.address} tx: ${approveTx.hash}`);
-        await approveTx.wait(1);
-      }
-
-    }
-
-    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap, {gasLimit: 8000000});
-    const receipt = await tx.wait(2); //wait for 2 confirmations
-    const event = receipt.events.pop();
-    console.log(`Deployed smart pool at : ${event.address}`);
+  .setAction(async(taskArgs, { ethers, run }) => {
+    // run deploy factory task
+    const smartPoolFactoryAddress = await run("deploy-pie-smart-pool-factory", {balancerFactory: taskArgs.balancerFactory});
+    // run deploy pool from factory task
+    await run("deploy-pool-from-factory", { factory: smartPoolFactoryAddress, allocation: taskArgs.allocation });
 });
 
 task("set-cap", "Sets the cap on a capped pool")
