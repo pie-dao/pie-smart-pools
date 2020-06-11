@@ -156,6 +156,7 @@ task("deploy-pie-capped-smart-pool", "deploys a capped pie smart pool")
     const smartpool = await factory.deploy();
 
     console.log(`PCappedSmartPool deployed at: ${smartpool.address}`);
+    return smartpool;
 });
 
 task("init-smart-pool", "initialises a smart pool")
@@ -175,18 +176,20 @@ task("init-smart-pool", "initialises a smart pool")
 
 task("deploy-smart-pool-implementation-complete")
   .addParam("implName")
-  .setAction(async(taskArgs, { ethers }) => {
+  .setAction(async(taskArgs, { ethers, run }) => {
     const signers = await ethers.getSigners();
     const factory = new PCappedSmartPoolFactory(signers[0]);
 
     // Deploy capped pool
-    const implementation = await factory.deploy();
-    console.log(`Deployed implementation at: ${implementation.address}`);
-
-    // Init implementation
-    const tx = await implementation.init(PLACE_HOLDER_ADDRESS, taskArgs.implName, taskArgs.implName, constants.WeiPerEther);
-
-    console.log(`Initialised tx: ${tx.hash}`);
+    const implementation = await run("deploy-pie-capped-smart-pool");
+    // Init capped smart pool
+    await run("init-smart-pool", {
+      smartPool: implementation.address,
+      pool: PLACE_HOLDER_ADDRESS,
+      name: taskArgs.implName,
+      symbol: taskArgs.implName,
+      initialSupply: "1337"
+    });
 });
 
 task("deploy-smart-pool-complete")
