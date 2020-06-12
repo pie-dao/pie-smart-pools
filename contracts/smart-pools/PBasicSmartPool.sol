@@ -173,7 +173,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     emit PoolJoined(msg.sender, _amount);
   }
 
-  /** 
+  /**
         @notice Burns pool shares and sends back the underlying assets
         @param _amount Amount of pool tokens to burn
     */
