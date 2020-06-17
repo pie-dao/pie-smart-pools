@@ -178,6 +178,14 @@ describe("PBasicSmartPool", function () {
       smartpool = smartpool.connect(signers[1]);
       await expect(smartpool.setSwapFee(constants.WeiPerEther.div(20))).to.be.reverted;
     });
+    it("Should revert with unsupported function error when calling finalizePool()", async () => {
+      smartpool = smartpool.connect(signers[1]);
+      await expect(smartpool.finalizeSmartPool()).to.be.reverted;
+    });
+    it("Should revert with unsupported function error when calling createPool(uint256 initialSupply)", async () => {
+      smartpool = smartpool.connect(signers[1]);
+      await expect(smartpool.createPool(0)).to.be.reverted;
+    });
   });
 
   describe("Joining and Exiting", async () => {

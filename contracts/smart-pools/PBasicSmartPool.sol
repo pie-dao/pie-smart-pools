@@ -5,7 +5,6 @@ import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
 import "../ReentryProtection.sol";
 
-
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   // P Basic Smart Struct
   bytes32 public constant pbsSlot = keccak256("PBasicSmartPool.storage.location");
@@ -173,7 +172,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     emit PoolJoined(msg.sender, _amount);
   }
 
-  /** 
+  /**
         @notice Burns pool shares and sends back the underlying assets
         @param _amount Amount of pool tokens to burn
     */
@@ -334,7 +333,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
   }
 
-  /** 
+  /**
         @notice Get the address of the controller
         @return The address of the pool
     */
@@ -342,7 +341,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     return lpbs().controller;
   }
 
-  /** 
+  /**
         @notice Get the address of the public swap setter
         @return The public swap setter address
     */
@@ -364,6 +363,20 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
   function isPublicSwap() external view returns (bool) {
     return lpbs().bPool.isPublicSwap();
+  }
+
+  /**
+        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+    */
+  function finalizeSmartPool() external view {
+    revert("PBasicSmartPool.finalizeSmartPool: unsupported function");
+  }
+
+  /**
+        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+    */
+  function createPool(uint256 initialSupply) external view {
+    revert("PBasicSmartPool.createPool: unsupported function");
   }
 
   /**
@@ -414,7 +427,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     bPool.rebind(_token, _tokenBalance.badd(_amount), tokenWeight);
   }
 
-  /** 
+  /**
         @notice Push a underlying token and rebind the token to the balancer pool
         @param _token Address of the token to push
         @param _to Address to pull the token to
@@ -455,8 +468,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _burn(_amount);
   }
 
-  /** 
-        @notice Mint pool shares 
+  /**
+        @notice Mint pool shares
         @param _amount Amount of pool shares to mint
     */
   function _mintPoolShare(uint256 _amount) internal {
