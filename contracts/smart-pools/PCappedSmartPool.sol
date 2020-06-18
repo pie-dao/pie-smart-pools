@@ -1,9 +1,10 @@
 pragma solidity 0.6.4;
 
 import "./PBasicSmartPool.sol";
+import "../interfaces/IPCappedSmartPool.sol";
 
 
-contract PCappedSmartPool is PBasicSmartPool {
+contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
   bytes32 public constant pcsSlot = keccak256("PCappedSmartPool.storage.location");
 
   event CapChanged(address indexed setter, uint256 oldCap, uint256 newCap);
@@ -21,7 +22,7 @@ contract PCappedSmartPool is PBasicSmartPool {
         @notice Set the maximum cap of the contract
         @param _cap New cap in wei
     */
-  function setCap(uint256 _cap) external onlyController noReentry {
+  function setCap(uint256 _cap) external override onlyController noReentry {
     emit CapChanged(msg.sender, lpcs().cap, _cap);
     lpcs().cap = _cap;
   }
@@ -30,7 +31,12 @@ contract PCappedSmartPool is PBasicSmartPool {
         @notice Takes underlying assets and mints smart pool tokens. Enforces the cap
         @param _amount Amount of pool tokens to mint
     */
-  function joinPool(uint256 _amount) external override withinCap noReentry {
+  function joinPool(uint256 _amount)
+    external
+    override(PBasicSmartPool, IPSmartPool)
+    withinCap
+    noReentry
+  {
     super._joinPool(_amount);
   }
 

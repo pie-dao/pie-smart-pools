@@ -64,7 +64,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     string calldata _name,
     string calldata _symbol,
     uint256 _initialSupply
-  ) external {
+  ) external override {
     pbs storage s = lpbs();
     require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
     require(_bPool != address(0), "PBasicSmartPool.init: _bPool cannot be 0x00....000");
@@ -83,7 +83,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets approval to all tokens to the underlying balancer pool
         @dev It uses this function to save on gas in joinPool
     */
-  function approveTokens() public noReentry {
+  function approveTokens() public override noReentry {
     IBPool bPool = lpbs().bPool;
     address[] memory tokens = bPool.getCurrentTokens();
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -96,7 +96,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets the controller address. Can only be set by the current controller
         @param _controller Address of the new controller
     */
-  function setController(address _controller) external onlyController noReentry {
+  function setController(address _controller) external override onlyController noReentry {
     emit ControllerChanged(lpbs().controller, _controller);
     lpbs().controller = _controller;
   }
@@ -105,7 +105,12 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets public swap setter address. Can only be set by the controller
         @param _newPublicSwapSetter Address of the new public swap setter
     */
-  function setPublicSwapSetter(address _newPublicSwapSetter) external onlyController noReentry {
+  function setPublicSwapSetter(address _newPublicSwapSetter)
+    external
+    override
+    onlyController
+    noReentry
+  {
     emit PublicSwapSetterChanged(lpbs().publicSwapSetter, _newPublicSwapSetter);
     lpbs().publicSwapSetter = _newPublicSwapSetter;
   }
@@ -114,7 +119,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets the token binder address. Can only be set by the controller
         @param _newTokenBinder Address of the new token binder
     */
-  function setTokenBinder(address _newTokenBinder) external onlyController noReentry {
+  function setTokenBinder(address _newTokenBinder) external override onlyController noReentry {
     emit TokenBinderChanged(lpbs().tokenBinder, _newTokenBinder);
     lpbs().tokenBinder = _newTokenBinder;
   }
