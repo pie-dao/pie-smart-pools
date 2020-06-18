@@ -4,8 +4,8 @@
   "description": "Implementations of smart pools for Balancer",
   "main": "index.js",
   "scripts": {
-    "build": "npm run compile && npx buidler typechain",
-    "compile": "npx buidler compile",
+    "build": "yarn compile && yarn typechain",
+    "compile": "npx buidler --config ./buidler.compile.config.ts compile",
     "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage",
     "lint:solidity": "npx solhint ./contracts/**/*.sol",
     "lint:typescript": "tslint -c tslint.json {test,typechain,utils}/**/*.ts",
@@ -14,7 +14,8 @@
     "prettier:typescript": "npx prettier --write {test,typechain,utils}/**/*.ts --print-width 100",
     "prettier": "yarn prettier:solidity && yarn prettier:typescript",
     "test": "npx buidler test",
-    "typechain": "npx buidler typechain"
+    "typechain": "npx buidler --config ./buidler.compile.config.ts typechain",
+    "clean": "rm -rf ./artifacts && rm -rf ./cache && rm -rf ./coverage && rm -rf dist"
   },
   "repository": {
     "type": "git",
