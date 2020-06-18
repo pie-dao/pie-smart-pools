@@ -9,15 +9,14 @@ import {deployContract, solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, deployBalancerFactory} from "../utils";
 import {PProxiedFactory} from "../typechain/PProxiedFactory";
+import {PCappedSmartPoolFactory} from "../typechain/PCappedSmartPoolFactory";
 import PProxiedFactoryArtifact from "../artifacts/PProxiedFactory.json";
 
 chai.use(solidity);
 const {expect} = chai;
 
-const PLACE_HOLDER_ADDRESS = "0x1000000000000000000000000000000000000001";
-const NAME = "TEST POOL";
-const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
+const PLACE_HOLDER_ADDRESS = "0x0000000000000000000000000000000000000001";
 
 describe("PProxiedFactory", () => {
   let signers: Signer[];
@@ -36,7 +35,10 @@ describe("PProxiedFactory", () => {
     factory = (await deployContract(signers[0] as Wallet, PProxiedFactoryArtifact, [], {
       gasLimit: 100000000,
     })) as PProxiedFactory;
-    await factory.init(balancerFactoryAddress);
+
+    const implementation = await new PCappedSmartPoolFactory(signers[0]).deploy();
+    await implementation.init(PLACE_HOLDER_ADDRESS, "IMP", "IMP", 1337);
+    await factory.init(balancerFactoryAddress, implementation.address);
 
     const tokenFactory = new MockTokenFactory(signers[0]);
     for (let i = 0; i < 3; i++) {

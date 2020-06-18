@@ -6,7 +6,7 @@ import "../interfaces/IBFactory.sol";
 import "../interfaces/IBPool.sol";
 import "../interfaces/IERC20.sol";
 import "../Ownable.sol";
-import "../smart-pools/PCappedSmartPool.sol";
+import "../interfaces/IPCappedSmartPool.sol";
 
 
 contract PProxiedFactory is Ownable {
@@ -17,14 +17,16 @@ contract PProxiedFactory is Ownable {
 
   event SmartPoolCreated(address indexed poolAddress, string name, string symbol);
 
-  function init(address _balancerFactory) public {
+  function init(address _balancerFactory, address _implementation) public {
     require(smartPoolImplementation == address(0), "Already initialised");
     _setOwner(msg.sender);
     balancerFactory = IBFactory(_balancerFactory);
 
-    PCappedSmartPool implementation = new PCappedSmartPool();
-    implementation.init(address(1), "IMPL", "IMPL", 1 ether);
-    smartPoolImplementation = address(implementation);
+    smartPoolImplementation = _implementation;
+  }
+
+  function setImplementation(address _implementation) external onlyOwner {
+    smartPoolImplementation = _implementation;
   }
 
   function newProxiedSmartPool(
@@ -60,7 +62,7 @@ contract PProxiedFactory is Ownable {
     bPool.setController(address(proxy));
 
     // Setup smart pool
-    PCappedSmartPool smartPool = PCappedSmartPool(address(proxy));
+    IPCappedSmartPool smartPool = IPCappedSmartPool(address(proxy));
 
     smartPool.init(balancerPoolAddress, _name, _symbol, _initialSupply);
     smartPool.setCap(_cap);

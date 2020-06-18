@@ -5,7 +5,6 @@ import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
 import "../ReentryProtection.sol";
 
-
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   // P Basic Smart Struct
   bytes32 public constant pbsSlot = keccak256("PBasicSmartPool.storage.location");
@@ -65,7 +64,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     string calldata _name,
     string calldata _symbol,
     uint256 _initialSupply
-  ) external {
+  ) external override {
     pbs storage s = lpbs();
     require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
     require(_bPool != address(0), "PBasicSmartPool.init: _bPool cannot be 0x00....000");
@@ -84,7 +83,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets approval to all tokens to the underlying balancer pool
         @dev It uses this function to save on gas in joinPool
     */
-  function approveTokens() public noReentry {
+  function approveTokens() public override noReentry {
     IBPool bPool = lpbs().bPool;
     address[] memory tokens = bPool.getCurrentTokens();
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -97,7 +96,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets the controller address. Can only be set by the current controller
         @param _controller Address of the new controller
     */
-  function setController(address _controller) external onlyController noReentry {
+  function setController(address _controller) external override onlyController noReentry {
     emit ControllerChanged(lpbs().controller, _controller);
     lpbs().controller = _controller;
   }
@@ -106,7 +105,12 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets public swap setter address. Can only be set by the controller
         @param _newPublicSwapSetter Address of the new public swap setter
     */
-  function setPublicSwapSetter(address _newPublicSwapSetter) external onlyController noReentry {
+  function setPublicSwapSetter(address _newPublicSwapSetter)
+    external
+    override
+    onlyController
+    noReentry
+  {
     emit PublicSwapSetterChanged(lpbs().publicSwapSetter, _newPublicSwapSetter);
     lpbs().publicSwapSetter = _newPublicSwapSetter;
   }
@@ -115,7 +119,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Sets the token binder address. Can only be set by the controller
         @param _newTokenBinder Address of the new token binder
     */
-  function setTokenBinder(address _newTokenBinder) external onlyController noReentry {
+  function setTokenBinder(address _newTokenBinder) external override onlyController noReentry {
     emit TokenBinderChanged(lpbs().tokenBinder, _newTokenBinder);
     lpbs().tokenBinder = _newTokenBinder;
   }
@@ -173,7 +177,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     emit PoolJoined(msg.sender, _amount);
   }
 
-  /** 
+  /**
         @notice Burns pool shares and sends back the underlying assets
         @param _amount Amount of pool tokens to burn
     */
@@ -334,7 +338,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
   }
 
-  /** 
+  /**
         @notice Get the address of the controller
         @return The address of the pool
     */
@@ -342,7 +346,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     return lpbs().controller;
   }
 
-  /** 
+  /**
         @notice Get the address of the public swap setter
         @return The public swap setter address
     */
@@ -364,6 +368,20 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
   function isPublicSwap() external view returns (bool) {
     return lpbs().bPool.isPublicSwap();
+  }
+
+  /**
+        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+    */
+  function finalizeSmartPool() external view {
+    revert("PBasicSmartPool.finalizeSmartPool: unsupported function");
+  }
+
+  /**
+        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+    */
+  function createPool(uint256 initialSupply) external view {
+    revert("PBasicSmartPool.createPool: unsupported function");
   }
 
   /**
@@ -414,7 +432,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     bPool.rebind(_token, _tokenBalance.badd(_amount), tokenWeight);
   }
 
-  /** 
+  /**
         @notice Push a underlying token and rebind the token to the balancer pool
         @param _token Address of the token to push
         @param _to Address to pull the token to
@@ -455,8 +473,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _burn(_amount);
   }
 
-  /** 
-        @notice Mint pool shares 
+  /**
+        @notice Mint pool shares
         @param _amount Amount of pool shares to mint
     */
   function _mintPoolShare(uint256 _amount) internal {

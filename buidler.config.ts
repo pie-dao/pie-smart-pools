@@ -10,6 +10,7 @@ import { IBPoolFactory } from "./typechain/IBPoolFactory";
 import { IERC20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
+import { PCappedSmartPool } from "./typechain/PCappedSmartPool";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -87,11 +88,15 @@ const config: ExtendedBuidlerConfig = {
 
 task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
   .addParam("balancerFactory", "Address of the balancer factory")
-  .setAction(async(taskArgs, { ethers }) => {
+  .setAction(async(taskArgs, { ethers, run }) => {
     const signers = await ethers.getSigners();
     const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
     console.log(`Factory deployed at: ${factory.address}`);
-    await factory.init(taskArgs.balancerFactory);
+
+    const implementation = await run("deploy-pie-capped-smart-pool") as PCappedSmartPool;
+    await implementation.init(PLACE_HOLDER_ADDRESS, "IMPL", "IMPL", "1337");
+
+    await factory.init(taskArgs.balancerFactory, implementation.address);
     return factory.address;
 });
 
