@@ -256,7 +256,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
 
     require(bPool.isBound(_token), "PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
 
-    tokenAmountIn = bPool.calcSingleInGivenPoolOut(
+    uint256 tokenAmountIn = bPool.calcSingleInGivenPoolOut(
       bPool.getBalance(_token),
       bPool.getDenormalizedWeight(_token),
       totalSupply(),
