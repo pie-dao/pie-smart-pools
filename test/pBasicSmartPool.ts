@@ -263,6 +263,16 @@ describe("PBasicSmartPool", function () {
     //     smartpool.joinPool(constants.WeiPerEther.mul(constants.WeiPerEther).mul(10));
     //     await smartpool.exitPool(1);
     // });
+    it("Should fail to join with a single token if token is unbound", async () => {
+      await smartpool.unbind(tokens[0].address);
+
+      await expect(
+        smartpool.joinswapExternAmountIn(tokens[0].address, constants.WeiPerEther)
+      ).to.be.revertedWith("PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
+      await expect(
+        smartpool.joinswapExternAmountIn(tokens[0].address, constants.WeiPerEther)
+      ).to.be.revertedWith("PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
+    });
   });
 
   describe("Token binding", async () => {

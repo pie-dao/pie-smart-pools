@@ -203,60 +203,59 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   /**
-        @notice Joinswap single asset pool entry pool amount out
+        @notice Joinswap single asset pool entry given token amount in
         @param _token Address of entry token
-        @param _amount Amount of entry tokens
+        @param _amountIn Amount of entry tokens
     */
-  function joinswapExternAmountIn(address _token, uint256 _amount)
-    external
-    override
-    ready
-    noReentry
-  {
-    IBpool bPool = lpbs().bPool;
+  function joinswapExternAmountIn(address _token, uint256 _amountIn) external ready noReentry {
+    IBPool bPool = lpbs().bPool;
 
-    require(bPool.isBound(_token), "ERR_NOT_BOUND");
+    require(bPool.isBound(_token), "PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
 
-    poolAmountOut = bPool.createpoolOutGivenSingleIn(
-      bPool.getBalance(_token),
-      bPool.getDenormalizedWeight(_token),
-      totalSupply();
-      bPool.getTotalDenormalizedWeight(),
-      _amount,
-      getSwapFee()
-    );
-
-    emit LOG_JOIN(msg.sender, _token, _amount);
-
-    _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg.sender, _amount);
-    _pullUnderlying(_token, msg.sender, _amount);
-  }
-
-  /**
-        @notice Joinswap single asset pool entry token amount in
-        @param _token Address of entry token
-        @param _amount Amount of entry tokens to deposit into the pool
-    */
-  function joinswapPoolAmountOut(address _token, uint _amount) external override ready noReentry {
-    IBpool bPool = lpbs().Bpool;
-
-    require(bPool.isBound(_token), "ERR_NOT_BOUND");
-
-    tokenAmountIn = bPool.calcSingleInGivenPoolOut(
+    uint256 poolAmountOut = bPool.calcPoolOutGivenSingleIn(
       bPool.getBalance(_token),
       bPool.getDenormalizedWeight(_token),
       totalSupply(),
-      bPool.getTotalDenromalizedWeight(),
-      _amount,
-      getSwapFee()
-    )
+      bPool.getTotalDenormalizedWeight(),
+      _amountIn,
+      bPool.getSwapFee()
+    );
 
-    emit LOG_JOIN(msg.sender, _token, _amount);
+    emit LOG_JOIN(msg.sender, _token, _amountIn);
 
-    _mintPoolShare(_amount);
-    _pushPoolShare(msg.sender, _amount);
-    _pullUnderlying(_token, msg.sender, _amount);
+    uint256 bal = bPool.getBalance(_token);
+
+    _mintPoolShare(poolAmountOut);
+    _pushPoolShare(msg.sender, poolAmountOut);
+    _pullUnderlying(_token, msg.sender, _amountIn, bal);
+  }
+
+  /**
+        @notice Joinswap single asset pool entry given pool amount out
+        @param _token Address of entry token
+        @param _amountOut Amount of entry tokens to deposit into the pool
+    */
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut) external ready noReentry {
+    IBPool bPool = lpbs().bPool;
+
+    require(bPool.isBound(_token), "PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
+
+    uint256 tokenAmountIn = bPool.calcSingleInGivenPoolOut(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply(),
+      bPool.getTotalDenormalizedWeight(),
+      _amountOut,
+      bPool.getSwapFee()
+    );
+
+    emit LOG_JOIN(msg.sender, _token, tokenAmountIn);
+
+    uint256 bal = bPool.getBalance(_token);
+
+    _mintPoolShare(_amountOut);
+    _pushPoolShare(msg.sender, _amountOut);
+    _pullUnderlying(_token, msg.sender, tokenAmountIn, bal);
   }
 
   /**
