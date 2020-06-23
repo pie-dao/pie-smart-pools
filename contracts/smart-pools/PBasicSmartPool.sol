@@ -203,6 +203,63 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   /**
+        @notice Joinswap single asset pool entry pool amount out
+        @param _token Address of entry token
+        @param _amount Amount of entry tokens
+    */
+  function joinswapExternAmountIn(address _token, uint256 _amount)
+    external
+    override
+    ready
+    noReentry
+  {
+    IBpool bPool = lpbs().bPool;
+
+    require(bPool.isBound(_token), "ERR_NOT_BOUND");
+
+    poolAmountOut = bPool.createpoolOutGivenSingleIn(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply();
+      bPool.getTotalDenormalizedWeight(),
+      _amount,
+      getSwapFee()
+    );
+
+    emit LOG_JOIN(msg.sender, _token, _amount);
+
+    _mintPoolShare(poolAmountOut);
+    _pushPoolShare(msg.sender, _amount);
+    _pullUnderlying(_token, msg.sender, _amount);
+  }
+
+  /**
+        @notice Joinswap single asset pool entry token amount in
+        @param _token Address of entry token
+        @param _amount Amount of entry tokens to deposit into the pool
+    */
+  function joinswapPoolAmountOut(address _token, uint _amount) external override ready noReentry {
+    IBpool bPool = lpbs().Bpool;
+
+    require(bPool.isBound(_token), "ERR_NOT_BOUND");
+
+    tokenAmountIn = bPool.calcSingleInGivenPoolOut(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply(),
+      bPool.getTotalDenromalizedWeight(),
+      _amount,
+      getSwapFee()
+    )
+
+    emit LOG_JOIN(msg.sender, _token, _amount);
+
+    _mintPoolShare(_amount);
+    _pushPoolShare(msg.sender, _amount);
+    _pullUnderlying(_token, msg.sender, _amount);
+  }
+
+  /**
         @notice Burns pool shares and sends back the underlying assets leaving some in the pool
         @param _amount Amount of pool tokens to burn
         @param _lossTokens Tokens skipped on redemption
