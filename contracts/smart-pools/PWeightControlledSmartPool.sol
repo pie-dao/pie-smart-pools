@@ -72,7 +72,10 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
       deltaBalance = currentBalance.bmul(deltaWeight.bdiv(currentWeight));
 
       // First gets the tokens from msg.sender to this contract (Pool Controller)
-      require(IERC20(_token).transferFrom(msg.sender, address(this), deltaBalance));
+      require(
+        IERC20(_token).transferFrom(msg.sender, address(this), deltaBalance),
+        "TRANSFER_FAILED"
+      );
       // Now with the tokens this contract can bind them to the pool it controls
       s.bPool.rebind(_token, currentBalance.badd(deltaBalance), _newWeight);
 
@@ -96,7 +99,7 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     for (uint256 i = 0; i < tokens.length; i++) {
       require(_newWeights[i] <= MAX_WEIGHT, "ERR_WEIGHT_ABOVE_MAX");
       require(_newWeights[i] >= MIN_WEIGHT, "ERR_WEIGHT_BELOW_MIN");
-      weightsSum = weightsSum.badd(ws.newWeights[i]);
+      weightsSum = weightsSum.badd(_newWeights[i]);
     }
     require(weightsSum <= MAX_TOTAL_WEIGHT, "ERR_MAX_TOTAL_WEIGHT");
 
@@ -116,8 +119,11 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
       _endBlock > _startBlock,
       "PWeightControlledSmartPool.updateWeightsGradually: End block must be after start block"
     );
+
+    delete ws.startWeights;
+
     for (uint256 i = 0; i < tokens.length; i++) {
-      ws.startWeights[i] = s.bPool.getDenormalizedWeight(tokens[i]); // startWeights are current weights
+      ws.startWeights.push(s.bPool.getDenormalizedWeight(tokens[i])); // startWeights are current weights
     }
   }
 
@@ -151,6 +157,31 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
       }
       s.bPool.rebind(tokens[i], s.bPool.getBalance(tokens[i]), newWeight);
     }
+  }
+
+  function getDenormalizedWeights() external view returns (uint256[] memory weights) {
+    pbs storage s = lpbs();
+    address[] memory tokens = s.bPool.getCurrentTokens();
+    weights = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      weights[i] = s.bPool.getDenormalizedWeight(tokens[i]);
+    }
+  }
+
+  function getNewWeights() external view returns (uint256[] memory weights) {
+    return lwcs().newWeights;
+  }
+
+  function getStartWeights() external view returns (uint256[] memory weights) {
+    return lwcs().startWeights;
+  }
+
+  function getStartBlock() external view returns(uint256) {
+    return lwcs().startBlock;
+  }
+
+  function getEndBlock() external view returns(uint256) {
+    return lwcs().endBlock;
   }
 
   function lwcs() internal pure returns (wcs storage s) {
