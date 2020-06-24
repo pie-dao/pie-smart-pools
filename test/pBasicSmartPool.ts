@@ -274,7 +274,7 @@ describe("PBasicSmartPool", function () {
         smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
       ).to.be.revertedWith("PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
     });
-    it.only("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+    it("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
       const poolAmountOut = constants.One;
       const tokenAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
 
