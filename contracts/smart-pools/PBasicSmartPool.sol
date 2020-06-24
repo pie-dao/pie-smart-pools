@@ -210,7 +210,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
   function joinswapExternAmountIn(address _token, uint256 _amountIn)
     external
-    payable
     ready
     noReentry
     returns (uint256 poolAmountOut)
@@ -249,7 +248,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
   function joinswapPoolAmountOut(address _token, uint256 _amountOut)
     external
-    payable
     ready
     noReentry
     returns (uint256 tokenAmountIn)

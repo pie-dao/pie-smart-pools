@@ -223,6 +223,20 @@ describe("MAINNET TEST", function () {
     expect(tokenWeight).to.eq(constants.WeiPerEther);
   });
 
+  it("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+    const poolAmountOut = constants.One;
+    const tokenAmountIn = await bPool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
+
+    const tAIResponse = await tokenAmountIn.wait(1);
+    const tAI = new BigNumber(tAIResponse.events[0].data);
+
+    const calculatedPoolAmountOut = await bPool.joinswapExternAmountIn(tokens[1].address, tAI);
+    const cPAOResponse = await calculatedPoolAmountOut.wait(1);
+    const cPAO = new BigNumber(cPAOResponse.events[3].data);
+
+    expect(cPAO).to.equal(poolAmountOut);
+  });
+
   it("Unbinding a token should work", async () => {
     await (await pool.unbind(mockToken.address, {gasLimit: 2000000})).wait(1);
     const poolTokens = await bPool.getCurrentTokens();
