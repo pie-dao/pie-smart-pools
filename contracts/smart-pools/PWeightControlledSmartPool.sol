@@ -20,9 +20,6 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     uint256[] newWeights;
   }
 
-  // Notice Balance is not an input (like with rebind on BPool) since we will require prices not to change.
-  // This is achieved by forcing balances to change proportionally to weights, so that prices don't change.
-  // If prices could be changed, this would allow the controller to drain the pool by arbing price changes.
   function updateWeight(address _token, uint256 _newWeight) external noReentry onlyController {
     pbs storage s = lpbs();
 
@@ -38,7 +35,7 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
 
     if (_newWeight < currentWeight) {
-      // This means the controller will withdraw tokens to keep price. This means they need to redeem PCTokens
+      // If weight goes down we need to pull tokens and burn pool shares
       require(
         totalWeight.badd(currentWeight.bsub(_newWeight)) <= MAX_TOTAL_WEIGHT,
         "ERR_MAX_TOTAL_WEIGHT"
@@ -61,7 +58,8 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
       _pullPoolShare(msg.sender, poolShares);
       _burnPoolShare(poolShares);
     } else {
-      // This means the controller will deposit tokens to keep the price. This means they will be minted and given PCTokens
+      // This means the controller will deposit tokens to keep the price.
+      // They will be minted and given PCTokens
       require(
         totalWeight.badd(_newWeight.bsub(currentWeight)) <= MAX_TOTAL_WEIGHT,
         "ERR_MAX_TOTAL_WEIGHT"
@@ -84,7 +82,8 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     }
   }
 
-  // Let external actors poke the contract with pokeWeights() to slowly get to newWeights at endBlock
+  // Let external actors poke the contract with pokeWeights(),
+  // to slowly get to newWeights at endBlock
   function updateWeightsGradually(
     uint256[] calldata _newWeights,
     uint256 _startBlock,
@@ -105,16 +104,13 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
 
     if (block.number > _startBlock) {
       // This means the weight update should start ASAP
-      ws.startBlock = block.number; // This prevents a big jump in weights if block.number>startBlock
-    } else {
+      ws.startBlock = block.number;
       ws.startBlock = _startBlock;
     }
 
     ws.endBlock = _endBlock;
     ws.newWeights = _newWeights;
 
-    // // Prevent weights to be changed in less than the minimum weight change period.
-    // require(bsub(_endBlock, _startBlock) >= _minimumWeightChangeBlockPeriod, "ERR_WEIGHT_CHANGE_PERIOD_BELOW_MIN");
     require(
       _endBlock > _startBlock,
       "PWeightControlledSmartPool.updateWeightsGradually: End block must be after start block"
@@ -123,7 +119,8 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     delete ws.startWeights;
 
     for (uint256 i = 0; i < tokens.length; i++) {
-      ws.startWeights.push(s.bPool.getDenormalizedWeight(tokens[i])); // startWeights are current weights
+      // startWeights are current weights
+      ws.startWeights.push(s.bPool.getDenormalizedWeight(tokens[i]));
     }
   }
 
@@ -132,7 +129,8 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     pbs storage s = lpbs();
     require(block.number >= ws.startBlock, "ERR_CANT_POKE_YET");
 
-    uint256 minBetweenEndBlockAndThisBlock; // This allows for pokes after endBlock that get weights to endWeights
+    // This allows for pokes after endBlock that get weights to endWeights
+    uint256 minBetweenEndBlockAndThisBlock;
     if (block.number > ws.endBlock) {
       minBetweenEndBlockAndThisBlock = ws.endBlock;
     } else {
@@ -176,11 +174,11 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     return lwcs().startWeights;
   }
 
-  function getStartBlock() external view returns(uint256) {
+  function getStartBlock() external view returns (uint256) {
     return lwcs().startBlock;
   }
 
-  function getEndBlock() external view returns(uint256) {
+  function getEndBlock() external view returns (uint256) {
     return lwcs().endBlock;
   }
 

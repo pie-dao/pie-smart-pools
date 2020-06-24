@@ -260,7 +260,7 @@ describe("PWeightControlledSmartPool ", function () {
       expect(newCurrentWeights).to.eql(currentWeights);
     });
 
-    it("Setting a start block in the past should set it to the current block", async() => {
+    it("Setting a start block in the past should set it to the current block", async () => {
       const currentWeights = await smartpool.getDenormalizedWeights();
 
       await smartpool.updateWeightsGradually(weightsFixtureUp, 0, endBlock);
@@ -345,7 +345,7 @@ describe("PWeightControlledSmartPool ", function () {
       }
     });
 
-    it("Poking the weights down should work", async() => {
+    it("Poking the weights down should work", async () => {
       await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsDown, startBlock, endBlock);
       const weightsBefore = await smartpool.getDenormalizedWeights();
       await smartpool.pokeWeights();
@@ -353,8 +353,10 @@ describe("PWeightControlledSmartPool ", function () {
       const weightsAfter = await smartpool.getDenormalizedWeights();
 
       for (let i = 0; i < weightsAfter.length; i++) {
-        const expectedDecrease = weightsBefore[i].sub(weigthsFixturePokeWeightsDown[i]).mul(currentBlock - startBlock)
-        .div(endBlock - startBlock);
+        const expectedDecrease = weightsBefore[i]
+          .sub(weigthsFixturePokeWeightsDown[i])
+          .mul(currentBlock - startBlock)
+          .div(endBlock - startBlock);
         expect(weightsAfter[i]).to.eq(
           weightsBefore[i].sub(expectedDecrease),
           "Weight decrease incorrect"
