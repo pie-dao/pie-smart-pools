@@ -279,6 +279,82 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   /**
+        @notice Exitswap single asset pool exit given pool amount in
+        @param _token Address of exit token
+        @param _poolAmountIn Amount of pool tokens sending to the pool
+        @return tokenAmountOut amount of exit tokens being withdrawn
+    */
+  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
+    external
+    ready
+    noReentry
+    returns (uint256 tokenAmountOut)
+  {
+    IBPool bPool = lpbs().bPool;
+
+    require(bPool.isBound(_token), "PBasicSmartPool.exitswapPoolAmountIn: Token Not Bound");
+
+    tokenAmountOut = bPool.calcSingleOutGivenPoolIn(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply(),
+      bPool.getTotalDenormalizedWeight(),
+      _poolAmountIn,
+      bPool.getSwapFee()
+    );
+
+    emit LOG_EXIT(msg.sender, _token, tokenAmountOut);
+
+    _pullPoolShare(msg.sender, _poolAmountIn);
+    _burnPoolShare(_poolAmountIn);
+
+    emit PoolExited(msg.sender, tokenAmountOut);
+
+    uint256 bal = bPool.getBalance(_token);
+    _pushUnderlying(_token, msg.sender, tokenAmountOut, bal); // This will do an EXIT_FEE because of BP rebind
+
+    return tokenAmountOut;
+  }
+
+  /**
+        @notice Exitswap single asset pool entry given token amount out
+        @param _token Address of exit token
+        @param _tokenAmountOut Amount of exit tokens
+        @return poolAmountIn amount of pool tokens being deposited
+    */
+  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
+    external
+    ready
+    noReentry
+    returns (uint256 poolAmountIn)
+  {
+    IBPool bPool = lpbs().bPool;
+
+    require(bPool.isBound(_token), "PBasicSmartPool.exitswapExternAmountOut: Token Not Bound");
+
+    poolAmountIn = bPool.calcPoolInGivenSingleOut(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply(),
+      bPool.getTotalDenormalizedWeight(),
+      _tokenAmountOut,
+      bPool.getSwapFee()
+    );
+
+    emit LOG_EXIT(msg.sender, _token, _tokenAmountOut);
+
+    _pullPoolShare(msg.sender, poolAmountIn);
+    _burnPoolShare(poolAmountIn);
+
+    emit PoolExited(msg.sender, _tokenAmountOut);
+
+    uint256 bal = bPool.getBalance(_token);
+    _pushUnderlying(_token, msg.sender, _tokenAmountOut, bal);
+
+    return poolAmountIn;
+  }
+
+  /**
         @notice Burns pool shares and sends back the underlying assets leaving some in the pool
         @param _amount Amount of pool tokens to burn
         @param _lossTokens Tokens skipped on redemption

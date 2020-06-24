@@ -244,6 +244,20 @@ describe("MAINNET TEST", function () {
     expect(cPAO).to.equal(poolAmountOut);
   });
 
+  it("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
+    const tokenAmountOut = constants.One;
+    const poolAmountIn = await bPool.joinswapPoolAmountOut(tokens[1].address, tokenAmountOut);
+
+    const pAIResponse = await poolAmountIn.wait(1);
+    const pAI = new BigNumber(pAIResponse.events[0].data);
+
+    const calculatedTokenAmountOut = await bPool.joinswapExternAmountIn(tokens[1].address, pAI);
+    const cTAOResponse = await calculatedTokenAmountOut.wait(1);
+    const cTAO = new BigNumber(cTAOResponse.events[3].data);
+
+    expect(cTAO).to.equal(tokenAmountOut);
+  });
+
   it("Unbinding a token should work", async () => {
     await (await pool.unbind(mockToken.address, {gasLimit: 2000000})).wait(1);
     const poolTokens = await bPool.getCurrentTokens();
