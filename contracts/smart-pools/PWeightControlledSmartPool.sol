@@ -105,9 +105,9 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     if (block.number > _startBlock) {
       // This means the weight update should start ASAP
       ws.startBlock = block.number;
-      ws.startBlock = _startBlock;
+    } else {
+        ws.startBlock = _startBlock;
     }
-
     ws.endBlock = _endBlock;
     ws.newWeights = _newWeights;
 
