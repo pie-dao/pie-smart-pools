@@ -6,6 +6,7 @@ import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
+import Decimal from "decimal.js";
 
 import {deployBalancerPool} from "../utils";
 import {IBPool} from "../typechain/IBPool";
@@ -189,6 +190,26 @@ describe("PBasicSmartPool", function () {
   });
 
   describe("Joining and Exiting", async () => {
+    it.only("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+      const poolAmountOut = constants.One;
+      const tokenAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
+
+      const res = await tokenAmountIn.wait(1);
+      const tAI = new BigNumber(
+        JSON.parse(JSON.stringify(res.events[0].data)) // grrr TS
+      );
+
+      const calculatedPoolAmountOut = await smartpool.joinswapExternAmountIn(
+        tokens[1].address,
+        tAI
+      );
+      const cpaoRes = await calculatedPoolAmountOut.wait(1);
+
+      const cPAO = new BigNumber(JSON.parse(JSON.stringify(cpaoRes.events[3].data)));
+
+      expect(cPAO).to.equal(poolAmountOut);
+    });
+
     it("Adding liquidity should work", async () => {
       const mintAmount = constants.WeiPerEther;
       await smartpool.joinPool(mintAmount);
@@ -204,7 +225,7 @@ describe("PBasicSmartPool", function () {
       await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
     });
     it("Adding liquidity when a token transfer returns fails should fail", async () => {
-      const mintAmount = constants.WeiPerEther;
+      const mintAmount = constants.WeiPerEther.div(4);
       await tokens[1].setTransferFromReturnFalse(true);
       await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
     });
@@ -265,13 +286,14 @@ describe("PBasicSmartPool", function () {
     // });
     it("Should fail to join with a single token if token is unbound", async () => {
       await smartpool.unbind(tokens[0].address);
+      const mintAmount = constants.WeiPerEther;
 
       await expect(
-        smartpool.joinswapExternAmountIn(tokens[0].address, constants.WeiPerEther)
+        smartpool.joinswapExternAmountIn(tokens[0].address, mintAmount)
       ).to.be.revertedWith("PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
       await expect(
-        smartpool.joinswapExternAmountIn(tokens[0].address, constants.WeiPerEther)
-      ).to.be.revertedWith("PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
+        smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
+      ).to.be.revertedWith("PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
     });
   });
 

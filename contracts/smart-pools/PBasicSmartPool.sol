@@ -206,13 +206,20 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Joinswap single asset pool entry given token amount in
         @param _token Address of entry token
         @param _amountIn Amount of entry tokens
+        @return poolAmountOut
     */
-  function joinswapExternAmountIn(address _token, uint256 _amountIn) external ready noReentry {
+  function joinswapExternAmountIn(address _token, uint256 _amountIn)
+    external
+    payable
+    ready
+    noReentry
+    returns (uint256 poolAmountOut)
+  {
     IBPool bPool = lpbs().bPool;
 
     require(bPool.isBound(_token), "PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
 
-    uint256 poolAmountOut = bPool.calcPoolOutGivenSingleIn(
+    poolAmountOut = bPool.calcPoolOutGivenSingleIn(
       bPool.getBalance(_token),
       bPool.getDenormalizedWeight(_token),
       totalSupply(),
@@ -223,24 +230,35 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
 
     emit LOG_JOIN(msg.sender, _token, _amountIn);
 
-    uint256 bal = bPool.getBalance(_token);
-
     _mintPoolShare(poolAmountOut);
     _pushPoolShare(msg.sender, poolAmountOut);
+
+    emit PoolJoined(msg.sender, poolAmountOut);
+
+    uint256 bal = bPool.getBalance(_token);
     _pullUnderlying(_token, msg.sender, _amountIn, bal);
+
+    return poolAmountOut;
   }
 
   /**
         @notice Joinswap single asset pool entry given pool amount out
         @param _token Address of entry token
         @param _amountOut Amount of entry tokens to deposit into the pool
+        @return tokenAmountIn
     */
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut) external ready noReentry {
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+    external
+    payable
+    ready
+    noReentry
+    returns (uint256 tokenAmountIn)
+  {
     IBPool bPool = lpbs().bPool;
 
     require(bPool.isBound(_token), "PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
 
-    uint256 tokenAmountIn = bPool.calcSingleInGivenPoolOut(
+    tokenAmountIn = bPool.calcSingleInGivenPoolOut(
       bPool.getBalance(_token),
       bPool.getDenormalizedWeight(_token),
       totalSupply(),
@@ -251,11 +269,15 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
 
     emit LOG_JOIN(msg.sender, _token, tokenAmountIn);
 
-    uint256 bal = bPool.getBalance(_token);
-
     _mintPoolShare(_amountOut);
     _pushPoolShare(msg.sender, _amountOut);
+
+    emit PoolJoined(msg.sender, _amountOut);
+
+    uint256 bal = bPool.getBalance(_token);
     _pullUnderlying(_token, msg.sender, tokenAmountIn, bal);
+
+    return tokenAmountIn;
   }
 
   /**

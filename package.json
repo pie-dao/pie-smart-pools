@@ -37,6 +37,7 @@
     "@types/node": "^13.7.0",
     "buidler-typechain": "0.0.5",
     "chai": "^4.2.0",
+    "decimal.js": "^10.2.0",
     "ethereum-waffle": "^2.3.2",
     "ethers": "^4.0.44",
     "prettier": "^2.0.5",
