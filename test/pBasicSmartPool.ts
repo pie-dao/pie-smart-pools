@@ -6,7 +6,6 @@ import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
-import Decimal from "decimal.js";
 
 import {deployBalancerPool} from "../utils";
 import {IBPool} from "../typechain/IBPool";
