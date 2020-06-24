@@ -11,8 +11,8 @@ import {deployBalancerPool} from "../utils";
 import {IBPool} from "../typechain/IBPool";
 import {IBPoolFactory} from "../typechain/IBPoolFactory";
 import {PWeightControlledSmartPoolFactory} from "../typechain/PWeightControlledSmartPoolFactory";
-import {PWeightControlledSmartPool} from "../typechain/PWeightControlledSmartPool";
-import PWeightControlledSmartPoolArtifact from "../artifacts/PWeightControlledSmartPool.json";
+import {PAdjustableSmartPool} from "../typechain/PAdjustableSmartPool";
+import PAdjustableSmartPoolArtifact from "../artifacts/PAdjustableSmartPool.json";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -21,14 +21,14 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PWeightControlledSmartPool ", function () {
+describe("PAdjustableSmartPool ", function () {
   this.timeout(3000000);
   let signers: Signer[];
   let account: string;
   let account2: string;
   let tokens: MockToken[];
   let pool: IBPool;
-  let smartpool: PWeightControlledSmartPool;
+  let smartpool: PAdjustableSmartPool;
   let startBlock: number;
   let endBlock: number;
 
@@ -54,12 +54,12 @@ describe("PWeightControlledSmartPool ", function () {
     // Deploy this way to get the coverage provider to pick it up
     smartpool = (await deployContract(
       signers[0] as Wallet,
-      PWeightControlledSmartPoolArtifact,
+      PAdjustableSmartPoolArtifact,
       [],
       {
         gasLimit: 100000000,
       }
-    )) as PWeightControlledSmartPool;
+    )) as PAdjustableSmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);

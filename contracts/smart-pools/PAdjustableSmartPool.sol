@@ -5,15 +5,15 @@ import "./PCappedSmartPool.sol";
 
 // Based on Balancer configurable weights pool
 
-contract PWeightControlledSmartPool is PCappedSmartPool {
+contract PAdjustableSmartPool is PCappedSmartPool {
   uint256 public constant MIN_WEIGHT = 10**18;
   uint256 public constant MAX_WEIGHT = 10**18 * 50;
   uint256 public constant MAX_TOTAL_WEIGHT = 10**18 * 50;
   uint256 public constant MIN_BALANCE = (10**18) / (10**12);
 
-  bytes32 public constant wcsSlot = keccak256("PWeightControlledSmartPool.storage.location");
+  bytes32 public constant pasSlot = keccak256("PAdjustableSmartPool.storage.location");
 
-  struct wcs {
+  struct pas {
     uint256 startBlock;
     uint256 endBlock;
     uint256[] startWeights;
@@ -90,7 +90,7 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     uint256 _endBlock
   ) external noReentry onlyController {
     pbs storage s = lpbs();
-    wcs storage ws = lwcs();
+    pas storage ws = lpas();
 
     uint256 weightsSum = 0;
     address[] memory tokens = s.bPool.getCurrentTokens();
@@ -125,7 +125,7 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
   }
 
   function pokeWeights() external noReentry {
-    wcs storage ws = lwcs();
+    pas storage ws = lpas();
     pbs storage s = lpbs();
     require(block.number >= ws.startBlock, "ERR_CANT_POKE_YET");
 
@@ -157,6 +157,18 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
     }
   }
 
+  function applyAddToken() external {
+
+  }
+
+  function commitAddToken(address token, uint balance, uint denormalizedWeight) external {
+    
+  }
+
+  function removeToken(address token) external {
+
+  }
+
   function getDenormalizedWeights() external view returns (uint256[] memory weights) {
     pbs storage s = lpbs();
     address[] memory tokens = s.bPool.getCurrentTokens();
@@ -167,23 +179,23 @@ contract PWeightControlledSmartPool is PCappedSmartPool {
   }
 
   function getNewWeights() external view returns (uint256[] memory weights) {
-    return lwcs().newWeights;
+    return lpas().newWeights;
   }
 
   function getStartWeights() external view returns (uint256[] memory weights) {
-    return lwcs().startWeights;
+    return lpas().startWeights;
   }
 
   function getStartBlock() external view returns (uint256) {
-    return lwcs().startBlock;
+    return lpas().startBlock;
   }
 
   function getEndBlock() external view returns (uint256) {
-    return lwcs().endBlock;
+    return lpas().endBlock;
   }
 
-  function lwcs() internal pure returns (wcs storage s) {
-    bytes32 loc = wcsSlot;
+  function lpas() internal pure returns (pas storage s) {
+    bytes32 loc = pasSlot;
     assembly {
       s_slot := loc
     }
