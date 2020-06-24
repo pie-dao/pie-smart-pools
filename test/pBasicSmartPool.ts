@@ -6,6 +6,7 @@ import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
+import Decimal from "decimal.js";
 
 import {deployBalancerPool} from "../utils";
 import {IBPool} from "../typechain/IBPool";
@@ -189,6 +190,26 @@ describe("PBasicSmartPool", function () {
   });
 
   describe("Joining and Exiting", async () => {
+    it.only("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+      const poolAmountOut = constants.One;
+      const tokenAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
+
+      const res = await tokenAmountIn.wait(1);
+      const tAI = new BigNumber(
+        JSON.parse(JSON.stringify(res.events[0].data)) // grrr TS
+      );
+
+      const calculatedPoolAmountOut = await smartpool.joinswapExternAmountIn(
+        tokens[1].address,
+        tAI
+      );
+      const cpaoRes = await calculatedPoolAmountOut.wait(1);
+
+      const cPAO = new BigNumber(JSON.parse(JSON.stringify(cpaoRes.events[3].data)));
+
+      expect(cPAO).to.equal(poolAmountOut);
+    });
+
     it("Adding liquidity should work", async () => {
       const mintAmount = constants.WeiPerEther;
       await smartpool.joinPool(mintAmount);
