@@ -311,7 +311,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     emit PoolExited(msg.sender, tokenAmountOut);
 
     uint256 bal = bPool.getBalance(_token);
-    _pushUnderlying(_token, msg.sender, tokenAmountOut, bal); // This will do an EXIT_FEE because of BP rebind
+    _pushUnderlying(_token, msg.sender, tokenAmountOut, bal);
 
     return tokenAmountOut;
   }
