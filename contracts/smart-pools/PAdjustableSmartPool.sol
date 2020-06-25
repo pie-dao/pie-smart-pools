@@ -18,6 +18,15 @@ contract PAdjustableSmartPool is PCappedSmartPool {
     uint256 endBlock;
     uint256[] startWeights;
     uint256[] newWeights;
+    NewToken newToken;
+  }
+
+  struct NewToken {
+    address addr;
+    bool isCommitted;
+    uint256 balance;
+    uint256 denorm;
+    uint256 commitBlock;
   }
 
   function updateWeight(address _token, uint256 _newWeight) external noReentry onlyController {
@@ -157,16 +166,64 @@ contract PAdjustableSmartPool is PCappedSmartPool {
     }
   }
 
-  function applyAddToken() external {
+  function applyAddToken() external noReentry onlyController {
+    pas storage ws = lpas();
+    pbs storage s = lpbs();
 
+    require(ws.newToken.isCommitted, "ERR_NO_TOKEN_COMMIT");
+
+    uint totalSupply = totalSupply();
+
+    uint poolShares = totalSupply.bmul(ws.newToken.denorm).bdiv(s.bPool.getTotalDenormalizedWeight());
+
+    ws.newToken.isCommitted = false;
+
+    require(IERC20(ws.newToken.addr).transferFrom(msg.sender, address(this), ws.newToken.balance), "ERR_ERC20_FALSE");
+    // Now with the tokens this contract can bind them to the pool it controls
+    IERC20(ws.newToken.addr).approve(address(s.bPool), uint(-1));   // Approves bPool to pull from this controller
+    s.bPool.bind(ws.newToken.addr, ws.newToken.balance, ws.newToken.denorm);
+    _mintPoolShare(poolShares);
+    _pushPoolShare(msg.sender, poolShares);
   }
 
-  function commitAddToken(address token, uint balance, uint denormalizedWeight) external {
+  function commitAddToken(address _token, uint256 _balance, uint256 _denormalizedWeight)
+      external
+      noReentry
+      onlyController
+  {
+    pas storage ws = lpas();
+    pbs storage s = lpbs();
+    require(!s.bPool.isBound(_token), "ERR_IS_BOUND");
+    require(_denormalizedWeight <= MAX_WEIGHT, "ERR_WEIGHT_ABOVE_MAX");
+    require(_denormalizedWeight >= MIN_WEIGHT, "ERR_WEIGHT_BELOW_MIN");
+    require(s.bPool.getTotalDenormalizedWeight().badd(_denormalizedWeight) <= MAX_TOTAL_WEIGHT, "ERR_MAX_TOTAL_WEIGHT");
+
+    ws.newToken.addr = _token;
+    ws.newToken.balance = _balance;
+    ws.newToken.denorm = _denormalizedWeight;
+    ws.newToken.commitBlock = block.number;
+    ws.newToken.isCommitted = true;
+  }
+
+  function removeToken(address _token) external noReentry onlyController {
+    pbs storage s = lpbs();
     
-  }
+    uint totalSupply = totalSupply();
 
-  function removeToken(address token) external {
+    // poolShares = totalSupply * tokenWeight / totalWeight
+    uint poolShares = totalSupply.bmul(s.bPool.getDenormalizedWeight(_token)).bdiv(s.bPool.getTotalDenormalizedWeight());
 
+    // this is what will be unbound from the pool
+    // Have to get it before unbinding
+    uint balance = s.bPool.getBalance(_token);
+
+    // Unbind and get the tokens out of balancer pool
+    s.bPool.unbind(_token);
+
+    require(IERC20(_token).transfer(msg.sender, balance), "ERR_ERC20_FALSE");
+
+    _pullPoolShare(msg.sender, poolShares);
+    _burnPoolShare(poolShares);
   }
 
   function getDenormalizedWeights() external view returns (uint256[] memory weights) {
