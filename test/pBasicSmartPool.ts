@@ -274,10 +274,12 @@ describe("PBasicSmartPool", function () {
         smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
       ).to.be.revertedWith("PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
     });
-    it("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+    it.only("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+      const userPreBalance = await tokens[1].balanceOf(account);
+      const userPrePoolBalance = await smartpool.balanceOf(account);
+
       const poolAmountOut = constants.One;
       const tokenAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
-
       const tAIResponse = await tokenAmountIn.wait(1);
       const tAI = new BigNumber(tAIResponse.events[0].data);
 
@@ -288,6 +290,11 @@ describe("PBasicSmartPool", function () {
       const cPAOResponse = await calculatedPoolAmountOut.wait(1);
       const cPAO = new BigNumber(cPAOResponse.events[3].data);
 
+      const userCurrentBalance = await tokens[1].balanceOf(account);
+      const userCurrentPoolBalance = await smartpool.balanceOf(account);
+
+      expect(userCurrentPoolBalance).to.equal(userPrePoolBalance.add(poolAmountOut.mul(2)));
+      expect(userCurrentBalance).to.equal(userPreBalance.sub(tAI.mul(2)));
       expect(cPAO).to.equal(poolAmountOut);
     });
   });
