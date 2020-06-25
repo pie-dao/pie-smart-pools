@@ -224,9 +224,11 @@ describe("MAINNET TEST", function () {
   });
 
   it("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+    const userPreBalance = await tokens[1].balanceOf(account);
+    const userPrePoolBalance = await bPool.balanceOf(account);
+
     const poolAmountOut = constants.One;
     const tokenAmountIn = await bPool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
-
     const tAIResponse = await tokenAmountIn.wait(1);
     const tAI = new BigNumber(tAIResponse.events[0].data);
 
@@ -234,6 +236,11 @@ describe("MAINNET TEST", function () {
     const cPAOResponse = await calculatedPoolAmountOut.wait(1);
     const cPAO = new BigNumber(cPAOResponse.events[3].data);
 
+    const userCurrentBalance = await tokens[1].balanceOf(account);
+    const userCurrentPoolBalance = await bPool.balanceOf(account);
+
+    expect(userCurrentPoolBalance).to.equal(userPrePoolBalance.add(poolAmountOut.mul(2)));
+    expect(userCurrentBalance).to.equal(userPreBalance.sub(tAI.mul(2)));
     expect(cPAO).to.equal(poolAmountOut);
   });
 
