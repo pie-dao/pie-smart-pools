@@ -3,6 +3,7 @@ pragma solidity 0.6.4;
 import "../interfaces/IBPool.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
+import {PCTokenStorage as PCStorage} from "./storage/PCTokenStorage.sol";
 import "../ReentryProtection.sol";
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
@@ -73,8 +74,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     s.controller = msg.sender;
     s.publicSwapSetter = msg.sender;
     s.tokenBinder = msg.sender;
-    lpts().name = _name;
-    lpts().symbol = _symbol;
+    PCStorage.load().name = _name;
+    PCStorage.load().symbol = _symbol;
     _mintPoolShare(_initialSupply);
     _pushPoolShare(msg.sender, _initialSupply);
   }

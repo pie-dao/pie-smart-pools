@@ -5,8 +5,8 @@ import "../PCToken.sol";
 
 contract TestPCToken is PCToken {
   constructor(string memory _name, string memory _symbol) public {
-    lpts().name = _name;
-    lpts().symbol = _symbol;
+    PCStorage.load().name = _name;
+    PCStorage.load().symbol = _symbol;
   }
 
   function mint(address _to, uint256 _amount) external {

@@ -1,7 +1,8 @@
 pragma solidity 0.6.4;
 
 import "./PCappedSmartPool.sol";
-
+import { PAdjustableSmartPoolStorage as PAStorage } from "./storage/PAdjustableSmartPoolStorage.sol";
+import "./libraries/LibRemoveToken.sol";
 
 // Based on Balancer configurable weights pool
 
@@ -10,24 +11,6 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   uint256 public constant MAX_WEIGHT = 10**18 * 50;
   uint256 public constant MAX_TOTAL_WEIGHT = 10**18 * 50;
   uint256 public constant MIN_BALANCE = (10**18) / (10**12);
-
-  bytes32 public constant pasSlot = keccak256("PAdjustableSmartPool.storage.location");
-
-  struct pas {
-    uint256 startBlock;
-    uint256 endBlock;
-    uint256[] startWeights;
-    uint256[] newWeights;
-    NewToken newToken;
-  }
-
-  struct NewToken {
-    address addr;
-    bool isCommitted;
-    uint256 balance;
-    uint256 denorm;
-    uint256 commitBlock;
-  }
 
   function updateWeight(address _token, uint256 _newWeight) external noReentry onlyController {
     pbs storage s = lpbs();
@@ -99,7 +82,7 @@ contract PAdjustableSmartPool is PCappedSmartPool {
     uint256 _endBlock
   ) external noReentry onlyController {
     pbs storage s = lpbs();
-    pas storage ws = lpas();
+    PAStorage.StorageStruct storage ws = PAStorage.load();
 
     uint256 weightsSum = 0;
     address[] memory tokens = s.bPool.getCurrentTokens();
@@ -134,7 +117,7 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   }
 
   function pokeWeights() external noReentry {
-    pas storage ws = lpas();
+    PAStorage.StorageStruct storage ws = PAStorage.load();
     pbs storage s = lpbs();
     require(block.number >= ws.startBlock, "ERR_CANT_POKE_YET");
 
@@ -167,7 +150,7 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   }
 
   function applyAddToken() external noReentry onlyController {
-    pas storage ws = lpas();
+    PAStorage.StorageStruct storage ws = PAStorage.load();
     pbs storage s = lpbs();
 
     require(ws.newToken.isCommitted, "ERR_NO_TOKEN_COMMIT");
@@ -191,7 +174,7 @@ contract PAdjustableSmartPool is PCappedSmartPool {
       noReentry
       onlyController
   {
-    pas storage ws = lpas();
+    PAStorage.StorageStruct storage ws = PAStorage.load();
     pbs storage s = lpbs();
     require(!s.bPool.isBound(_token), "ERR_IS_BOUND");
     require(_denormalizedWeight <= MAX_WEIGHT, "ERR_WEIGHT_ABOVE_MAX");
@@ -206,24 +189,7 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   }
 
   function removeToken(address _token) external noReentry onlyController {
-    pbs storage s = lpbs();
-    
-    uint totalSupply = totalSupply();
-
-    // poolShares = totalSupply * tokenWeight / totalWeight
-    uint poolShares = totalSupply.bmul(s.bPool.getDenormalizedWeight(_token)).bdiv(s.bPool.getTotalDenormalizedWeight());
-
-    // this is what will be unbound from the pool
-    // Have to get it before unbinding
-    uint balance = s.bPool.getBalance(_token);
-
-    // Unbind and get the tokens out of balancer pool
-    s.bPool.unbind(_token);
-
-    require(IERC20(_token).transfer(msg.sender, balance), "ERR_ERC20_FALSE");
-
-    _pullPoolShare(msg.sender, poolShares);
-    _burnPoolShare(poolShares);
+    LibRemoveToken.removeToken(_token);
   }
 
   function getDenormalizedWeights() external view returns (uint256[] memory weights) {
@@ -236,25 +202,19 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   }
 
   function getNewWeights() external view returns (uint256[] memory weights) {
-    return lpas().newWeights;
+    return PAStorage.load().newWeights;
   }
 
   function getStartWeights() external view returns (uint256[] memory weights) {
-    return lpas().startWeights;
+    return PAStorage.load().startWeights;
   }
 
   function getStartBlock() external view returns (uint256) {
-    return lpas().startBlock;
+    return PAStorage.load().startBlock;
   }
 
   function getEndBlock() external view returns (uint256) {
-    return lpas().endBlock;
+    return PAStorage.load().endBlock;
   }
 
-  function lpas() internal pure returns (pas storage s) {
-    bytes32 loc = pasSlot;
-    assembly {
-      s_slot := loc
-    }
-  }
 }

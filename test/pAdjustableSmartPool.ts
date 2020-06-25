@@ -21,7 +21,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PAdjustableSmartPool ", function () {
+describe.only("PAdjustableSmartPool ", function () {
   this.timeout(3000000);
   let signers: Signer[];
   let account: string;

@@ -1,9 +1,9 @@
 pragma solidity 0.6.4;
 
 
-contract PCTokenStorage {
+library PCTokenStorage {
   bytes32 public constant ptSlot = keccak256("PCToken.storage.location");
-  struct pts {
+  struct StorageStruct {
     string name;
     string symbol;
     uint256 totalSupply;
@@ -15,7 +15,7 @@ contract PCTokenStorage {
         @notice Load pool token storage
         @return s Storage pointer to the pool token struct
     */
-  function lpts() internal pure returns (pts storage s) {
+  function load() internal pure returns (StorageStruct storage s) {
     bytes32 loc = ptSlot;
     assembly {
       s_slot := loc
