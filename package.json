@@ -15,7 +15,8 @@
     "prettier": "yarn prettier:solidity && yarn prettier:typescript",
     "test": "npx buidler test",
     "typechain": "npx buidler --config ./buidler.compile.config.ts typechain",
-    "clean": "rm -rf ./artifacts && rm -rf ./cache && rm -rf ./coverage && rm -rf dist"
+    "clean": "rm -rf ./artifacts && rm -rf ./cache && rm -rf ./coverage && rm -rf dist",
+    "remix": "remixd -s . --remix-ide https://remix.ethereum.org"
   },
   "repository": {
     "type": "git",
