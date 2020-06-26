@@ -263,7 +263,7 @@ describe("PBasicSmartPool", function () {
     //     smartpool.joinPool(constants.WeiPerEther.mul(constants.WeiPerEther).mul(10));
     //     await smartpool.exitPool(1);
     // });
-    it("Should fail to join with a single token if token is unbound", async () => {
+    it.only("Should fail to join with a single token if token is unbound", async () => {
       await smartpool.unbind(tokens[0].address);
       const mintAmount = constants.WeiPerEther;
 
@@ -298,7 +298,7 @@ describe("PBasicSmartPool", function () {
       expect(cPAO).to.equal(poolAmountOut);
     });
 
-    it("Should fail to exit with a single token if token is unbound", async () => {
+    it.only("Should fail to exit with a single token if token is unbound", async () => {
       await smartpool.unbind(tokens[1].address);
       const exitAmount = constants.WeiPerEther;
 
@@ -309,7 +309,7 @@ describe("PBasicSmartPool", function () {
         smartpool.exitswapPoolAmountIn(tokens[1].address, exitAmount)
       ).to.be.revertedWith("PBasicSmartPool.exitswapPoolAmountIn: Token Not Bound");
     });
-    it("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
+    it.only("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
       const tokenAmountOut = constants.One;
       const poolAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, tokenAmountOut);
 
