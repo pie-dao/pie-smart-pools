@@ -203,6 +203,82 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   /**
+        @notice Joinswap single asset pool entry given token amount in
+        @param _token Address of entry token
+        @param _amountIn Amount of entry tokens
+        @return poolAmountOut
+    */
+  function joinswapExternAmountIn(address _token, uint256 _amountIn)
+    external
+    ready
+    noReentry
+    returns (uint256 poolAmountOut)
+  {
+    IBPool bPool = lpbs().bPool;
+
+    require(bPool.isBound(_token), "PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
+
+    poolAmountOut = bPool.calcPoolOutGivenSingleIn(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply(),
+      bPool.getTotalDenormalizedWeight(),
+      _amountIn,
+      bPool.getSwapFee()
+    );
+
+    emit LOG_JOIN(msg.sender, _token, _amountIn);
+
+    _mintPoolShare(poolAmountOut);
+    _pushPoolShare(msg.sender, poolAmountOut);
+
+    emit PoolJoined(msg.sender, poolAmountOut);
+
+    uint256 bal = bPool.getBalance(_token);
+    _pullUnderlying(_token, msg.sender, _amountIn, bal);
+
+    return poolAmountOut;
+  }
+
+  /**
+        @notice Joinswap single asset pool entry given pool amount out
+        @param _token Address of entry token
+        @param _amountOut Amount of entry tokens to deposit into the pool
+        @return tokenAmountIn
+    */
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+    external
+    ready
+    noReentry
+    returns (uint256 tokenAmountIn)
+  {
+    IBPool bPool = lpbs().bPool;
+
+    require(bPool.isBound(_token), "PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
+
+    tokenAmountIn = bPool.calcSingleInGivenPoolOut(
+      bPool.getBalance(_token),
+      bPool.getDenormalizedWeight(_token),
+      totalSupply(),
+      bPool.getTotalDenormalizedWeight(),
+      _amountOut,
+      bPool.getSwapFee()
+    );
+
+    emit LOG_JOIN(msg.sender, _token, tokenAmountIn);
+
+    _mintPoolShare(_amountOut);
+    _pushPoolShare(msg.sender, _amountOut);
+
+    emit PoolJoined(msg.sender, _amountOut);
+
+    uint256 bal = bPool.getBalance(_token);
+    _pullUnderlying(_token, msg.sender, tokenAmountIn, bal);
+
+    return tokenAmountIn;
+  }
+
+  /**
         @notice Burns pool shares and sends back the underlying assets leaving some in the pool
         @param _amount Amount of pool tokens to burn
         @param _lossTokens Tokens skipped on redemption
