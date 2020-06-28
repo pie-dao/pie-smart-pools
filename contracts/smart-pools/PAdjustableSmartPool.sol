@@ -1,16 +1,16 @@
 pragma solidity 0.6.4;
 
 import "./PCappedSmartPool.sol";
-import { PAdjustableSmartPoolStorage as PAStorage } from "../storage/PAdjustableSmartPoolStorage.sol";
-import { LibConst as constants } from "../libraries/LibConst.sol";
+import {PAdjustableSmartPoolStorage as PAStorage} from "../storage/PAdjustableSmartPoolStorage.sol";
+import {LibConst as constants} from "../libraries/LibConst.sol";
 import "../libraries/LibRemoveToken.sol";
 import "../libraries/LibAddToken.sol";
 import "../libraries/LibWeights.sol";
 
+
 // Based on Balancer configurable weights pool
 
 contract PAdjustableSmartPool is PCappedSmartPool {
-
   function updateWeight(address _token, uint256 _newWeight) external noReentry onlyController {
     LibWeights.updateWeight(_token, _newWeight);
   }
@@ -33,11 +33,11 @@ contract PAdjustableSmartPool is PCappedSmartPool {
     LibAddToken.applyAddToken();
   }
 
-  function commitAddToken(address _token, uint256 _balance, uint256 _denormalizedWeight)
-      external
-      noReentry
-      onlyController
-  {
+  function commitAddToken(
+    address _token,
+    uint256 _balance,
+    uint256 _denormalizedWeight
+  ) external noReentry onlyController {
     LibAddToken.commitAddToken(_token, _balance, _denormalizedWeight);
   }
 
@@ -69,5 +69,4 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   function getEndBlock() external view returns (uint256) {
     return PAStorage.load().endBlock;
   }
-
 }

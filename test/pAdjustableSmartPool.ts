@@ -55,14 +55,9 @@ describe.only("PAdjustableSmartPool ", function () {
     const linkedArtifact = linkArtifact(PAdjustableSmartPoolArtifact, libraries);
 
     // Deploy this way to get the coverage provider to pick it up
-    smartpool = (await deployContract(
-      signers[0] as Wallet,
-      linkedArtifact,
-      [],
-      {
-        gasLimit: 100000000,
-      }
-    )) as PAdjustableSmartPool;
+    smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
+      gasLimit: 100000000,
+    })) as PAdjustableSmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);

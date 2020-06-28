@@ -6,6 +6,7 @@ import "../PCToken.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import "../ReentryProtection.sol";
 
+
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   // P Basic Smart Struct
   bytes32 public constant pbsSlot = keccak256("PBasicSmartPool.storage.location");
