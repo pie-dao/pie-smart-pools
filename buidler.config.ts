@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-var-requires
 require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
 import { utils, constants, ContractTransaction } from "ethers";
@@ -53,14 +54,14 @@ const config: ExtendedBuidlerConfig = {
       accounts: [
         MAINNET_PRIVATE_KEY,
         MAINNET_PRIVATE_KEY_SECONDARY
-      ].filter((item) => item != "")
+      ].filter((item) => item !== "")
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [
         KOVAN_PRIVATE_KEY,
         KOVAN_PRIVATE_KEY_SECONDARY
-      ].filter((item) => item != "")
+      ].filter((item) => item !== "")
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
@@ -69,7 +70,7 @@ const config: ExtendedBuidlerConfig = {
       accounts: [
         RINKEBY_PRIVATE_KEY,
         RINKEBY_PRIVATE_KEY_SECONDARY
-      ].filter((item) => item != "")
+      ].filter((item) => item !== "")
     },
     coverage: {
       url: 'http://127.0.0.1:8555', // Coverage launches its own ganache-cli client
@@ -107,13 +108,13 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
     const signers = await ethers.getSigners();
     const factory = PProxiedFactoryFactory.connect(taskArgs.factory, signers[0]);
 
-    const config = require(taskArgs.allocation);
+    const allocation = require(taskArgs.allocation);
 
-    const name = config.name;
-    const symbol = config.symbol
-    const initialSupply = parseEther(config.initialSupply);
-    const cap = parseEther(config.cap);
-    const tokens = config.tokens;
+    const name = allocation.name;
+    const symbol = allocation.symbol
+    const initialSupply = parseEther(allocation.initialSupply);
+    const cap = parseEther(allocation.cap);
+    const tokens = allocation.tokens;
 
 
     const tokenAddresses: string[] = [];
@@ -125,7 +126,7 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
       tokenWeights.push(parseEther(token.weight).div(2));
 
       // Calc amount
-      const amount = new BigNumber(Math.floor((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals)).toString());
+      const amount = new BigNumber(Math.floor((allocation.initialValue / token.value * token.weight / 100 * allocation.initialSupply * 10 ** token.decimals)).toString());
 
       // Approve factory to spend token
       const tokenContract = IERC20Factory.connect(token.address, signers[0]);
@@ -139,7 +140,7 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
     }
 
     const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap);
-    const receipt = await tx.wait(2); //wait for 2 confirmations
+    const receipt = await tx.wait(2); // wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
     return event.address;
@@ -283,7 +284,7 @@ task("deploy-balancer-pool", "deploys a balancer pool from a factory")
     const signers = await ethers.getSigners();
     const factory = await IBFactoryFactory.connect(taskArgs.factory, signers[0]);
     const tx = await factory.newBPool();
-    const receipt = await tx.wait(2); //wait for 2 confirmations
+    const receipt = await tx.wait(2); // wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed balancer pool at : ${event.address}`);
 });
@@ -301,6 +302,7 @@ task("balancer-bind-token", "binds a token to a balancer pool")
     const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
 
     const weight = parseUnits(taskArgs.weight, 18);
+    // tslint:disable-next-line:radix
     const balance = utils.parseUnits(taskArgs.balance, parseInt(taskArgs.decimals));
     const token = await IERC20Factory.connect(taskArgs.token, signers[0]);
 
