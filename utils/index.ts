@@ -54,3 +54,19 @@ export const deployUniswapFactory = async (signer: ethers.Signer) => {
 
   return factory;
 };
+
+
+
+export const link = async(bytecode: string, libraryName: string, libraryAddress) => {
+  const address = libraryAddress.replace("0x", "");
+  const encodedLibraryName = ethers.utils
+    .solidityKeccak256(['string'], [libraryName])
+    .slice(2, 36);
+
+    const pattern = new RegExp(`_+\\$${encodedLibraryName}\\$_+`, 'g');
+    if (!pattern.exec(bytecode)) {
+      // If not found return bytecode
+      return bytecode;
+    }
+    return bytecode.replace(pattern, address);
+}

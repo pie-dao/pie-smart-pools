@@ -2,6 +2,7 @@
 require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
 import { utils, constants, ContractTransaction } from "ethers";
+import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
 import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
@@ -10,8 +11,9 @@ import { deployBalancerFactory } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
 import { IERC20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
-import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { PCappedSmartPool } from "./typechain/PCappedSmartPool";
+import LibAddTokenArtifact from "./artifacts/LibAddToken.json";
+// import Lib
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -344,6 +346,15 @@ task("balancer-set-controller")
 
     console.log(`Controller set tx: ${receipt.transactionHash}`);
 });
+
+
+task("deploy-libraries", "deploys all external libraries")
+  .setAction(async(taskArgs, { ethers }) => {
+    const libraries: any[] = [];
+
+    const libAddToken = LibAddToken
+
+  });
 
 
 export default config;
