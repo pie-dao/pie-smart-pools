@@ -38,7 +38,7 @@ describe("PProxiedFactory", () => {
 
     const implementation = await new PCappedSmartPoolFactory(signers[0]).deploy();
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMP", "IMP", 1337);
-    await factory.init(balancerFactoryAddress, implementation.address);
+    await factory.init(balancerFactoryAddress);
 
     const tokenFactory = new MockTokenFactory(signers[0]);
     for (let i = 0; i < 3; i++) {

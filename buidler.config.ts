@@ -7,13 +7,17 @@ import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTok
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
 import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
 import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
-import { deployBalancerFactory } from "./utils";
+import { deployBalancerFactory, deployAndGetLibObject } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
 import { IERC20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 import { PCappedSmartPool } from "./typechain/PCappedSmartPool";
+
 import LibAddTokenArtifact from "./artifacts/LibAddToken.json";
-// import Lib
+import LibExitPoolArtifact from "./artifacts/LibExitPool.json";
+import LibJoinPoolArtifact from "./artifacts/LibJoinPool.json";
+import LibRemoveTokenArtifact from "./artifacts/LibRemoveToken.json";
+import LibWeightsArtifact from "./artifacts/LibWeights.json";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -99,7 +103,7 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
     const implementation = await run("deploy-pie-capped-smart-pool") as PCappedSmartPool;
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMPL", "IMPL", "1337");
 
-    await factory.init(taskArgs.balancerFactory, implementation.address);
+    await factory.init(taskArgs.balancerFactory);
     return factory.address;
 });
 
@@ -350,10 +354,19 @@ task("balancer-set-controller")
 
 task("deploy-libraries", "deploys all external libraries")
   .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
     const libraries: any[] = [];
 
-    const libAddToken = LibAddToken
+    libraries.push(await deployAndGetLibObject(LibAddTokenArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibExitPoolArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibJoinPoolArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibRemoveTokenArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibWeightsArtifact, signers[0]));
 
+    console.log("Deployed libraries");
+    console.table(libraries);
+
+    return libraries;
   });
 
 

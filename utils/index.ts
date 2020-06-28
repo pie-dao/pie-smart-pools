@@ -1,4 +1,4 @@
-import ethers, {constants} from "ethers";
+import ethers, {constants, utils} from "ethers";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
 import {BigNumberish} from "ethers/utils";
 import balancerFactoryBytecode from "./balancerFactoryBytecode";
@@ -9,6 +9,7 @@ import {IUniswapFactoryFactory} from "../typechain/IUniswapFactoryFactory";
 import {IUniswapFactory} from "../typechain/IUniswapFactory";
 import {IUniswapExchangeFactory} from "../typechain/IUniswapExchangeFactory";
 import {IUniswapExchange} from "../typechain/IUniswapExchange";
+import { copyFile } from "fs";
 
 export const deployBalancerFactory = async (signer: ethers.Signer) => {
   const tx = (await signer.sendTransaction({data: balancerFactoryBytecode})) as any;
@@ -56,17 +57,38 @@ export const deployUniswapFactory = async (signer: ethers.Signer) => {
 };
 
 
+export const simpleDeploy = async (artifact: any, signer: ethers.Signer) => {
+  const tx = (await signer.sendTransaction({data: artifact.bytecode})) as any;
+  await tx.wait(1);
 
-export const link = async(bytecode: string, libraryName: string, libraryAddress) => {
-  const address = libraryAddress.replace("0x", "");
-  const encodedLibraryName = ethers.utils
-    .solidityKeccak256(['string'], [libraryName])
-    .slice(2, 36);
+  const contractAddress = tx.creates;
 
-    const pattern = new RegExp(`_+\\$${encodedLibraryName}\\$_+`, 'g');
-    if (!pattern.exec(bytecode)) {
-      // If not found return bytecode
-      return bytecode;
+  console.log(`Deployed ${artifact.contractName}: ${contractAddress}`);
+
+  return contractAddress;
+}
+
+export const deployAndGetLibObject = async(artifact: any, signer: ethers.Signer) => {
+  const contractAddress = await simpleDeploy(artifact, signer);
+  return {name: artifact.contractName, address: contractAddress};
+}
+
+export const linkArtifact = (artifact: any,  libraries: any[]) => {
+
+  for(const library of Object.keys(artifact.linkReferences)) {
+    // Messy
+    let libPositions = artifact.linkReferences[library];
+    const libName = Object.keys(libPositions)[0]
+    libPositions = libPositions[libName];
+
+    const libAddress = libraries.find((lib) => (lib.name === libName)).address.replace("0x", "");
+
+    for(const position of libPositions) {
+      artifact.bytecode = artifact.bytecode.substr(0, 2 + position.start * 2) +
+      libAddress +
+      artifact.bytecode.substr(2 + (position.start + position.length) * 2);
     }
-    return bytecode.replace(pattern, address);
+  }
+
+  return artifact;
 }
