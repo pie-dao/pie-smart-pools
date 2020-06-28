@@ -274,7 +274,7 @@ describe("PBasicSmartPool", function () {
         smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
       ).to.be.revertedWith("PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
     });
-    it.only("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
+    it("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
       const userPreBalance = await tokens[1].balanceOf(account);
       const userPrePoolBalance = await smartpool.balanceOf(account);
 
@@ -296,6 +296,34 @@ describe("PBasicSmartPool", function () {
       expect(userCurrentPoolBalance).to.equal(userPrePoolBalance.add(poolAmountOut.mul(2)));
       expect(userCurrentBalance).to.equal(userPreBalance.sub(tAI.mul(2)));
       expect(cPAO).to.equal(poolAmountOut);
+    });
+
+    it("Should fail to exit with a single token if token is unbound", async () => {
+      await smartpool.unbind(tokens[1].address);
+      const exitAmount = constants.WeiPerEther;
+
+      await expect(
+        smartpool.exitswapExternAmountOut(tokens[1].address, exitAmount)
+      ).to.be.revertedWith("PBasicSmartPool.exitswapExternAmountOut: Token Not Bound");
+      await expect(
+        smartpool.exitswapPoolAmountIn(tokens[1].address, exitAmount)
+      ).to.be.revertedWith("PBasicSmartPool.exitswapPoolAmountIn: Token Not Bound");
+    });
+    it("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
+      const tokenAmountOut = constants.One;
+      const poolAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, tokenAmountOut);
+
+      const pAIResponse = await poolAmountIn.wait(1);
+      const pAI = new BigNumber(pAIResponse.events[0].data);
+
+      const calculatedTokenAmountOut = await smartpool.joinswapExternAmountIn(
+        tokens[1].address,
+        pAI
+      );
+      const cTAOResponse = await calculatedTokenAmountOut.wait(1);
+      const cTAO = new BigNumber(cTAOResponse.events[3].data);
+
+      expect(cTAO).to.equal(tokenAmountOut);
     });
   });
 
