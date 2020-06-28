@@ -13,10 +13,10 @@
 
 pragma solidity 0.6.4;
 
-import {PCTokenStorage as PCStorage} from "./smart-pools/storage/PCTokenStorage.sol";
-import "./smart-pools/libraries/LibPoolToken.sol";
+import {PCTokenStorage as PCStorage} from "./storage/PCTokenStorage.sol";
+import "./libraries/LibPoolToken.sol";
+import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
-import "./Math.sol";
 
 
 // Highly opinionated token implementation

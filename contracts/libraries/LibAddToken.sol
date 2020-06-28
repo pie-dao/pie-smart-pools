@@ -5,7 +5,7 @@ import { PAdjustableSmartPoolStorage as PAStorage } from "../storage/PAdjustable
 import { PCTokenStorage as PCStorage } from "../storage/PCTokenStorage.sol";
 import { LibConst as constants } from "./LibConst.sol";
 import "./LibPoolToken.sol";
-import "../../Math.sol";
+import "./Math.sol";
 library LibAddToken {
     using Math for uint256;
 

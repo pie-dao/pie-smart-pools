@@ -3,7 +3,7 @@ pragma solidity 0.6.4;
 import "../interfaces/IBPool.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
-import {PCTokenStorage as PCStorage} from "./storage/PCTokenStorage.sol";
+import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import "../ReentryProtection.sol";
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {

@@ -1,8 +1,8 @@
 pragma solidity ^0.6.4;
 
 import { PCTokenStorage as PCStorage } from "../storage/PCTokenStorage.sol";
-import "../../Math.sol";
-import "../../interfaces/IERC20.sol";
+import "../libraries/Math.sol";
+import "../interfaces/IERC20.sol";
 
 library LibPoolToken {
     using Math for uint256;

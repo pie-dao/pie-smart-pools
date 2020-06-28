@@ -1,11 +1,11 @@
 pragma solidity 0.6.4;
 
 import "./PCappedSmartPool.sol";
-import { PAdjustableSmartPoolStorage as PAStorage } from "./storage/PAdjustableSmartPoolStorage.sol";
-import { LibConst as constants } from "./libraries/LibConst.sol";
-import "./libraries/LibRemoveToken.sol";
-import "./libraries/LibAddToken.sol";
-import "./libraries/LibWeights.sol";
+import { PAdjustableSmartPoolStorage as PAStorage } from "../storage/PAdjustableSmartPoolStorage.sol";
+import { LibConst as constants } from "../libraries/LibConst.sol";
+import "../libraries/LibRemoveToken.sol";
+import "../libraries/LibAddToken.sol";
+import "../libraries/LibWeights.sol";
 
 // Based on Balancer configurable weights pool
 

@@ -3,9 +3,9 @@ pragma solidity ^0.6.4;
 import { PBasicSmartPoolStorage as PBStorage } from "../storage/PBasicSmartPoolStorage.sol";
 import { PCTokenStorage as PCStorage } from "../storage/PCTokenStorage.sol";
 import "./LibPoolToken.sol";
-import "../../Math.sol";
+import "./Math.sol";
 
-import "../../interfaces/IERC20.sol";
+import "../interfaces/IERC20.sol";
 
 library LibRemoveToken {
 
