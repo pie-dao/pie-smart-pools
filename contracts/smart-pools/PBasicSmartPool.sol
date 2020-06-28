@@ -8,6 +8,7 @@ import "../ReentryProtection.sol";
 
 import "../libraries/LibJoinPool.sol";
 import "../libraries/LibExitPool.sol";
+import "../libraries/LibPoolToken.sol";
 
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
@@ -25,9 +26,9 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _;
   }
 
-  event LOG_JOIN(address indexed caller, address indexed tokenIn, uint256 tokenAmountIn);
+  // event LOG_JOIN(address indexed caller, address indexed tokenIn, uint256 tokenAmountIn);
 
-  event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
+  // event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
 
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
@@ -35,9 +36,9 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   event TokenBinderChanged(address indexed previousTokenBinder, address indexed newTokenBinder);
   event PublicSwapSet(address indexed setter, bool indexed value);
   event SwapFeeSet(address indexed setter, uint256 newFee);
-  event PoolJoined(address indexed from, uint256 amount);
-  event PoolExited(address indexed from, uint256 amount);
-  event PoolExitedWithLoss(address indexed from, uint256 amount, address[] lossTokens);
+  // event PoolJoined(address indexed from, uint256 amount);
+  // event PoolExited(address indexed from, uint256 amount);
+  // event PoolExitedWithLoss(address indexed from, uint256 amount, address[] lossTokens);
 
   modifier onlyController() {
     require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not controller");
@@ -80,8 +81,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     s.tokenBinder = msg.sender;
     PCStorage.load().name = _name;
     PCStorage.load().symbol = _symbol;
-    _mintPoolShare(_initialSupply);
-    _pushPoolShare(msg.sender, _initialSupply);
+
+    LibPoolToken._mint(msg.sender, _initialSupply);
   }
 
   /**
@@ -223,7 +224,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 poolAmountIn)
   {
-   return LibExitPool.exitswapExternAmountOut(_token, _tokenAmountOut);
+    return LibExitPool.exitswapExternAmountOut(_token, _tokenAmountOut);
   }
 
   /**

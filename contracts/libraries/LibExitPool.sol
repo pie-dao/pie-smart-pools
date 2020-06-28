@@ -93,9 +93,7 @@ library LibExitPool {
     return poolAmountIn;
   }
 
-  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens)
-    external
-  {
+  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens) external {
     IBPool bPool = PBStorage.load().bPool;
     uint256 poolTotal = PCStorage.load().totalSupply;
     uint256 ratio = _amount.bdiv(poolTotal);
@@ -119,7 +117,7 @@ library LibExitPool {
     emit PoolExitedWithLoss(msg.sender, _amount, _lossTokens);
   }
 
-    /**
+  /**
         @notice Searches for an address in an array of addresses and returns if found
         @param _needle Address to look for
         @param _haystack Array to search
