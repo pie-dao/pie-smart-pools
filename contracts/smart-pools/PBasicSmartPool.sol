@@ -6,6 +6,9 @@ import "../PCToken.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import "../ReentryProtection.sol";
 
+import "../libraries/LibJoinPool.sol";
+import "../libraries/LibExitPool.sol";
+
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   // P Basic Smart Struct
@@ -152,31 +155,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
 
   function joinPool(uint256 _amount) external virtual override ready noReentry {
-    _joinPool(_amount);
-  }
-
-  /**
-        @notice Internal join pool function. See joinPool for more info
-        @param _amount Amount of pool shares to mint
-    */
-  function _joinPool(uint256 _amount) internal virtual ready {
-    IBPool bPool = lpbs().bPool;
-    uint256 poolTotal = totalSupply();
-    uint256 ratio = _amount.bdiv(poolTotal);
-    require(ratio != 0);
-
-    address[] memory tokens = bPool.getCurrentTokens();
-
-    for (uint256 i = 0; i < tokens.length; i++) {
-      address t = tokens[i];
-      uint256 bal = bPool.getBalance(t);
-      uint256 tokenAmountIn = ratio.bmul(bal);
-      emit LOG_JOIN(msg.sender, t, tokenAmountIn);
-      _pullUnderlying(t, msg.sender, tokenAmountIn, bal);
-    }
-    _mintPoolShare(_amount);
-    _pushPoolShare(msg.sender, _amount);
-    emit PoolJoined(msg.sender, _amount);
+    LibJoinPool.joinPool(_amount);
   }
 
   /**
@@ -184,24 +163,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _amount Amount of pool tokens to burn
     */
   function exitPool(uint256 _amount) external override ready noReentry {
-    IBPool bPool = lpbs().bPool;
-    uint256 poolTotal = totalSupply();
-    uint256 ratio = _amount.bdiv(poolTotal);
-    require(ratio != 0);
-
-    _pullPoolShare(msg.sender, _amount);
-    _burnPoolShare(_amount);
-
-    address[] memory tokens = bPool.getCurrentTokens();
-
-    for (uint256 i = 0; i < tokens.length; i++) {
-      address t = tokens[i];
-      uint256 bal = bPool.getBalance(t);
-      uint256 tAo = ratio.bmul(bal);
-      emit LOG_EXIT(msg.sender, t, tAo);
-      _pushUnderlying(t, msg.sender, tAo, bal);
-    }
-    emit PoolExited(msg.sender, _amount);
+    LibExitPool.exitPool(_amount);
   }
 
   /**
@@ -216,30 +178,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 poolAmountOut)
   {
-    IBPool bPool = lpbs().bPool;
-
-    require(bPool.isBound(_token), "PBasicSmartPool.joinswapExternAmountIn: Token Not Bound");
-
-    poolAmountOut = bPool.calcPoolOutGivenSingleIn(
-      bPool.getBalance(_token),
-      bPool.getDenormalizedWeight(_token),
-      totalSupply(),
-      bPool.getTotalDenormalizedWeight(),
-      _amountIn,
-      bPool.getSwapFee()
-    );
-
-    emit LOG_JOIN(msg.sender, _token, _amountIn);
-
-    _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg.sender, poolAmountOut);
-
-    emit PoolJoined(msg.sender, poolAmountOut);
-
-    uint256 bal = bPool.getBalance(_token);
-    _pullUnderlying(_token, msg.sender, _amountIn, bal);
-
-    return poolAmountOut;
+    return LibJoinPool.joinswapExternAmountIn(_token, _amountIn);
   }
 
   /**
@@ -254,30 +193,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 tokenAmountIn)
   {
-    IBPool bPool = lpbs().bPool;
-
-    require(bPool.isBound(_token), "PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
-
-    tokenAmountIn = bPool.calcSingleInGivenPoolOut(
-      bPool.getBalance(_token),
-      bPool.getDenormalizedWeight(_token),
-      totalSupply(),
-      bPool.getTotalDenormalizedWeight(),
-      _amountOut,
-      bPool.getSwapFee()
-    );
-
-    emit LOG_JOIN(msg.sender, _token, tokenAmountIn);
-
-    _mintPoolShare(_amountOut);
-    _pushPoolShare(msg.sender, _amountOut);
-
-    emit PoolJoined(msg.sender, _amountOut);
-
-    uint256 bal = bPool.getBalance(_token);
-    _pullUnderlying(_token, msg.sender, tokenAmountIn, bal);
-
-    return tokenAmountIn;
+    return LibJoinPool.joinswapPoolAmountOut(_token, _amountOut);
   }
 
   /**
@@ -292,30 +208,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 tokenAmountOut)
   {
-    IBPool bPool = lpbs().bPool;
-
-    require(bPool.isBound(_token), "PBasicSmartPool.exitswapPoolAmountIn: Token Not Bound");
-
-    tokenAmountOut = bPool.calcSingleOutGivenPoolIn(
-      bPool.getBalance(_token),
-      bPool.getDenormalizedWeight(_token),
-      totalSupply(),
-      bPool.getTotalDenormalizedWeight(),
-      _poolAmountIn,
-      bPool.getSwapFee()
-    );
-
-    emit LOG_EXIT(msg.sender, _token, tokenAmountOut);
-
-    _pullPoolShare(msg.sender, _poolAmountIn);
-    _burnPoolShare(_poolAmountIn);
-
-    emit PoolExited(msg.sender, tokenAmountOut);
-
-    uint256 bal = bPool.getBalance(_token);
-    _pushUnderlying(_token, msg.sender, tokenAmountOut, bal);
-
-    return tokenAmountOut;
+    return LibExitPool.exitswapPoolAmountIn(_token, _poolAmountIn);
   }
 
   /**
@@ -330,30 +223,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 poolAmountIn)
   {
-    IBPool bPool = lpbs().bPool;
-
-    require(bPool.isBound(_token), "PBasicSmartPool.exitswapExternAmountOut: Token Not Bound");
-
-    poolAmountIn = bPool.calcPoolInGivenSingleOut(
-      bPool.getBalance(_token),
-      bPool.getDenormalizedWeight(_token),
-      totalSupply(),
-      bPool.getTotalDenormalizedWeight(),
-      _tokenAmountOut,
-      bPool.getSwapFee()
-    );
-
-    emit LOG_EXIT(msg.sender, _token, _tokenAmountOut);
-
-    _pullPoolShare(msg.sender, poolAmountIn);
-    _burnPoolShare(poolAmountIn);
-
-    emit PoolExited(msg.sender, _tokenAmountOut);
-
-    uint256 bal = bPool.getBalance(_token);
-    _pushUnderlying(_token, msg.sender, _tokenAmountOut, bal);
-
-    return poolAmountIn;
+   return LibExitPool.exitswapExternAmountOut(_token, _tokenAmountOut);
   }
 
   /**
@@ -366,28 +236,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     ready
     noReentry
   {
-    IBPool bPool = lpbs().bPool;
-    uint256 poolTotal = totalSupply();
-    uint256 ratio = _amount.bdiv(poolTotal);
-    require(ratio != 0);
-
-    _pullPoolShare(msg.sender, _amount);
-    _burnPoolShare(_amount);
-
-    address[] memory tokens = bPool.getCurrentTokens();
-
-    for (uint256 i = 0; i < tokens.length; i++) {
-      // If taking loss on token skip one iteration of the loop
-      if (_contains(tokens[i], _lossTokens)) {
-        continue;
-      }
-      address t = tokens[i];
-      uint256 bal = bPool.getBalance(t);
-      uint256 tAo = ratio.bmul(bal);
-      emit LOG_EXIT(msg.sender, t, tAo);
-      _pushUnderlying(t, msg.sender, tAo, bal);
-    }
-    emit PoolExitedWithLoss(msg.sender, _amount, _lossTokens);
+    LibExitPool.exitPoolTakingloss(_amount, _lossTokens);
   }
 
   /**
@@ -562,102 +411,87 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     return lpbs().bPool.getDenormalizedWeight(_token);
   }
 
-  /**
-        @notice Pull the underlying token from an address and rebind it to the balancer pool
-        @param _token Address of the token to pull
-        @param _from Address to pull the token from
-        @param _amount Amount of token to pull
-        @param _tokenBalance Balance of the token already in the balancer pool
-    */
-  function _pullUnderlying(
-    address _token,
-    address _from,
-    uint256 _amount,
-    uint256 _tokenBalance
-  ) internal {
-    IBPool bPool = lpbs().bPool;
-    // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
-    uint256 tokenWeight = bPool.getDenormalizedWeight(_token);
+  // /**
+  //       @notice Pull the underlying token from an address and rebind it to the balancer pool
+  //       @param _token Address of the token to pull
+  //       @param _from Address to pull the token from
+  //       @param _amount Amount of token to pull
+  //       @param _tokenBalance Balance of the token already in the balancer pool
+  //   */
+  // function _pullUnderlying(
+  //   address _token,
+  //   address _from,
+  //   uint256 _amount,
+  //   uint256 _tokenBalance
+  // ) internal {
+  //   IBPool bPool = lpbs().bPool;
+  //   // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
+  //   uint256 tokenWeight = bPool.getDenormalizedWeight(_token);
 
-    require(
-      IERC20(_token).transferFrom(_from, address(this), _amount),
-      "PBasicSmartPool._pullUnderlying: transferFrom failed"
-    );
-    bPool.rebind(_token, _tokenBalance.badd(_amount), tokenWeight);
-  }
+  //   require(
+  //     IERC20(_token).transferFrom(_from, address(this), _amount),
+  //     "PBasicSmartPool._pullUnderlying: transferFrom failed"
+  //   );
+  //   bPool.rebind(_token, _tokenBalance.badd(_amount), tokenWeight);
+  // }
 
-  /**
-        @notice Push a underlying token and rebind the token to the balancer pool
-        @param _token Address of the token to push
-        @param _to Address to pull the token to
-        @param _amount Amount of token to push
-        @param _tokenBalance Balance of the token already in the balancer pool
-    */
-  function _pushUnderlying(
-    address _token,
-    address _to,
-    uint256 _amount,
-    uint256 _tokenBalance
-  ) internal {
-    IBPool bPool = lpbs().bPool;
-    // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
-    uint256 tokenWeight = bPool.getDenormalizedWeight(_token);
-    bPool.rebind(_token, _tokenBalance.bsub(_amount), tokenWeight);
+  // /**
+  //       @notice Push a underlying token and rebind the token to the balancer pool
+  //       @param _token Address of the token to push
+  //       @param _to Address to pull the token to
+  //       @param _amount Amount of token to push
+  //       @param _tokenBalance Balance of the token already in the balancer pool
+  //   */
+  // function _pushUnderlying(
+  //   address _token,
+  //   address _to,
+  //   uint256 _amount,
+  //   uint256 _tokenBalance
+  // ) internal {
+  //   IBPool bPool = lpbs().bPool;
+  //   // Gets current Balance of token i, Bi, and weight of token i, Wi, from BPool.
+  //   uint256 tokenWeight = bPool.getDenormalizedWeight(_token);
+  //   bPool.rebind(_token, _tokenBalance.bsub(_amount), tokenWeight);
 
-    require(
-      IERC20(_token).transfer(_to, _amount),
-      "PBasicSmartPool._pushUnderlying: transfer failed"
-    );
-  }
+  //   require(
+  //     IERC20(_token).transfer(_to, _amount),
+  //     "PBasicSmartPool._pushUnderlying: transfer failed"
+  //   );
+  // }
 
-  /**
-        @notice Pull pool shares
-        @param _from Address to pull pool shares from
-        @param _amount Amount of pool shares to pull
-    */
-  function _pullPoolShare(address _from, uint256 _amount) internal {
-    _pull(_from, _amount);
-  }
+  // /**
+  //       @notice Pull pool shares
+  //       @param _from Address to pull pool shares from
+  //       @param _amount Amount of pool shares to pull
+  //   */
+  // function _pullPoolShare(address _from, uint256 _amount) internal {
+  //   _pull(_from, _amount);
+  // }
 
-  /**
-        @notice Burn pool shares
-        @param _amount Amount of pool shares to burn
-    */
-  function _burnPoolShare(uint256 _amount) internal {
-    _burn(_amount);
-  }
+  // /**
+  //       @notice Burn pool shares
+  //       @param _amount Amount of pool shares to burn
+  //   */
+  // function _burnPoolShare(uint256 _amount) internal {
+  //   _burn(_amount);
+  // }
 
-  /**
-        @notice Mint pool shares
-        @param _amount Amount of pool shares to mint
-    */
-  function _mintPoolShare(uint256 _amount) internal {
-    _mint(_amount);
-  }
+  // /**
+  //       @notice Mint pool shares
+  //       @param _amount Amount of pool shares to mint
+  //   */
+  // function _mintPoolShare(uint256 _amount) internal {
+  //   _mint(_amount);
+  // }
 
-  /**
-        @notice Push pool shares to account
-        @param _to Address to push the pool shares to
-        @param _amount Amount of pool shares to push
-    */
-  function _pushPoolShare(address _to, uint256 _amount) internal {
-    _push(_to, _amount);
-  }
-
-  /**
-        @notice Searches for an address in an array of addresses and returns if found
-        @param _needle Address to look for
-        @param _haystack Array to search
-        @return If value is found
-    */
-  function _contains(address _needle, address[] memory _haystack) internal pure returns (bool) {
-    for (uint256 i = 0; i < _haystack.length; i++) {
-      if (_haystack[i] == _needle) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // /**
+  //       @notice Push pool shares to account
+  //       @param _to Address to push the pool shares to
+  //       @param _amount Amount of pool shares to push
+  //   */
+  // function _pushPoolShare(address _to, uint256 _amount) internal {
+  //   _push(_to, _amount);
+  // }
 
   /**
         @notice Load PBasicPool storage

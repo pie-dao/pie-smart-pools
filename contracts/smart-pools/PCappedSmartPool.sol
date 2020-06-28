@@ -35,9 +35,10 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
     external
     override(PBasicSmartPool, IPSmartPool)
     withinCap
+    ready
     noReentry
   {
-    super._joinPool(_amount);
+    LibJoinPool.joinPool(_amount);
   }
 
   /**
