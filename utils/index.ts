@@ -62,8 +62,6 @@ export const simpleDeploy = async (artifact: any, signer: ethers.Signer) => {
 
   const contractAddress = tx.creates;
 
-  console.log(`Deployed ${artifact.contractName}: ${contractAddress}`);
-
   return contractAddress;
 };
 

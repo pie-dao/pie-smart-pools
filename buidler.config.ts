@@ -363,9 +363,6 @@ task("deploy-libraries", "deploys all external libraries")
     libraries.push(await deployAndGetLibObject(LibRemoveTokenArtifact, signers[0]));
     libraries.push(await deployAndGetLibObject(LibWeightsArtifact, signers[0]));
 
-    console.log("Deployed libraries");
-    console.table(libraries);
-
     return libraries;
   });
 
