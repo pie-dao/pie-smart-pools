@@ -1,13 +1,13 @@
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
-import {ethers} from "@nomiclabs/buidler";
+import {ethers, run} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
-import {deployBalancerPool} from "../utils";
+import {deployBalancerPool, linkArtifact} from "../utils";
 import {IBPool} from "../typechain/IBPool";
 import {IBPoolFactory} from "../typechain/IBPoolFactory";
 import {PBasicSmartPoolFactory} from "../typechain/PBasicSmartPoolFactory";
@@ -48,8 +48,9 @@ describe("PCappedSmartPool", function () {
       tokens.push(token);
     }
 
-    // Deploy this way to get the coverage provider to pick it up
-    smartpool = (await deployContract(signers[0] as Wallet, PCappedSmartPoolArtifact, [], {
+    const libraries = await run("deploy-libraries");
+    const linkedArtifact = linkArtifact(PCappedSmartPoolArtifact, libraries);
+    smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
     })) as PCappedSmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);

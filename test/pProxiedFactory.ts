@@ -1,15 +1,16 @@
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
-import {ethers} from "@nomiclabs/buidler";
+import {ethers, run} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber, BigNumberish} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
-import {deployBalancerPool, deployBalancerFactory} from "../utils";
+import {deployBalancerPool, deployBalancerFactory, linkArtifact} from "../utils";
 import {PProxiedFactory} from "../typechain/PProxiedFactory";
-import {PCappedSmartPoolFactory} from "../typechain/PCappedSmartPoolFactory";
+import {PAdjustableSmartPool} from "../typechain/PAdjustableSmartPool";
+import PAdjustableSmartPoolArtifact from "../artifacts/PAdjustableSmartPool.json";
 import PProxiedFactoryArtifact from "../artifacts/PProxiedFactory.json";
 
 chai.use(solidity);
@@ -36,7 +37,14 @@ describe("PProxiedFactory", () => {
       gasLimit: 100000000,
     })) as PProxiedFactory;
 
-    const implementation = await new PCappedSmartPoolFactory(signers[0]).deploy();
+    const libraries = await run("deploy-libraries");
+    const linkedArtifact = linkArtifact(PAdjustableSmartPoolArtifact, libraries);
+
+    // Deploy this way to get the coverage provider to pick it up
+    const implementation = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
+      gasLimit: 100000000,
+    })) as PAdjustableSmartPool;
+
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMP", "IMP", 1337);
     await factory.init(balancerFactoryAddress);
 

@@ -10,7 +10,6 @@ import {deployContract, solidity} from "ethereum-waffle";
 import {deployBalancerPool, linkArtifact} from "../utils";
 import {IBPool} from "../typechain/IBPool";
 import {IBPoolFactory} from "../typechain/IBPoolFactory";
-import {PAdjustableSmartPoolFactory} from "../typechain/PAdjustableSmartPoolFactory";
 import {PAdjustableSmartPool} from "../typechain/PAdjustableSmartPool";
 import PAdjustableSmartPoolArtifact from "../artifacts/PAdjustableSmartPool.json";
 
@@ -21,7 +20,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe.only("PAdjustableSmartPool ", function () {
+describe("PAdjustableSmartPool ", function () {
   this.timeout(3000000);
   let signers: Signer[];
   let account: string;
