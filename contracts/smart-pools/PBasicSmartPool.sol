@@ -3,8 +3,11 @@ pragma solidity 0.6.4;
 import "../interfaces/IBPool.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
-import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
+
 import "../ReentryProtection.sol";
+
+import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
+import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 
 import "../libraries/LibJoinPool.sol";
 import "../libraries/LibExitPool.sol";
@@ -12,23 +15,6 @@ import "../libraries/LibPoolToken.sol";
 
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
-  // P Basic Smart Struct
-  bytes32 public constant pbsSlot = keccak256("PBasicSmartPool.storage.location");
-  struct pbs {
-    IBPool bPool;
-    address controller;
-    address publicSwapSetter;
-    address tokenBinder;
-  }
-
-  modifier ready() {
-    require(address(lpbs().bPool) != address(0), "PBasicSmartPool.ready: not ready");
-    _;
-  }
-
-  // event LOG_JOIN(address indexed caller, address indexed tokenIn, uint256 tokenAmountIn);
-
-  // event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
 
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
@@ -36,25 +22,27 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   event TokenBinderChanged(address indexed previousTokenBinder, address indexed newTokenBinder);
   event PublicSwapSet(address indexed setter, bool indexed value);
   event SwapFeeSet(address indexed setter, uint256 newFee);
-  // event PoolJoined(address indexed from, uint256 amount);
-  // event PoolExited(address indexed from, uint256 amount);
-  // event PoolExitedWithLoss(address indexed from, uint256 amount, address[] lossTokens);
+
+  modifier ready() {
+    require(address(PBStorage.load().bPool) != address(0), "PBasicSmartPool.ready: not ready");
+    _;
+  }
 
   modifier onlyController() {
-    require(msg.sender == lpbs().controller, "PBasicSmartPool.onlyController: not controller");
+    require(msg.sender == PBStorage.load().controller, "PBasicSmartPool.onlyController: not controller");
     _;
   }
 
   modifier onlyPublicSwapSetter() {
     require(
-      msg.sender == lpbs().publicSwapSetter,
+      msg.sender == PBStorage.load().publicSwapSetter,
       "PBasicSmartPool.onlyPublicSwapSetter: not public swap setter"
     );
     _;
   }
 
   modifier onlyTokenBinder() {
-    require(msg.sender == lpbs().tokenBinder, "PBasicSmartPool.onlyTokenBinder: not token binder");
+    require(msg.sender == PBStorage.load().tokenBinder, "PBasicSmartPool.onlyTokenBinder: not token binder");
     _;
   }
 
@@ -71,7 +59,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     string calldata _symbol,
     uint256 _initialSupply
   ) external override {
-    pbs storage s = lpbs();
+    PBStorage.StorageStruct storage s = PBStorage.load();
     require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
     require(_bPool != address(0), "PBasicSmartPool.init: _bPool cannot be 0x00....000");
     require(_initialSupply != 0, "PBasicSmartPool.init: _initialSupply can not zero");
@@ -90,7 +78,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @dev It uses this function to save on gas in joinPool
     */
   function approveTokens() public override noReentry {
-    IBPool bPool = lpbs().bPool;
+    IBPool bPool = PBStorage.load().bPool;
     address[] memory tokens = bPool.getCurrentTokens();
     for (uint256 i = 0; i < tokens.length; i++) {
       IERC20(tokens[i]).approve(address(bPool), uint256(-1));
@@ -103,8 +91,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _controller Address of the new controller
     */
   function setController(address _controller) external override onlyController noReentry {
-    emit ControllerChanged(lpbs().controller, _controller);
-    lpbs().controller = _controller;
+    emit ControllerChanged(PBStorage.load().controller, _controller);
+    PBStorage.load().controller = _controller;
   }
 
   /**
@@ -117,8 +105,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     onlyController
     noReentry
   {
-    emit PublicSwapSetterChanged(lpbs().publicSwapSetter, _newPublicSwapSetter);
-    lpbs().publicSwapSetter = _newPublicSwapSetter;
+    emit PublicSwapSetterChanged(PBStorage.load().publicSwapSetter, _newPublicSwapSetter);
+    PBStorage.load().publicSwapSetter = _newPublicSwapSetter;
   }
 
   /**
@@ -126,8 +114,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _newTokenBinder Address of the new token binder
     */
   function setTokenBinder(address _newTokenBinder) external override onlyController noReentry {
-    emit TokenBinderChanged(lpbs().tokenBinder, _newTokenBinder);
-    lpbs().tokenBinder = _newTokenBinder;
+    emit TokenBinderChanged(PBStorage.load().tokenBinder, _newTokenBinder);
+    PBStorage.load().tokenBinder = _newTokenBinder;
   }
 
   /**
@@ -137,7 +125,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
   function setPublicSwap(bool _public) external onlyPublicSwapSetter noReentry {
     emit PublicSwapSet(msg.sender, _public);
-    lpbs().bPool.setPublicSwap(_public);
+    PBStorage.load().bPool.setPublicSwap(_public);
   }
 
   /**
@@ -147,7 +135,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
   function setSwapFee(uint256 _swapFee) external onlyController noReentry {
     emit SwapFeeSet(msg.sender, _swapFee);
-    lpbs().bPool.setSwapFee(_swapFee);
+    PBStorage.load().bPool.setSwapFee(_swapFee);
   }
 
   /**
@@ -251,7 +239,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     uint256 _balance,
     uint256 _denorm
   ) external onlyTokenBinder noReentry {
-    IBPool bPool = lpbs().bPool;
+    IBPool bPool = PBStorage.load().bPool;
     IERC20 token = IERC20(_token);
     require(
       token.transferFrom(msg.sender, address(this), _balance),
@@ -272,7 +260,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     uint256 _balance,
     uint256 _denorm
   ) external onlyTokenBinder noReentry {
-    IBPool bPool = lpbs().bPool;
+    IBPool bPool = PBStorage.load().bPool;
     IERC20 token = IERC20(_token);
 
     // gulp old non acounted for token balance in the contract
@@ -302,7 +290,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _token Token to unbind
     */
   function unbind(address _token) external onlyTokenBinder noReentry {
-    IBPool bPool = lpbs().bPool;
+    IBPool bPool = PBStorage.load().bPool;
     IERC20 token = IERC20(_token);
     // unbind the token in the bPool
     bPool.unbind(_token);
@@ -315,7 +303,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   function getTokens() external override view returns (address[] memory) {
-    return lpbs().bPool.getCurrentTokens();
+    return PBStorage.load().bPool.getCurrentTokens();
   }
 
   /**
@@ -330,13 +318,13 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     view
     returns (address[] memory tokens, uint256[] memory amounts)
   {
-    tokens = lpbs().bPool.getCurrentTokens();
+    tokens = PBStorage.load().bPool.getCurrentTokens();
     amounts = new uint256[](tokens.length);
     uint256 ratio = _amount.bdiv(totalSupply());
 
     for (uint256 i = 0; i < tokens.length; i++) {
       address t = tokens[i];
-      uint256 bal = lpbs().bPool.getBalance(t);
+      uint256 bal = PBStorage.load().bPool.getBalance(t);
       uint256 amount = ratio.bmul(bal);
       amounts[i] = amount;
     }
@@ -347,7 +335,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return The address of the pool
     */
   function getController() external override view returns (address) {
-    return lpbs().controller;
+    return PBStorage.load().controller;
   }
 
   /**
@@ -355,7 +343,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return The public swap setter address
     */
   function getPublicSwapSetter() external view returns (address) {
-    return lpbs().publicSwapSetter;
+    return PBStorage.load().publicSwapSetter;
   }
 
   /**
@@ -363,7 +351,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return The token binder address
     */
   function getTokenBinder() external view returns (address) {
-    return lpbs().tokenBinder;
+    return PBStorage.load().tokenBinder;
   }
 
   /**
@@ -371,7 +359,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return If public swapping is enabled
     */
   function isPublicSwap() external view returns (bool) {
-    return lpbs().bPool.isPublicSwap();
+    return PBStorage.load().bPool.isPublicSwap();
   }
 
   /**
@@ -393,7 +381,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return The current swap fee
     */
   function getSwapFee() external view returns (uint256) {
-    return lpbs().bPool.getSwapFee();
+    return PBStorage.load().bPool.getSwapFee();
   }
 
   /**
@@ -401,7 +389,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return The address of the underlying balancer pool
     */
   function getBPool() external view returns (address) {
-    return address(lpbs().bPool);
+    return address(PBStorage.load().bPool);
   }
 
   /**
@@ -409,11 +397,11 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @return the normalized weight of the token in uint
   */
   function getDenormalizedWeight(address _token) external view returns (uint256) {
-    return lpbs().bPool.getDenormalizedWeight(_token);
+    return PBStorage.load().bPool.getDenormalizedWeight(_token);
   }
 
   function getDenormalizedWeights() external view returns (uint256[] memory weights) {
-    pbs storage s = lpbs();
+    PBStorage.StorageStruct storage s = PBStorage.load();
     address[] memory tokens = s.bPool.getCurrentTokens();
     weights = new uint256[](tokens.length);
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -421,14 +409,4 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
   }
 
-  /**
-        @notice Load PBasicPool storage
-        @return s Pointer to the storage struct
-    */
-  function lpbs() internal pure returns (pbs storage s) {
-    bytes32 loc = pbsSlot;
-    assembly {
-      s_slot := loc
-    }
-  }
 }
