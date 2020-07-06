@@ -45,15 +45,6 @@ contract PAdjustableSmartPool is PCappedSmartPool {
     LibRemoveToken.removeToken(_token);
   }
 
-  function getDenormalizedWeights() external view returns (uint256[] memory weights) {
-    pbs storage s = lpbs();
-    address[] memory tokens = s.bPool.getCurrentTokens();
-    weights = new uint256[](tokens.length);
-    for (uint256 i = 0; i < tokens.length; i++) {
-      weights[i] = s.bPool.getDenormalizedWeight(tokens[i]);
-    }
-  }
-
   function getNewWeights() external view returns (uint256[] memory weights) {
     return PAStorage.load().newWeights;
   }

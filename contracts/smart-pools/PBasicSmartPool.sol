@@ -493,6 +493,14 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   // function _pushPoolShare(address _to, uint256 _amount) internal {
   //   _push(_to, _amount);
   // }
+  function getDenormalizedWeights() external view returns (uint256[] memory weights) {
+    pbs storage s = lpbs();
+    address[] memory tokens = s.bPool.getCurrentTokens();
+    weights = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; i++) {
+      weights[i] = s.bPool.getDenormalizedWeight(tokens[i]);
+    }
+  }
 
   /**
         @notice Load PBasicPool storage
