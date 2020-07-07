@@ -71,14 +71,15 @@ describe("PBasicSmartPool", function () {
       })) as PBasicSmartPool;
       await expect(
         smartpool.init(ethers.constants.AddressZero, "TEST", "TEST", ethers.constants.WeiPerEther)
-      ).to.be.reverted;
+      ).to.be.revertedWith("PBasicSmartPool.init: _bPool cannot be 0x00....000");
     });
     it("Initialising with zero supply should fail", async () => {
       smartpool = (await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {
         gasLimit: 100000000,
       })) as PBasicSmartPool;
-      await expect(smartpool.init(PLACE_HOLDER_ADDRESS, "TEST", "TEST", ethers.constants.Zero)).to
-        .be.reverted;
+      await expect(
+        smartpool.init(PLACE_HOLDER_ADDRESS, "TEST", "TEST", ethers.constants.Zero)
+      ).to.be.revertedWith("PBasicSmartPool.init: _initialSupply can not zero");
     });
     it("Token symbol should be correct", async () => {
       const name = await smartpool.name();
@@ -121,8 +122,9 @@ describe("PBasicSmartPool", function () {
       expect(amountAndTokens.amounts).to.eql(expectedAmounts);
     });
     it("Calling init when already initialized should fail", async () => {
-      await expect(smartpool.init(PLACE_HOLDER_ADDRESS, NAME, SYMBOL, constants.WeiPerEther)).to.be
-        .reverted;
+      await expect(
+        smartpool.init(PLACE_HOLDER_ADDRESS, NAME, SYMBOL, constants.WeiPerEther)
+      ).to.be.revertedWith("PBasicSmartPool.init: already initialised");
     });
     it("Smart pool should not hold any non balancer pool tokens after init", async () => {
       const smartPoolBalances = await getTokenBalances(smartpool.address);
@@ -138,7 +140,10 @@ describe("PBasicSmartPool", function () {
     });
     it("Setting a new controller from a non controller address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.setController(PLACE_HOLDER_ADDRESS)).to.be.reverted;
+
+      await expect(smartpool.setController(PLACE_HOLDER_ADDRESS)).to.be.revertedWith(
+        "PBasicSmartPool.onlyController: not controller"
+      );
     });
     it("Setting public swap setter should work", async () => {
       await smartpool.setPublicSwapSetter(PLACE_HOLDER_ADDRESS);
@@ -147,7 +152,10 @@ describe("PBasicSmartPool", function () {
     });
     it("Setting public swap setter from a non controller address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.setPublicSwapSetter(PLACE_HOLDER_ADDRESS)).to.be.reverted;
+
+      await expect(smartpool.setPublicSwapSetter(PLACE_HOLDER_ADDRESS)).to.be.revertedWith(
+        "PBasicSmartPool.onlyController: not controller"
+      );
     });
     it("Setting the token binder should work", async () => {
       await smartpool.setTokenBinder(PLACE_HOLDER_ADDRESS);
@@ -156,7 +164,9 @@ describe("PBasicSmartPool", function () {
     });
     it("Setting the token binder from a non controller address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.setTokenBinder(PLACE_HOLDER_ADDRESS)).to.be.reverted;
+      await expect(smartpool.setTokenBinder(PLACE_HOLDER_ADDRESS)).to.be.revertedWith(
+        "PBasicSmartPool.onlyController: not controller"
+      );
     });
     it("Setting public swap should work", async () => {
       await smartpool.setPublicSwap(true);
@@ -166,7 +176,9 @@ describe("PBasicSmartPool", function () {
     });
     it("Setting public swap from a non publicSwapSetter address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.setPublicSwap(true)).to.be.reverted;
+      await expect(smartpool.setPublicSwap(true)).to.be.revertedWith(
+        "PBasicSmartPool.onlyPublicSwapSetter: not public swap setter"
+      );
     });
     it("Setting the swap fee should work", async () => {
       const feeValue = constants.WeiPerEther.div(20);
@@ -176,15 +188,21 @@ describe("PBasicSmartPool", function () {
     });
     it("Setting the swap fee from a non controller address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.setSwapFee(constants.WeiPerEther.div(20))).to.be.reverted;
+      await expect(smartpool.setSwapFee(constants.WeiPerEther.div(20))).to.be.revertedWith(
+        "PBasicSmartPool.onlyController: not controller"
+      );
     });
     it("Should revert with unsupported function error when calling finalizePool()", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.finalizeSmartPool()).to.be.reverted;
+      await expect(smartpool.finalizeSmartPool()).to.be.revertedWith(
+        "PBasicSmartPool.finalizeSmartPool: unsupported function"
+      );
     });
     it("Should revert with unsupported function error when calling createPool(uint256 initialSupply)", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.createPool(0)).to.be.reverted;
+      await expect(smartpool.createPool(0)).to.be.revertedWith(
+        "PBasicSmartPool.createPool: unsupported function"
+      );
     });
   });
 
@@ -201,12 +219,16 @@ describe("PBasicSmartPool", function () {
     it("Adding liquidity when a transfer fails should fail", async () => {
       const mintAmount = constants.WeiPerEther;
       await tokens[1].approve(smartpool.address, constants.Zero);
-      await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
+      await expect(smartpool.joinPool(mintAmount)).to.be.revertedWith(
+        "ERC20: transfer amount exceeds allowance"
+      );
     });
     it("Adding liquidity when a token transfer returns fails should fail", async () => {
       const mintAmount = constants.WeiPerEther.div(4);
       await tokens[1].setTransferFromReturnFalse(true);
-      await expect(smartpool.joinPool(mintAmount)).to.be.reverted;
+      await expect(smartpool.joinPool(mintAmount)).to.be.revertedWith(
+        "PBasicSmartPool._pullUnderlying: transferFrom failed"
+      );
     });
     it("Removing liquidity should work", async () => {
       const removeAmount = constants.WeiPerEther.div(2);
@@ -219,24 +241,29 @@ describe("PBasicSmartPool", function () {
     });
     it("Removing all liquidity should fail", async () => {
       const removeAmount = constants.WeiPerEther;
-      await expect(smartpool.exitPool(removeAmount)).to.be.reverted;
+      await expect(smartpool.exitPool(removeAmount)).to.be.revertedWith("ERR_MIN_BALANCE");
     });
     it("Removing liquidity should fail when removing more than balance", async () => {
       // First mint some more in another account to not withdraw all total liquidity in the actual test
       const altSignerSmartPool = PBasicSmartPoolFactory.connect(smartpool.address, signers[1]);
       await altSignerSmartPool.joinPool(constants.WeiPerEther);
-
-      await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
+      await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.revertedWith(
+        "ERR_INSUFFICIENT_BAL"
+      );
     });
 
     it("Removing liquidity when a token transfer fails should fail", async () => {
       await tokens[0].setTransferFailed(true);
-      await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.reverted;
+      await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.revertedWith(
+        "MockToken.transfer: transferFrom set to fail"
+      );
     });
 
     it("Removing liquidity when a token transfer returns false should fail", async () => {
       await tokens[0].setTransferReturnFalse(true);
-      await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.reverted;
+      await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.revertedWith(
+        "ERR_ERC20_FALSE"
+      );
     });
 
     it("Removing liquidity leaving a single token should work", async () => {
@@ -250,14 +277,15 @@ describe("PBasicSmartPool", function () {
     });
     it("Removing all liquidity leaving a single token should fail", async () => {
       const removeAmount = constants.WeiPerEther;
-      await expect(smartpool.exitPool(removeAmount)).to.be.reverted;
+      await expect(smartpool.exitPool(removeAmount)).to.be.revertedWith("ERR_MIN_BALANCE");
     });
     it("Removing liquidity leaving a single token should fail when removing more than balance", async () => {
       // First mint some more in another account to not withdraw all total liquidity in the actual test
       const altSignerSmartPool = PBasicSmartPoolFactory.connect(smartpool.address, signers[1]);
       await altSignerSmartPool.joinPool(constants.WeiPerEther);
-
-      await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.reverted;
+      await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.revertedWith(
+        "ERR_INSUFFICIENT_BAL"
+      );
     });
     // it.only("Exiting the entire pool should fail", async() => {
     //     smartpool.joinPool(constants.WeiPerEther.mul(constants.WeiPerEther).mul(10));
@@ -346,9 +374,9 @@ describe("PBasicSmartPool", function () {
       await token.mint(account, mintAmount);
       await token.approve(smartpool.address, constants.MaxUint256);
       await token.setTransferFromReturnFalse(true);
-
-      await expect(smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther)).to
-        .be.reverted;
+      await expect(
+        smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther)
+      ).to.be.revertedWith("PBasicSmartPool.bind: transferFrom failed");
     });
     it("Binding from a non token binder address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
@@ -356,9 +384,9 @@ describe("PBasicSmartPool", function () {
       const token: MockToken = await tokenFactory.deploy("Mock", "M", 18);
       await token.mint(account, mintAmount);
       await token.approve(smartpool.address, constants.MaxUint256);
-
-      await expect(smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther)).to
-        .be.reverted;
+      await expect(
+        smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther)
+      ).to.be.revertedWith("PBasicSmartPool.onlyTokenBinder: not token binder");
     });
     it("Rebinding a token should work", async () => {
       // Doubles the weight in the pool
@@ -383,7 +411,7 @@ describe("PBasicSmartPool", function () {
           constants.WeiPerEther.div(4),
           constants.WeiPerEther.mul(2)
         )
-      ).to.be.reverted;
+      ).to.be.revertedWith("ERR_ERC20_FALSE");
     });
     it("Rebinding a token from a non token binder address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
@@ -393,7 +421,7 @@ describe("PBasicSmartPool", function () {
           constants.WeiPerEther.mul(2),
           constants.WeiPerEther.mul(2)
         )
-      ).to.be.reverted;
+      ).to.be.revertedWith("PBasicSmartPool.onlyTokenBinder: not token binder");
     });
     it("Unbinding a token should work", async () => {
       smartpool.unbind(tokens[0].address);
@@ -401,7 +429,9 @@ describe("PBasicSmartPool", function () {
     });
     it("Unbinding a token from a non token binder address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);
-      await expect(smartpool.unbind(tokens[0].address)).to.be.reverted;
+      await expect(smartpool.unbind(tokens[0].address)).to.be.revertedWith(
+        "revert PBasicSmartPool.onlyTokenBinder: not token binder"
+      );
     });
   });
 

@@ -80,7 +80,9 @@ describe("PCappedSmartPool", function () {
 
   it("Setting the cap from a non controller address should fail", async () => {
     await smartpool.setController(await signers[1].getAddress());
-    await expect(smartpool.setCap(100)).to.be.reverted;
+    await expect(smartpool.setCap(100)).to.be.revertedWith(
+      "PBasicSmartPool.onlyController: not controller"
+    );
   });
 
   it("JoinPool with less than the cap should work", async () => {
@@ -96,6 +98,8 @@ describe("PCappedSmartPool", function () {
   it("JoinPool with more than the cap should fail", async () => {
     const cap = constants.WeiPerEther.mul(100);
     await smartpool.setCap(cap);
-    await expect(smartpool.joinPool(cap.add(1))).to.be.reverted;
+    await expect(smartpool.joinPool(cap.add(1))).to.be.revertedWith(
+      "PCappedSmartPool.withinCap: Cap limit reached"
+    );
   });
 });
