@@ -37,4 +37,46 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
     LibJoinPool.joinPool(_amount);
   }
 
+  /**
+        @notice Joinswap single asset pool entry given token amount in
+        @param _token Address of entry token
+        @param _amountIn Amount of entry tokens
+        @return poolAmountOut
+    */
+  function joinswapExternAmountIn(address _token, uint256 _amountIn)
+    external
+    override
+    ready
+    withinCap
+    noReentry
+    returns (uint256 poolAmountOut)
+  {
+    return LibJoinPool.joinswapExternAmountIn(_token, _amountIn);
+  }
+
+  /**
+        @notice Joinswap single asset pool entry given pool amount out
+        @param _token Address of entry token
+        @param _amountOut Amount of entry tokens to deposit into the pool
+        @return tokenAmountIn
+    */
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+    external
+    override
+    ready
+    withinCap
+    noReentry
+    returns (uint256 tokenAmountIn)
+  {
+    return LibJoinPool.joinswapPoolAmountOut(_token, _amountOut);
+  }
+
+  /**
+      @notice Get the current cap
+      @return The current cap in wei
+  */
+  function getCap() external view returns (uint256) {
+    return PCSStorage.load().cap;
+  }
+
 }
