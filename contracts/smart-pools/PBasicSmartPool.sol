@@ -15,7 +15,6 @@ import "../libraries/LibPoolToken.sol";
 
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
-
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
   event PublicSwapSetterChanged(address indexed previousSetter, address indexed newSetter);
@@ -29,7 +28,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   modifier onlyController() {
-    require(msg.sender == PBStorage.load().controller, "PBasicSmartPool.onlyController: not controller");
+    require(
+      msg.sender == PBStorage.load().controller,
+      "PBasicSmartPool.onlyController: not controller"
+    );
     _;
   }
 
@@ -42,7 +44,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   modifier onlyTokenBinder() {
-    require(msg.sender == PBStorage.load().tokenBinder, "PBasicSmartPool.onlyTokenBinder: not token binder");
+    require(
+      msg.sender == PBStorage.load().tokenBinder,
+      "PBasicSmartPool.onlyTokenBinder: not token binder"
+    );
     _;
   }
 
@@ -410,5 +415,4 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       weights[i] = s.bPool.getDenormalizedWeight(tokens[i]);
     }
   }
-
 }

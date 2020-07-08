@@ -1,7 +1,8 @@
 pragma solidity ^0.6.4;
 
+
 library PCappedSmartPoolStorage {
- bytes32 public constant pcsSlot = keccak256("PCappedSmartPool.storage.location");
+  bytes32 public constant pcsSlot = keccak256("PCappedSmartPool.storage.location");
 
   struct StorageStruct {
     uint256 cap;

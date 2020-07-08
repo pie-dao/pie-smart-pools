@@ -5,8 +5,8 @@ import "../interfaces/IPCappedSmartPool.sol";
 
 import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPoolStorage.sol";
 
-contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
 
+contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
   event CapChanged(address indexed setter, uint256 oldCap, uint256 newCap);
 
   modifier withinCap() {
@@ -78,5 +78,4 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
   function getCap() external view returns (uint256) {
     return PCSStorage.load().cap;
   }
-
 }

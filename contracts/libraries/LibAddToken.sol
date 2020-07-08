@@ -29,8 +29,9 @@ library LibAddToken {
       IERC20(ws.newToken.addr).transferFrom(msg.sender, address(this), ws.newToken.balance),
       "ERR_ERC20_FALSE"
     );
-    // Now with the tokens this contract can bind them to the pool it controls
-    IERC20(ws.newToken.addr).approve(address(s.bPool), uint256(-1)); // Approves bPool to pull from this controller
+
+    // Approves bPool to pull from this controller
+    IERC20(ws.newToken.addr).approve(address(s.bPool), uint256(-1));
     s.bPool.bind(ws.newToken.addr, ws.newToken.balance, ws.newToken.denorm);
     LibPoolToken._mint(msg.sender, poolShares);
   }

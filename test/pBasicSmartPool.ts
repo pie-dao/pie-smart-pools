@@ -1,3 +1,5 @@
+// TODO use calcPoolOutGivenSingleIn calcSingleInGivenPoolOut, calcSingleOutGivenPoolIn, calcPoolInGivenSingleOut for single asset entry and exit
+
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
