@@ -1,13 +1,16 @@
 // tslint:disable-next-line:no-var-requires
 require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
-import { utils, constants, ContractTransaction } from "ethers";
+import { utils, constants, ContractTransaction, Wallet } from "ethers";
+import {deployContract, solidity} from "ethereum-waffle";
 import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
+import PBasicSmartPoolArtifact from "./artifacts/PBasicSmartPool.json";
+import PCappedSmartPoolArtifact from "./artifacts/PCappedSmartPool.json";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
 import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
 import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
-import { deployBalancerFactory, deployAndGetLibObject } from "./utils";
+import { deployBalancerFactory, deployAndGetLibObject, linkArtifact } from "./utils";
 import { IBPoolFactory } from "./typechain/IBPoolFactory";
 import { IERC20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
@@ -18,6 +21,7 @@ import LibExitPoolArtifact from "./artifacts/LibExitPool.json";
 import LibJoinPoolArtifact from "./artifacts/LibJoinPool.json";
 import LibRemoveTokenArtifact from "./artifacts/LibRemoveToken.json";
 import LibWeightsArtifact from "./artifacts/LibWeights.json";
+import { PBasicSmartPool } from "./typechain/PBasicSmartPool";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -103,7 +107,7 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
     const implementation = await run("deploy-pie-capped-smart-pool") as PCappedSmartPool;
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMPL", "IMPL", "1337");
 
-    await factory.init(taskArgs.balancerFactory);
+    await factory.init(taskArgs.balancerFactory, implementation.address);
     return factory.address;
 });
 
@@ -153,19 +157,37 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
 });
 
 task("deploy-pie-smart-pool", "deploys a pie smart pool")
-  .setAction(async(taskArgs, { ethers }) => {
+  .setAction(async(taskArgs, { ethers, run }) => {
     const signers = await ethers.getSigners();
-    const factory = new PBasicSmartPoolFactory(signers[0]);
-    const smartpool = await factory.deploy();
+
+    console.log("deploying libraries");
+    const libraries = await run("deploy-libraries");
+    console.log("libraries deployed");
+    console.table(libraries);
+    const linkedArtifact = linkArtifact(PBasicSmartPoolArtifact, libraries);
+
+    const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
+      gasLimit: 100000000,
+    })) as PBasicSmartPool;
 
     console.log(`PBasicSmartPool deployed at: ${smartpool.address}`);
 });
 
 task("deploy-pie-capped-smart-pool", "deploys a capped pie smart pool")
-  .setAction(async(taskArgs, { ethers }) => {
+  .setAction(async(taskArgs, { ethers, run }) => {
     const signers = await ethers.getSigners();
-    const factory = new PCappedSmartPoolFactory(signers[0]);
-    const smartpool = await factory.deploy();
+    // const factory = new PCappedSmartPoolFactory(signers[0]);
+    // const smartpool = await factory.deploy();
+    console.log("deploying libraries");
+    const libraries = await run("deploy-libraries");
+    console.log("libraries deployed");
+    console.table(libraries);
+
+    const linkedArtifact = linkArtifact(PCappedSmartPoolArtifact, libraries);
+
+    const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
+      gasLimit: 100000000,
+    })) as PBasicSmartPool;
 
     console.log(`PCappedSmartPool deployed at: ${smartpool.address}`);
     return smartpool;
@@ -190,7 +212,6 @@ task("deploy-smart-pool-implementation-complete")
   .addParam("implName")
   .setAction(async(taskArgs, { ethers, run }) => {
     const signers = await ethers.getSigners();
-    const factory = new PCappedSmartPoolFactory(signers[0]);
 
     // Deploy capped pool
     const implementation = await run("deploy-pie-capped-smart-pool");
