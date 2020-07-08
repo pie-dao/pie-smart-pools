@@ -46,7 +46,7 @@ describe("PProxiedFactory", () => {
     })) as PAdjustableSmartPool;
 
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMP", "IMP", 1337);
-    await factory.init(balancerFactoryAddress);
+    await factory.init(balancerFactoryAddress, implementation.address);
 
     const tokenFactory = new MockTokenFactory(signers[0]);
     for (let i = 0; i < 3; i++) {
