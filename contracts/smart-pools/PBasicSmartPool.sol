@@ -12,6 +12,7 @@ import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import "../libraries/LibJoinPool.sol";
 import "../libraries/LibExitPool.sol";
 import "../libraries/LibPoolToken.sol";
+import "../libraries/LibPoolMath.sol";
 
 
 contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
@@ -335,6 +336,74 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       uint256 amount = ratio.bmul(bal);
       amounts[i] = amount;
     }
+  }
+
+  /**
+    @notice Calculate the amount of pool tokens out for a given amount for adding removing a certain amount of token
+    @param _token Address of the input token
+    @param _amount Amount of input token
+    @return Amount of pool token
+  */
+  function calcPoolOutGivenSingleIn(address _token, uint256 _amount) external view returns(uint256) {
+    PBStorage.StorageStruct storage s = PBStorage.load();
+    uint256 tokenBalanceIn = s.bPool.getBalance(_token);
+    uint256 tokenWeightIn = s.bPool.getDenormalizedWeight(_token);
+    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
+    uint256 swapFee = s.bPool.getSwapFee();
+
+    return (LibPoolMath.calcPoolOutGivenSingleIn(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, _amount, swapFee));
+  }
+
+  /**
+    @notice Calculate single in given pool out
+    @param _token Address of the input token
+    @param _amount Amount of pool out token
+    @return Amount of token in
+  */
+  function calcSingleInGivenPoolOut(address _token, uint256 _amount) external view returns(uint256) {
+    PBStorage.StorageStruct storage s = PBStorage.load();
+    uint256 tokenBalanceIn = s.bPool.getBalance(_token);
+    uint256 tokenWeightIn = s.bPool.getDenormalizedWeight(_token);
+    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
+    uint256 swapFee = s.bPool.getSwapFee();
+
+    return (LibPoolMath.calcSingleInGivenPoolOut(tokenBalanceIn, tokenWeightIn, poolSupply, totalWeight, _amount, swapFee));
+  }
+
+  /**
+    @notice Calculate single out given pool in
+    @param _token Address of output token
+    @param _amount Amount of pool in
+    @return Amount of token in
+  */
+  function calcSingleOutGivenPoolIn(address _token, uint256 _amount) external view returns(uint256) {
+    PBStorage.StorageStruct storage s = PBStorage.load();
+    uint256 tokenBalanceOut = s.bPool.getBalance(_token);
+    uint256 tokenWeightOut = s.bPool.getDenormalizedWeight(_token);
+    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
+    uint256 swapFee = s.bPool.getSwapFee();
+
+    return(LibPoolMath.calcSingleOutGivenPoolIn(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, _amount, swapFee));
+  }
+
+  /**
+    @notice Calculate pool in given single token out
+    @param _token Address of output token
+    @param _amount Amount of output token
+    @return Amount of pool in
+  */
+  function calcPoolInGivenSingleOut(address _token, uint256 _amount) external view returns(uint256) {
+    PBStorage.StorageStruct storage s = PBStorage.load();
+    uint256 tokenBalanceOut = s.bPool.getBalance(_token);
+    uint256 tokenWeightOut = s.bPool.getDenormalizedWeight(_token);
+    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
+    uint256 swapFee = s.bPool.getSwapFee();
+
+    return(LibPoolMath.calcPoolInGivenSingleOut(tokenBalanceOut, tokenWeightOut, poolSupply, totalWeight, _amount, swapFee));
   }
 
   /**
