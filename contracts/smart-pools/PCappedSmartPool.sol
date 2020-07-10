@@ -34,7 +34,7 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
     ready
     noReentry
   {
-    LibJoinPool.joinPool(_amount);
+    LibPoolEntryExit.joinPool(_amount);
   }
 
   /**
@@ -48,10 +48,11 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
     override
     ready
     withinCap
+    onlyPublicSwap
     noReentry
     returns (uint256 poolAmountOut)
   {
-    return LibJoinPool.joinswapExternAmountIn(_token, _amountIn);
+    return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn);
   }
 
   /**
@@ -65,10 +66,11 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
     override
     ready
     withinCap
+    onlyPublicSwap
     noReentry
     returns (uint256 tokenAmountIn)
   {
-    return LibJoinPool.joinswapPoolAmountOut(_token, _amountOut);
+    return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut);
   }
 
   /**

@@ -9,8 +9,7 @@ import "../ReentryProtection.sol";
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 
-import "../libraries/LibJoinPool.sol";
-import "../libraries/LibExitPool.sol";
+import "../libraries/LibPoolEntryExit.sol";
 import "../libraries/LibPoolToken.sol";
 import "../libraries/LibPoolMath.sol";
 
@@ -48,6 +47,14 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     require(
       msg.sender == PBStorage.load().tokenBinder,
       "PBasicSmartPool.onlyTokenBinder: not token binder"
+    );
+    _;
+  }
+
+  modifier onlyPublicSwap() {
+    require(
+      PBStorage.load().bPool.isPublicSwap(),
+      "PBasicSmartPool.onlyPublicSwap: swapping not enabled"
     );
     _;
   }
@@ -150,7 +157,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     */
 
   function joinPool(uint256 _amount) external virtual override ready noReentry {
-    LibJoinPool.joinPool(_amount);
+    LibPoolEntryExit.joinPool(_amount);
   }
 
   /**
@@ -158,7 +165,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @param _amount Amount of pool tokens to burn
     */
   function exitPool(uint256 _amount) external override ready noReentry {
-    LibExitPool.exitPool(_amount);
+    LibPoolEntryExit.exitPool(_amount);
   }
 
   /**
@@ -172,9 +179,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     virtual
     ready
     noReentry
+    onlyPublicSwap
     returns (uint256 poolAmountOut)
   {
-    return LibJoinPool.joinswapExternAmountIn(_token, _amountIn);
+    return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn);
   }
 
   /**
@@ -188,9 +196,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     virtual
     ready
     noReentry
+    onlyPublicSwap
     returns (uint256 tokenAmountIn)
   {
-    return LibJoinPool.joinswapPoolAmountOut(_token, _amountOut);
+    return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut);
   }
 
   /**
@@ -203,9 +212,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     external
     ready
     noReentry
+    onlyPublicSwap
     returns (uint256 tokenAmountOut)
   {
-    return LibExitPool.exitswapPoolAmountIn(_token, _poolAmountIn);
+    return LibPoolEntryExit.exitswapPoolAmountIn(_token, _poolAmountIn);
   }
 
   /**
@@ -218,9 +228,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     external
     ready
     noReentry
+    onlyPublicSwap
     returns (uint256 poolAmountIn)
   {
-    return LibExitPool.exitswapExternAmountOut(_token, _tokenAmountOut);
+    return LibPoolEntryExit.exitswapExternAmountOut(_token, _tokenAmountOut);
   }
 
   /**
@@ -233,7 +244,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     ready
     noReentry
   {
-    LibExitPool.exitPoolTakingloss(_amount, _lossTokens);
+    LibPoolEntryExit.exitPoolTakingloss(_amount, _lossTokens);
   }
 
   /**
