@@ -3,8 +3,7 @@ pragma solidity 0.6.4;
 import "./PCappedSmartPool.sol";
 import {PAdjustableSmartPoolStorage as PAStorage} from "../storage/PAdjustableSmartPoolStorage.sol";
 import {LibConst as constants} from "../libraries/LibConst.sol";
-import "../libraries/LibRemoveToken.sol";
-import "../libraries/LibAddToken.sol";
+import "../libraries/LibAddRemoveToken.sol";
 import "../libraries/LibWeights.sol";
 
 
@@ -30,7 +29,7 @@ contract PAdjustableSmartPool is PCappedSmartPool {
   }
 
   function applyAddToken() external noReentry onlyController {
-    LibAddToken.applyAddToken();
+    LibAddRemoveToken.applyAddToken();
   }
 
   function commitAddToken(
@@ -38,11 +37,11 @@ contract PAdjustableSmartPool is PCappedSmartPool {
     uint256 _balance,
     uint256 _denormalizedWeight
   ) external noReentry onlyController {
-    LibAddToken.commitAddToken(_token, _balance, _denormalizedWeight);
+    LibAddRemoveToken.commitAddToken(_token, _balance, _denormalizedWeight);
   }
 
   function removeToken(address _token) external noReentry onlyController {
-    LibRemoveToken.removeToken(_token);
+    LibAddRemoveToken.removeToken(_token);
   }
 
   function getNewWeights() external view returns (uint256[] memory weights) {

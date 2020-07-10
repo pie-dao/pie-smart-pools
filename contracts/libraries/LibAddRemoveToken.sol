@@ -8,7 +8,7 @@ import "./LibPoolToken.sol";
 import "./Math.sol";
 
 
-library LibAddToken {
+library LibAddRemoveToken {
   using Math for uint256;
 
   function applyAddToken() external {
@@ -57,5 +57,27 @@ library LibAddToken {
     ws.newToken.denorm = _denormalizedWeight;
     ws.newToken.commitBlock = block.number;
     ws.newToken.isCommitted = true;
+  }
+
+  function removeToken(address _token) external {
+    PBStorage.StorageStruct storage s = PBStorage.load();
+
+    uint256 totalSupply = PCStorage.load().totalSupply;
+
+    // poolShares = totalSupply * tokenWeight / totalWeight
+    uint256 poolShares = totalSupply.bmul(s.bPool.getDenormalizedWeight(_token)).bdiv(
+      s.bPool.getTotalDenormalizedWeight()
+    );
+
+    // this is what will be unbound from the pool
+    // Have to get it before unbinding
+    uint256 balance = s.bPool.getBalance(_token);
+
+    // Unbind and get the tokens out of balancer pool
+    s.bPool.unbind(_token);
+
+    require(IERC20(_token).transfer(msg.sender, balance), "ERR_ERC20_FALSE");
+
+    LibPoolToken._burn(msg.sender, poolShares);
   }
 }
