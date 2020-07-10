@@ -121,7 +121,7 @@ library LibPoolMath {
     uint256 totalWeight,
     uint256 tokenAmountIn,
     uint256 swapFee
-  ) public pure returns (uint256 poolAmountOut) {
+  ) internal pure returns (uint256 poolAmountOut) {
     // Charge the trading fee for the proportion of tokenAi
     ///  which is implicitly traded to the other pool tokens.
     // That proportion is (1- weightTokenIn)
@@ -156,7 +156,7 @@ library LibPoolMath {
     uint256 totalWeight,
     uint256 poolAmountOut,
     uint256 swapFee
-  ) public pure returns (uint256 tokenAmountIn) {
+  ) internal pure returns (uint256 tokenAmountIn) {
     uint256 normalizedWeight = tokenWeightIn.bdiv(totalWeight);
     uint256 newPoolSupply = poolSupply.badd(poolAmountOut);
     uint256 poolRatio = newPoolSupply.bdiv(poolSupply);
@@ -192,7 +192,7 @@ library LibPoolMath {
     uint256 totalWeight,
     uint256 poolAmountIn,
     uint256 swapFee
-  ) public pure returns (uint256 tokenAmountOut) {
+  ) internal pure returns (uint256 tokenAmountOut) {
     uint256 normalizedWeight = tokenWeightOut.bdiv(totalWeight);
     // charge exit fee on the pool token side
     // pAiAfterExitFee = pAi*(1-exitFee)
@@ -231,7 +231,7 @@ library LibPoolMath {
     uint256 totalWeight,
     uint256 tokenAmountOut,
     uint256 swapFee
-  ) public pure returns (uint256 poolAmountIn) {
+  ) internal pure returns (uint256 poolAmountIn) {
     // charge swap fee on the output token side
     uint256 normalizedWeight = tokenWeightOut.bdiv(totalWeight);
     //uint256 tAoBeforeSwapFee = tAo / (1 - (1-weightTo) * swapFee) ;
