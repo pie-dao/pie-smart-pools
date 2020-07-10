@@ -16,10 +16,9 @@ import { IERC20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 import { PCappedSmartPool } from "./typechain/PCappedSmartPool";
 
-import LibAddTokenArtifact from "./artifacts/LibAddToken.json";
-import LibExitPoolArtifact from "./artifacts/LibExitPool.json";
-import LibJoinPoolArtifact from "./artifacts/LibJoinPool.json";
-import LibRemoveTokenArtifact from "./artifacts/LibRemoveToken.json";
+
+import LibPoolEntryExitArtifact from "./artifacts/LibPoolEntryExit.json";
+import LibAddRemoveTokenArtifact from "./artifacts/LibAddRemoveToken.json";
 import LibWeightsArtifact from "./artifacts/LibWeights.json";
 import { PBasicSmartPool } from "./typechain/PBasicSmartPool";
 
@@ -378,10 +377,8 @@ task("deploy-libraries", "deploys all external libraries")
     const signers = await ethers.getSigners();
     const libraries: any[] = [];
 
-    libraries.push(await deployAndGetLibObject(LibAddTokenArtifact, signers[0]));
-    libraries.push(await deployAndGetLibObject(LibExitPoolArtifact, signers[0]));
-    libraries.push(await deployAndGetLibObject(LibJoinPoolArtifact, signers[0]));
-    libraries.push(await deployAndGetLibObject(LibRemoveTokenArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibAddRemoveTokenArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibPoolEntryExitArtifact, signers[0]));
     libraries.push(await deployAndGetLibObject(LibWeightsArtifact, signers[0]));
 
     return libraries;
