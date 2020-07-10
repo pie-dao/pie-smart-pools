@@ -15,6 +15,7 @@ import {IBPoolFactory} from "../typechain/IBPoolFactory";
 import {PBasicSmartPoolFactory} from "../typechain/PBasicSmartPoolFactory";
 import {PBasicSmartPool} from "../typechain/PBasicSmartPool";
 import PBasicSmartPoolArtifact from "../artifacts/PBasicSmartPool.json";
+import { EEXIST } from "constants";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -298,6 +299,7 @@ describe("PBasicSmartPool", function () {
     // });
     it("Should fail to join with a single token if token is unbound", async () => {
       await smartpool.unbind(tokens[0].address);
+      await smartpool.setPublicSwap(true);
       const mintAmount = constants.WeiPerEther;
 
       await expect(
@@ -307,33 +309,59 @@ describe("PBasicSmartPool", function () {
         smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
       ).to.be.revertedWith("PBasicSmartPool.joinswapPoolAmountOut: Token Not Bound");
     });
-    it("poolAmountOut = joinswapExternAmountIn(joinswapPoolAmountOut(poolAmountOut))", async () => {
-      const userPreBalance = await tokens[1].balanceOf(account);
-      const userPrePoolBalance = await smartpool.balanceOf(account);
 
-      const poolAmountOut = constants.One;
-      const tokenAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, poolAmountOut);
-      const tAIResponse = await tokenAmountIn.wait(1);
-      const tAI = new BigNumber(tAIResponse.events[0].data);
+    it("joinswapPoolAmountOut should work", async() => {
+      await smartpool.setPublicSwap(true);
+      const mintAmount = constants.WeiPerEther.div(100);
+      const inputToken = tokens[0];
 
-      const calculatedPoolAmountOut = await smartpool.joinswapExternAmountIn(
-        tokens[1].address,
-        tAI
-      );
-      const cPAOResponse = await calculatedPoolAmountOut.wait(1);
-      const cPAO = new BigNumber(cPAOResponse.events[3].data);
+      const userBalanceBefore = await inputToken.balanceOf(account);
+      const userPoolBalanceBefore = await smartpool.balanceOf(account);
+      const totalSupplyBefore = await smartpool.totalSupply();
+      const expectedTokenAmountIn = await smartpool.calcSingleInGivenPoolOut(inputToken.address, mintAmount);
+      const poolTokenBalanceBefore = await pool.getBalance(inputToken.address);
 
-      const userCurrentBalance = await tokens[1].balanceOf(account);
-      const userCurrentPoolBalance = await smartpool.balanceOf(account);
+      await smartpool.joinswapPoolAmountOut(inputToken.address, mintAmount);
 
-      expect(userCurrentPoolBalance).to.equal(userPrePoolBalance.add(poolAmountOut.mul(2)));
-      expect(userCurrentBalance).to.equal(userPreBalance.sub(tAI.mul(2)));
-      expect(cPAO).to.equal(poolAmountOut);
+      const userBalanceAfter = await inputToken.balanceOf(account);
+      const userPoolBalanceAfter = await smartpool.balanceOf(account);
+      const totalSupplyAfter = await smartpool.totalSupply();
+      const poolTokenBalanceAfter = await pool.getBalance(inputToken.address);
+
+      expect(userBalanceAfter).to.eq(userBalanceBefore.sub(expectedTokenAmountIn));
+      expect(userPoolBalanceAfter).to.eq(userPoolBalanceBefore.add(mintAmount));
+      expect(totalSupplyAfter).to.eq(totalSupplyBefore.add(mintAmount));
+      expect(poolTokenBalanceAfter).to.eq(poolTokenBalanceBefore.add(expectedTokenAmountIn));
+    });
+
+    it("joinswapExternAmountIn should work", async() => {
+      smartpool.setPublicSwap(true);
+      const tokenAmountIn = constants.WeiPerEther.div(100);
+      const inputToken = tokens[0];
+
+      const userBalanceBefore = await inputToken.balanceOf(account);
+      const userPoolBalanceBefore = await smartpool.balanceOf(account);
+      const totalSupplyBefore = await smartpool.totalSupply();
+      const expectedPoolAmountOut = await smartpool.calcPoolOutGivenSingleIn(inputToken.address, tokenAmountIn);
+      const poolTokenBalanceBefore = await pool.getBalance(inputToken.address);
+
+      await smartpool.joinswapExternAmountIn(inputToken.address, tokenAmountIn);
+
+      const userBalanceAfter = await inputToken.balanceOf(account);
+      const userPoolBalanceAfter = await smartpool.balanceOf(account);
+      const totalSupplyAfter = await smartpool.totalSupply();
+      const poolTokenBalanceAfter = await pool.getBalance(inputToken.address);
+
+      expect(userBalanceAfter).to.eq(userBalanceBefore.sub(tokenAmountIn));
+      expect(userPoolBalanceAfter).to.eq(userPoolBalanceBefore.add(expectedPoolAmountOut));
+      expect(totalSupplyAfter).to.eq(totalSupplyBefore.add(expectedPoolAmountOut));
+      expect(poolTokenBalanceAfter).to.eq(poolTokenBalanceBefore.add(tokenAmountIn));
     });
 
     it("Should fail to exit with a single token if token is unbound", async () => {
       await smartpool.unbind(tokens[1].address);
       const exitAmount = constants.WeiPerEther;
+      await smartpool.setPublicSwap(true);
 
       await expect(
         smartpool.exitswapExternAmountOut(tokens[1].address, exitAmount)
@@ -345,6 +373,7 @@ describe("PBasicSmartPool", function () {
     it("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
       const tokenAmountOut = constants.One;
       const poolAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, tokenAmountOut);
+      await smartpool.setPublicSwap(true);
 
       const pAIResponse = await poolAmountIn.wait(1);
       const pAI = new BigNumber(pAIResponse.events[0].data);
