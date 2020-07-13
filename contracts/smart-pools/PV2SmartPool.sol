@@ -411,7 +411,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   {
     tokens = PBStorage.load().bPool.getCurrentTokens();
     amounts = new uint256[](tokens.length);
-    uint256 ratio = _amount.bdiv(totalSupply());
+    uint256 ratio = _amount.bdiv(totalSupply()).badd(LibFees.calcOutstandingAnnualFee());
 
     for (uint256 i = 0; i < tokens.length; i++) {
       address t = tokens[i];
@@ -436,7 +436,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     PBStorage.StorageStruct storage s = PBStorage.load();
     uint256 tokenBalanceIn = s.bPool.getBalance(_token);
     uint256 tokenWeightIn = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
     uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
     uint256 swapFee = s.bPool.getSwapFee();
 
@@ -467,7 +467,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     PBStorage.StorageStruct storage s = PBStorage.load();
     uint256 tokenBalanceIn = s.bPool.getBalance(_token);
     uint256 tokenWeightIn = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
     uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
     uint256 swapFee = s.bPool.getSwapFee();
 
@@ -498,7 +498,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     PBStorage.StorageStruct storage s = PBStorage.load();
     uint256 tokenBalanceOut = s.bPool.getBalance(_token);
     uint256 tokenWeightOut = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
     uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
     uint256 swapFee = s.bPool.getSwapFee();
 
@@ -529,7 +529,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     PBStorage.StorageStruct storage s = PBStorage.load();
     uint256 tokenBalanceOut = s.bPool.getBalance(_token);
     uint256 tokenWeightOut = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply;
+    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
     uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
     uint256 swapFee = s.bPool.getSwapFee();
 
