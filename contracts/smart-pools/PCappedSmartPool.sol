@@ -29,6 +29,7 @@ contract PCappedSmartPool is PBasicSmartPool, IPCappedSmartPool {
     */
   function joinPool(uint256 _amount)
     external
+    virtual
     override(PBasicSmartPool, IPSmartPool)
     withinCap
     ready

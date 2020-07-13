@@ -1,26 +1,31 @@
 pragma solidity 0.6.4;
 
+import "../interfaces/IPV2SmartPool.sol";
 import "../interfaces/IBPool.sol";
-import "../interfaces/IPSmartPool.sol";
 import "../PCToken.sol";
-
 import "../ReentryProtection.sol";
+
+import "../libraries/LibAddRemoveToken.sol";
+import "../libraries/LibPoolEntryExit.sol";
+import "../libraries/LibPoolMath.sol";
+import "../libraries/LibPoolToken.sol";
+import "../libraries/LibWeights.sol";
 
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
+import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPoolStorage.sol";
+import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 
-import "../libraries/LibPoolEntryExit.sol";
-import "../libraries/LibPoolToken.sol";
-import "../libraries/LibPoolMath.sol";
-
-
-contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
+contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
   event PublicSwapSetterChanged(address indexed previousSetter, address indexed newSetter);
   event TokenBinderChanged(address indexed previousTokenBinder, address indexed newTokenBinder);
   event PublicSwapSet(address indexed setter, bool indexed value);
   event SwapFeeSet(address indexed setter, uint256 newFee);
+  event CapChanged(address indexed setter, uint256 oldCap, uint256 newCap);
+  event CircuitBreakerTripped();
+  event JoinExitEnabledChanged(address indexed setter, bool oldValue, bool newValue);
 
   modifier ready() {
     require(address(PBStorage.load().bPool) != address(0), "PBasicSmartPool.ready: not ready");
@@ -59,6 +64,11 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _;
   }
 
+  modifier withinCap() {
+    _;
+    require(totalSupply() < PCSStorage.load().cap, "PCappedSmartPool.withinCap: Cap limit reached");
+  }
+
   /**
         @notice Initialises the contract
         @param _bPool Address of the underlying balancer pool
@@ -87,9 +97,9 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   }
 
   /**
-        @notice Sets approval to all tokens to the underlying balancer pool
-        @dev It uses this function to save on gas in joinPool
-    */
+    @notice Sets approval to all tokens to the underlying balancer pool
+    @dev It uses this function to save on gas in joinPool
+  */
   function approveTokens() public override noReentry {
     IBPool bPool = PBStorage.load().bPool;
     address[] memory tokens = bPool.getCurrentTokens();
@@ -97,6 +107,185 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       IERC20(tokens[i]).approve(address(bPool), uint256(-1));
     }
     emit TokensApproved();
+  }
+
+  // POOL EXIT ------------------------------------------------
+
+  /**
+        @notice Burns pool shares and sends back the underlying assets leaving some in the pool
+        @param _amount Amount of pool tokens to burn
+        @param _lossTokens Tokens skipped on redemption
+    */
+  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens)
+    external
+    override
+    ready
+    noReentry
+  {
+    LibPoolEntryExit.exitPoolTakingloss(_amount, _lossTokens);
+  }
+
+  /**
+        @notice Burns pool shares and sends back the underlying assets
+        @param _amount Amount of pool tokens to burn
+    */
+  function exitPool(uint256 _amount) external override ready noReentry {
+    LibPoolEntryExit.exitPool(_amount);
+  }
+
+  /**
+        @notice Exitswap single asset pool exit given pool amount in
+        @param _token Address of exit token
+        @param _poolAmountIn Amount of pool tokens sending to the pool
+        @return tokenAmountOut amount of exit tokens being withdrawn
+    */
+  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
+    external
+    override
+    ready
+    noReentry
+    onlyPublicSwap
+    returns (uint256 tokenAmountOut)
+  {
+    return LibPoolEntryExit.exitswapPoolAmountIn(_token, _poolAmountIn);
+  }
+
+  /**
+        @notice Exitswap single asset pool entry given token amount out
+        @param _token Address of exit token
+        @param _tokenAmountOut Amount of exit tokens
+        @return poolAmountIn amount of pool tokens being deposited
+    */
+  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
+    external
+    override
+    ready
+    noReentry
+    onlyPublicSwap
+    returns (uint256 poolAmountIn)
+  {
+    return LibPoolEntryExit.exitswapExternAmountOut(_token, _tokenAmountOut);
+  }
+
+  // POOL ENTRY -----------------------------------------------
+  /**
+        @notice Takes underlying assets and mints smart pool tokens. Enforces the cap
+        @param _amount Amount of pool tokens to mint
+    */
+  function joinPool(uint256 _amount) external override withinCap ready noReentry {
+    LibPoolEntryExit.joinPool(_amount);
+  }
+
+  /**
+        @notice Joinswap single asset pool entry given token amount in
+        @param _token Address of entry token
+        @param _amountIn Amount of entry tokens
+        @return poolAmountOut
+    */
+  function joinswapExternAmountIn(address _token, uint256 _amountIn)
+    external
+    override
+    ready
+    withinCap
+    onlyPublicSwap
+    noReentry
+    returns (uint256 poolAmountOut)
+  {
+    return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn);
+  }
+
+  /**
+        @notice Joinswap single asset pool entry given pool amount out
+        @param _token Address of entry token
+        @param _amountOut Amount of entry tokens to deposit into the pool
+        @return tokenAmountIn
+    */
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+    external
+    override
+    ready
+    withinCap
+    onlyPublicSwap
+    noReentry
+    returns (uint256 tokenAmountIn)
+  {
+    return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut);
+  }
+
+  // ADMIN FUNCTIONS ------------------------------------------
+
+  /**
+        @notice Bind a token to the underlying balancer pool. Can only be called by the token binder
+        @param _token Token to bind
+        @param _balance Amount to bind
+        @param _denorm Denormalised weight
+    */
+  function bind(
+    address _token,
+    uint256 _balance,
+    uint256 _denorm
+  ) external override onlyTokenBinder noReentry {
+    IBPool bPool = PBStorage.load().bPool;
+    IERC20 token = IERC20(_token);
+    require(
+      token.transferFrom(msg.sender, address(this), _balance),
+      "PBasicSmartPool.bind: transferFrom failed"
+    );
+    token.approve(address(bPool), uint256(-1));
+    bPool.bind(_token, _balance, _denorm);
+  }
+
+  /**
+        @notice Rebind a token to the pool
+        @param _token Token to bind
+        @param _balance Amount to bind
+        @param _denorm Denormalised weight
+    */
+  function rebind(
+    address _token,
+    uint256 _balance,
+    uint256 _denorm
+  ) external override onlyTokenBinder noReentry {
+    IBPool bPool = PBStorage.load().bPool;
+    IERC20 token = IERC20(_token);
+
+    // gulp old non acounted for token balance in the contract
+    bPool.gulp(_token);
+
+    uint256 oldBalance = token.balanceOf(address(bPool));
+    // If tokens need to be pulled from msg.sender
+    if (_balance > oldBalance) {
+      require(
+        token.transferFrom(msg.sender, address(this), _balance.bsub(oldBalance)),
+        "PBasicSmartPool.rebind: transferFrom failed"
+      );
+      token.approve(address(bPool), uint256(-1));
+    }
+
+    bPool.rebind(_token, _balance, _denorm);
+
+    // If any tokens are in this contract send them to msg.sender
+    uint256 tokenBalance = token.balanceOf(address(this));
+    if (tokenBalance > 0) {
+      require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.rebind: transfer failed");
+    }
+  }
+
+  /**
+        @notice Unbind a token
+        @param _token Token to unbind
+    */
+  function unbind(address _token) external override onlyTokenBinder noReentry {
+    IBPool bPool = PBStorage.load().bPool;
+    IERC20 token = IERC20(_token);
+    // unbind the token in the bPool
+    bPool.unbind(_token);
+
+    // If any tokens are in this contract send them to msg.sender
+    uint256 tokenBalance = token.balanceOf(address(this));
+    if (tokenBalance > 0) {
+      require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.unbind: transfer failed");
+    }
   }
 
   /**
@@ -136,7 +325,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
                 Can only be set by the controller.
         @param _public Public or not
     */
-  function setPublicSwap(bool _public) external onlyPublicSwapSetter noReentry {
+  function setPublicSwap(bool _public) external override onlyPublicSwapSetter noReentry {
     emit PublicSwapSet(msg.sender, _public);
     PBStorage.load().bPool.setPublicSwap(_public);
   }
@@ -146,186 +335,67 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
                 Can only be called by the controller.
         @param _swapFee The new swap fee
     */
-  function setSwapFee(uint256 _swapFee) external onlyController noReentry {
+  function setSwapFee(uint256 _swapFee) external override onlyController noReentry {
     emit SwapFeeSet(msg.sender, _swapFee);
     PBStorage.load().bPool.setSwapFee(_swapFee);
   }
 
   /**
-        @notice Mints pool shares in exchange for underlying assets.
-        @param _amount Amount of pool shares to mint
+        @notice Set the maximum cap of the contract
+        @param _cap New cap in wei
     */
-
-  function joinPool(uint256 _amount) external virtual override ready noReentry {
-    LibPoolEntryExit.joinPool(_amount);
+  function setCap(uint256 _cap) external override onlyController noReentry {
+    emit CapChanged(msg.sender, PCSStorage.load().cap, _cap);
+    PCSStorage.load().cap = _cap;
   }
 
-  /**
-        @notice Burns pool shares and sends back the underlying assets
-        @param _amount Amount of pool tokens to burn
-    */
-  function exitPool(uint256 _amount) external override ready noReentry {
-    LibPoolEntryExit.exitPool(_amount);
+  function setJoinExitEnabled(bool _newValue) external onlyController {
+    emit JoinExitEnabledChanged(msg.sender, P2Storage.load().joinExitEnabled, _newValue);
+    P2Storage.load().joinExitEnabled = _newValue;
   }
 
-  /**
-        @notice Joinswap single asset pool entry given token amount in
-        @param _token Address of entry token
-        @param _amountIn Amount of entry tokens
-        @return poolAmountOut
-    */
-  function joinswapExternAmountIn(address _token, uint256 _amountIn)
-    external
-    virtual
-    ready
-    noReentry
-    onlyPublicSwap
-    returns (uint256 poolAmountOut)
-  {
-    return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn);
+  function tripCircuitBreaker() external onlyController {
+    P2Storage.load().joinExitEnabled = false;
+    PBStorage.load().bPool.setPublicSwap(false);
+    emit CircuitBreakerTripped();
   }
 
-  /**
-        @notice Joinswap single asset pool entry given pool amount out
-        @param _token Address of entry token
-        @param _amountOut Amount of entry tokens to deposit into the pool
-        @return tokenAmountIn
-    */
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
-    external
-    virtual
-    ready
-    noReentry
-    onlyPublicSwap
-    returns (uint256 tokenAmountIn)
-  {
-    return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut);
+  // TOKEN AND WEIGHT FUNCTIONS -------------------------------
+  function updateWeight(address _token, uint256 _newWeight) external noReentry onlyController {
+    LibWeights.updateWeight(_token, _newWeight);
   }
 
-  /**
-        @notice Exitswap single asset pool exit given pool amount in
-        @param _token Address of exit token
-        @param _poolAmountIn Amount of pool tokens sending to the pool
-        @return tokenAmountOut amount of exit tokens being withdrawn
-    */
-  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
-    external
-    virtual
-    ready
-    noReentry
-    onlyPublicSwap
-    returns (uint256 tokenAmountOut)
-  {
-    return LibPoolEntryExit.exitswapPoolAmountIn(_token, _poolAmountIn);
+  // Let external actors poke the contract with pokeWeights(),
+  // to slowly get to newWeights at endBlock
+  function updateWeightsGradually(
+    uint256[] calldata _newWeights,
+    uint256 _startBlock,
+    uint256 _endBlock
+  ) external noReentry onlyController {
+    LibWeights.updateWeightsGradually(_newWeights, _startBlock, _endBlock);
   }
 
-  /**
-        @notice Exitswap single asset pool entry given token amount out
-        @param _token Address of exit token
-        @param _tokenAmountOut Amount of exit tokens
-        @return poolAmountIn amount of pool tokens being deposited
-    */
-  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
-    external
-    virtual
-    ready
-    noReentry
-    onlyPublicSwap
-    returns (uint256 poolAmountIn)
-  {
-    return LibPoolEntryExit.exitswapExternAmountOut(_token, _tokenAmountOut);
+  function pokeWeights() external noReentry {
+    LibWeights.pokeWeights();
   }
 
-  /**
-        @notice Burns pool shares and sends back the underlying assets leaving some in the pool
-        @param _amount Amount of pool tokens to burn
-        @param _lossTokens Tokens skipped on redemption
-    */
-  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens)
-    external
-    ready
-    noReentry
-  {
-    LibPoolEntryExit.exitPoolTakingloss(_amount, _lossTokens);
+  function applyAddToken() external noReentry onlyController {
+    LibAddRemoveToken.applyAddToken();
   }
 
-  /**
-        @notice Bind a token to the underlying balancer pool. Can only be called by the token binder
-        @param _token Token to bind
-        @param _balance Amount to bind
-        @param _denorm Denormalised weight
-    */
-  function bind(
+  function commitAddToken(
     address _token,
     uint256 _balance,
-    uint256 _denorm
-  ) external onlyTokenBinder noReentry {
-    IBPool bPool = PBStorage.load().bPool;
-    IERC20 token = IERC20(_token);
-    require(
-      token.transferFrom(msg.sender, address(this), _balance),
-      "PBasicSmartPool.bind: transferFrom failed"
-    );
-    token.approve(address(bPool), uint256(-1));
-    bPool.bind(_token, _balance, _denorm);
+    uint256 _denormalizedWeight
+  ) external noReentry onlyController {
+    LibAddRemoveToken.commitAddToken(_token, _balance, _denormalizedWeight);
   }
 
-  /**
-        @notice Rebind a token to the pool
-        @param _token Token to bind
-        @param _balance Amount to bind
-        @param _denorm Denormalised weight
-    */
-  function rebind(
-    address _token,
-    uint256 _balance,
-    uint256 _denorm
-  ) external onlyTokenBinder noReentry {
-    IBPool bPool = PBStorage.load().bPool;
-    IERC20 token = IERC20(_token);
-
-    // gulp old non acounted for token balance in the contract
-    bPool.gulp(_token);
-
-    uint256 oldBalance = token.balanceOf(address(bPool));
-    // If tokens need to be pulled from msg.sender
-    if (_balance > oldBalance) {
-      require(
-        token.transferFrom(msg.sender, address(this), _balance.bsub(oldBalance)),
-        "PBasicSmartPool.rebind: transferFrom failed"
-      );
-      token.approve(address(bPool), uint256(-1));
-    }
-
-    bPool.rebind(_token, _balance, _denorm);
-
-    // If any tokens are in this contract send them to msg.sender
-    uint256 tokenBalance = token.balanceOf(address(this));
-    if (tokenBalance > 0) {
-      require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.rebind: transfer failed");
-    }
+  function removeToken(address _token) external noReentry onlyController {
+    LibAddRemoveToken.removeToken(_token);
   }
 
-  /**
-        @notice Unbind a token
-        @param _token Token to unbind
-    */
-  function unbind(address _token) external onlyTokenBinder noReentry {
-    IBPool bPool = PBStorage.load().bPool;
-    IERC20 token = IERC20(_token);
-    // unbind the token in the bPool
-    bPool.unbind(_token);
-
-    // If any tokens are in this contract send them to msg.sender
-    uint256 tokenBalance = token.balanceOf(address(this));
-    if (tokenBalance > 0) {
-      require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.unbind: transfer failed");
-    }
-  }
-
-  function getTokens() external override view returns (address[] memory) {
-    return PBStorage.load().bPool.getCurrentTokens();
-  }
+  // VIEW FUNCTIONS -------------------------------------------
 
   /**
         @notice Gets the underlying assets and amounts to mint specific pool shares.
@@ -359,6 +429,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   */
   function calcPoolOutGivenSingleIn(address _token, uint256 _amount)
     external
+    override
     view
     returns (uint256)
   {
@@ -389,6 +460,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   */
   function calcSingleInGivenPoolOut(address _token, uint256 _amount)
     external
+    override
     view
     returns (uint256)
   {
@@ -419,6 +491,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   */
   function calcSingleOutGivenPoolIn(address _token, uint256 _amount)
     external
+    override
     view
     returns (uint256)
   {
@@ -449,6 +522,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
   */
   function calcPoolInGivenSingleOut(address _token, uint256 _amount)
     external
+    override
     view
     returns (uint256)
   {
@@ -471,6 +545,10 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     );
   }
 
+  function getTokens() external override view returns (address[] memory) {
+    return PBStorage.load().bPool.getCurrentTokens();
+  }
+
   /**
         @notice Get the address of the controller
         @return The address of the pool
@@ -483,7 +561,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Get the address of the public swap setter
         @return The public swap setter address
     */
-  function getPublicSwapSetter() external view returns (address) {
+  function getPublicSwapSetter() external override view returns (address) {
     return PBStorage.load().publicSwapSetter;
   }
 
@@ -491,7 +569,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Get the address of the token binder
         @return The token binder address
     */
-  function getTokenBinder() external view returns (address) {
+  function getTokenBinder() external override view returns (address) {
     return PBStorage.load().tokenBinder;
   }
 
@@ -499,54 +577,80 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Get if public swapping is enabled
         @return If public swapping is enabled
     */
-  function isPublicSwap() external view returns (bool) {
+  function isPublicSwap() external override view returns (bool) {
     return PBStorage.load().bPool.isPublicSwap();
   }
 
   /**
-        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
-    */
-  function finalizeSmartPool() external view {
-    revert("PBasicSmartPool.finalizeSmartPool: unsupported function");
-  }
-
-  /**
-        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
-    */
-  function createPool(uint256 initialSupply) external view {
-    revert("PBasicSmartPool.createPool: unsupported function");
-  }
-
-  /**
-        @notice Get the current swap fee
-        @return The current swap fee
-    */
-  function getSwapFee() external view returns (uint256) {
-    return PBStorage.load().bPool.getSwapFee();
-  }
-
-  /**
-        @notice Get the address of the underlying Balancer pool
-        @return The address of the underlying balancer pool
-    */
-  function getBPool() external view returns (address) {
-    return address(PBStorage.load().bPool);
+      @notice Get the current cap
+      @return The current cap in wei
+  */
+  function getCap() external override view returns (uint256) {
+    return PCSStorage.load().cap;
   }
 
   /**
         @notice Get the denormalized weight of a specific token in the underlying balancer pool
         @return the normalized weight of the token in uint
   */
-  function getDenormalizedWeight(address _token) external view returns (uint256) {
+  function getDenormalizedWeight(address _token) external override view returns (uint256) {
     return PBStorage.load().bPool.getDenormalizedWeight(_token);
   }
 
-  function getDenormalizedWeights() external view returns (uint256[] memory weights) {
+  function getDenormalizedWeights() external override view returns (uint256[] memory weights) {
     PBStorage.StorageStruct storage s = PBStorage.load();
     address[] memory tokens = s.bPool.getCurrentTokens();
     weights = new uint256[](tokens.length);
     for (uint256 i = 0; i < tokens.length; i++) {
       weights[i] = s.bPool.getDenormalizedWeight(tokens[i]);
     }
+  }
+
+  /**
+        @notice Get the address of the underlying Balancer pool
+        @return The address of the underlying balancer pool
+    */
+  function getBPool() external override view returns (address) {
+    return address(PBStorage.load().bPool);
+  }
+
+  /**
+        @notice Get the current swap fee
+        @return The current swap fee
+    */
+  function getSwapFee() external override view returns (uint256) {
+    return PBStorage.load().bPool.getSwapFee();
+  }
+
+  function getNewWeights() external view returns (uint256[] memory weights) {
+    return P2Storage.load().newWeights;
+  }
+
+  function getStartWeights() external view returns (uint256[] memory weights) {
+    return P2Storage.load().startWeights;
+  }
+
+  function getStartBlock() external view returns (uint256) {
+    return P2Storage.load().startBlock;
+  }
+
+  function getEndBlock() external view returns (uint256) {
+    return P2Storage.load().endBlock;
+  }
+
+  // UNSUPORTED METHODS ---------------------------------------
+
+  /**
+        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+    */
+  function finalizeSmartPool() external override view {
+    revert("PBasicSmartPool.finalizeSmartPool: unsupported function");
+  }
+
+  /**
+        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+    */
+  function createPool(uint256 initialSupply) external override view {
+    revert("PBasicSmartPool.createPool: unsupported function");
   }
 }

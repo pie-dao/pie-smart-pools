@@ -1,7 +1,7 @@
 pragma solidity ^0.6.4;
 
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
-import {PAdjustableSmartPoolStorage as PAStorage} from "../storage/PAdjustableSmartPoolStorage.sol";
+import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import {LibConst as constants} from "./LibConst.sol";
 import "./LibPoolToken.sol";
@@ -77,7 +77,7 @@ library LibWeights {
     uint256 _endBlock
   ) external {
     PBStorage.StorageStruct storage s = PBStorage.load();
-    PAStorage.StorageStruct storage ws = PAStorage.load();
+    P2Storage.StorageStruct storage ws = P2Storage.load();
 
     uint256 weightsSum = 0;
     address[] memory tokens = s.bPool.getCurrentTokens();
@@ -113,7 +113,7 @@ library LibWeights {
 
   function pokeWeights() external {
     PBStorage.StorageStruct storage s = PBStorage.load();
-    PAStorage.StorageStruct storage ws = PAStorage.load();
+    P2Storage.StorageStruct storage ws = P2Storage.load();
 
     require(block.number >= ws.startBlock, "ERR_CANT_POKE_YET");
 

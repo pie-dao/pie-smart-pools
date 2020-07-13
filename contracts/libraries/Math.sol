@@ -44,6 +44,21 @@ library Math {
     return c2;
   }
 
+  // Overflow protected multiplication
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+        // benefit is lost if 'b' is also tested.
+        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+        if (a == 0) {
+            return 0;
+        }
+
+        uint256 c = a * b;
+        require(c / a == b, "Math: multiplication overflow");
+
+        return c;
+  }
+
   // Divide two 18 decimals numbers
   function bdiv(uint256 a, uint256 b) internal pure returns (uint256) {
     require(b != 0, "ERR_DIV_ZERO");
@@ -53,6 +68,15 @@ library Math {
     require(c1 >= c0, "ERR_DIV_INTERNAL"); //  badd require
     uint256 c2 = c1 / b;
     return c2;
+  }
+
+  // Overflow protected division
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b > 0, "Division by zero");
+        uint256 c = a / b;
+        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+
+        return c;
   }
 
   // DSMath.wpow

@@ -1,7 +1,7 @@
 pragma solidity ^0.6.4;
 
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
-import {PAdjustableSmartPoolStorage as PAStorage} from "../storage/PAdjustableSmartPoolStorage.sol";
+import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import {LibConst as constants} from "./LibConst.sol";
 import "./LibPoolToken.sol";
@@ -12,7 +12,7 @@ library LibAddRemoveToken {
   using Math for uint256;
 
   function applyAddToken() external {
-    PAStorage.StorageStruct storage ws = PAStorage.load();
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     PBStorage.StorageStruct storage s = PBStorage.load();
 
     require(ws.newToken.isCommitted, "ERR_NO_TOKEN_COMMIT");
@@ -41,7 +41,7 @@ library LibAddRemoveToken {
     uint256 _balance,
     uint256 _denormalizedWeight
   ) external {
-    PAStorage.StorageStruct storage ws = PAStorage.load();
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     PBStorage.StorageStruct storage s = PBStorage.load();
 
     require(!s.bPool.isBound(_token), "ERR_IS_BOUND");

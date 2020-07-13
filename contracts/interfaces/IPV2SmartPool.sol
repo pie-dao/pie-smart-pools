@@ -1,0 +1,112 @@
+pragma solidity ^0.6.4;
+
+import "../interfaces/IERC20.sol";
+
+
+interface IPV2SmartPool is IERC20 {
+  function init(
+    address _bPool,
+    string calldata _name,
+    string calldata _symbol,
+    uint256 _initialSupply
+  ) external;
+
+  function setPublicSwapSetter(address _swapSetter) external;
+
+  function setTokenBinder(address _tokenBinder) external;
+
+  function setPublicSwap(bool _public) external;
+
+  function setSwapFee(uint256 _swapFee) external;
+
+  function setCap(uint256 _cap) external;
+
+  function setController(address _controller) external;
+
+  function approveTokens() external;
+
+  function joinPool(uint256 _amount) external;
+
+  function exitPool(uint256 _amount) external;
+
+  function joinswapExternAmountIn(address _token, uint256 _amountIn)
+    external
+    returns (uint256 poolAmountOut);
+
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+    external
+    returns (uint256 tokenAmountIn);
+
+  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
+    external
+    returns (uint256 tokenAmountOut);
+
+  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
+    external
+    returns (uint256 poolAmountIn);
+
+  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens) external;
+
+  function bind(
+    address _token,
+    uint256 _balance,
+    uint256 _denorm
+  ) external;
+
+  function rebind(
+    address _token,
+    uint256 _balance,
+    uint256 _denorm
+  ) external;
+
+  function unbind(address _token) external;
+
+  function getController() external view returns (address);
+
+  function getPublicSwapSetter() external view returns (address);
+
+  function getTokenBinder() external view returns (address);
+
+  function isPublicSwap() external view returns (bool);
+
+  function getTokens() external view returns (address[] memory);
+
+  function getCap() external view returns (uint256);
+
+  function getDenormalizedWeight(address _token) external view returns (uint256);
+
+  function getDenormalizedWeights() external view returns (uint256[] memory weights);
+
+  function getBPool() external view returns (address);
+
+  function getSwapFee() external view returns (uint256);
+
+  function finalizeSmartPool() external view;
+
+  function createPool(uint256 initialSupply) external view;
+
+  function calcTokensForAmount(uint256 _amount)
+    external
+    view
+    returns (address[] memory tokens, uint256[] memory amounts);
+
+  function calcPoolOutGivenSingleIn(address _token, uint256 _amount)
+    external
+    view
+    returns (uint256);
+
+  function calcSingleInGivenPoolOut(address _token, uint256 _amount)
+    external
+    view
+    returns (uint256);
+
+  function calcSingleOutGivenPoolIn(address _token, uint256 _amount)
+    external
+    view
+    returns (uint256);
+
+  function calcPoolInGivenSingleOut(address _token, uint256 _amount)
+    external
+    view
+    returns (uint256);
+}

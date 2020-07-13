@@ -1,8 +1,8 @@
 pragma solidity ^0.6.4;
 
 
-library PAdjustableSmartPoolStorage {
-  bytes32 public constant pasSlot = keccak256("PAdjustableSmartPool.storage.location");
+library PV2SmartPoolStorage {
+  bytes32 public constant pasSlot = keccak256("PV2SmartPoolStorage.storage.location");
 
   struct StorageStruct {
     uint256 startBlock;
@@ -10,6 +10,10 @@ library PAdjustableSmartPoolStorage {
     uint256[] startWeights;
     uint256[] newWeights;
     NewToken newToken;
+    bool joinExitEnabled;
+    uint256 annualFee;
+    uint256 lastAnnualFeeClaimed;
+    address feeRecipient;
   }
 
   struct NewToken {
