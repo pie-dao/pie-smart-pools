@@ -13,7 +13,8 @@ import { IERC20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 
 import { PV2SmartPool } from "./typechain/PV2SmartPool";
-import PV2SmartPoolArtifact, { PV2SmartPoolFactory } from "./typechain/PV2SmartPoolFactory";
+import { PV2SmartPoolFactory } from "./typechain/PV2SmartPoolFactory";
+import PV2SmartPoolArtifact from "./artifacts/PV2SmartPool.json";
 
 import LibPoolEntryExitArtifact from "./artifacts/LibPoolEntryExit.json";
 import LibAddRemoveTokenArtifact from "./artifacts/LibAddRemoveToken.json";
