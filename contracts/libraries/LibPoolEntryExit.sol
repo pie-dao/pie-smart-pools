@@ -21,7 +21,7 @@ library LibPoolEntryExit {
   function exitPool(uint256 _amount) external {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
-    uint256 poolTotal = PCStorage.load();
+    uint256 poolTotal = PCStorage.load().totalSupply;
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
 
