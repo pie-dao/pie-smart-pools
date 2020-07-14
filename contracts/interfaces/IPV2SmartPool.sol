@@ -23,6 +23,28 @@ interface IPV2SmartPool is IERC20 {
 
   function setController(address _controller) external;
 
+  function setCircuitBreaker(address _newCircuitBreaker) external;
+
+  function updateWeight(address _token, uint256 _newWeight) external;
+
+  function updateWeightsGradually(
+    uint256[] calldata _newWeights,
+    uint256 _startBlock,
+    uint256 _endBlock
+  ) external;
+
+  function pokeWeights() external;
+
+  function applyAddToken() external;
+
+  function commitAddToken(
+    address _token,
+    uint256 _balance,
+    uint256 _denormalizedWeight
+  ) external;
+
+  function removeToken(address _token) external;
+
   function approveTokens() external;
 
   function joinPool(uint256 _amount) external;
