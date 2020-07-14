@@ -5,16 +5,17 @@ import "../interfaces/IBPool.sol";
 import "../PCToken.sol";
 import "../ReentryProtection.sol";
 
+import "../libraries/LibPoolToken.sol";
 import "../libraries/LibAddRemoveToken.sol";
 import "../libraries/LibPoolEntryExit.sol";
 import "../libraries/LibPoolMath.sol";
-import "../libraries/LibPoolToken.sol";
 import "../libraries/LibWeights.sol";
 
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPoolStorage.sol";
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
+
 
 contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   event TokensApproved();
@@ -26,6 +27,10 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   event CapChanged(address indexed setter, uint256 oldCap, uint256 newCap);
   event CircuitBreakerTripped();
   event JoinExitEnabledChanged(address indexed setter, bool oldValue, bool newValue);
+  event CircuitBreakerChanged(
+    address indexed _oldCircuitBreaker,
+    address indexed _newCircuitBreaker
+  );
 
   modifier ready() {
     require(address(PBStorage.load().bPool) != address(0), "PBasicSmartPool.ready: not ready");
@@ -35,7 +40,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   modifier onlyController() {
     require(
       msg.sender == PBStorage.load().controller,
-      "PBasicSmartPool.onlyController: not controller"
+      "PV2Pool.onlyController: not controller"
     );
     _;
   }
@@ -43,7 +48,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   modifier onlyPublicSwapSetter() {
     require(
       msg.sender == PBStorage.load().publicSwapSetter,
-      "PBasicSmartPool.onlyPublicSwapSetter: not public swap setter"
+      "PV2Pool.onlyPublicSwapSetter: not public swap setter"
     );
     _;
   }
@@ -51,7 +56,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   modifier onlyTokenBinder() {
     require(
       msg.sender == PBStorage.load().tokenBinder,
-      "PBasicSmartPool.onlyTokenBinder: not token binder"
+      "PV2Pool.onlyTokenBinder: not token binder"
     );
     _;
   }
@@ -59,7 +64,15 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
   modifier onlyPublicSwap() {
     require(
       PBStorage.load().bPool.isPublicSwap(),
-      "PBasicSmartPool.onlyPublicSwap: swapping not enabled"
+      "PV2Pool.onlyPublicSwap: swapping not enabled"
+    );
+    _;
+  }
+
+  modifier onlyCircuitBreaker() {
+    require(
+      msg.sender == P2Storage.load().circuitBreaker,
+      "PV2Pool.onlyCircuitBreaker: not circuit breaker"
     );
     _;
   }
@@ -83,9 +96,9 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     uint256 _initialSupply
   ) external override {
     PBStorage.StorageStruct storage s = PBStorage.load();
-    require(address(s.bPool) == address(0), "PBasicSmartPool.init: already initialised");
-    require(_bPool != address(0), "PBasicSmartPool.init: _bPool cannot be 0x00....000");
-    require(_initialSupply != 0, "PBasicSmartPool.init: _initialSupply can not zero");
+    require(address(s.bPool) == address(0), "PV2Pool.init: already initialised");
+    require(_bPool != address(0), "PV2Pool.init: _bPool cannot be 0x00....000");
+    require(_initialSupply != 0, "PV2Pool.init: _initialSupply can not zero");
     s.bPool = IBPool(_bPool);
     s.controller = msg.sender;
     s.publicSwapSetter = msg.sender;
@@ -229,7 +242,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     IERC20 token = IERC20(_token);
     require(
       token.transferFrom(msg.sender, address(this), _balance),
-      "PBasicSmartPool.bind: transferFrom failed"
+      "PV2Pool.bind: transferFrom failed"
     );
     token.approve(address(bPool), uint256(-1));
     bPool.bind(_token, _balance, _denorm);
@@ -257,7 +270,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     if (_balance > oldBalance) {
       require(
         token.transferFrom(msg.sender, address(this), _balance.bsub(oldBalance)),
-        "PBasicSmartPool.rebind: transferFrom failed"
+        "PV2Pool.rebind: transferFrom failed"
       );
       token.approve(address(bPool), uint256(-1));
     }
@@ -267,7 +280,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     // If any tokens are in this contract send them to msg.sender
     uint256 tokenBalance = token.balanceOf(address(this));
     if (tokenBalance > 0) {
-      require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.rebind: transfer failed");
+      require(token.transfer(msg.sender, tokenBalance), "PV2Pool.rebind: transfer failed");
     }
   }
 
@@ -284,7 +297,7 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     // If any tokens are in this contract send them to msg.sender
     uint256 tokenBalance = token.balanceOf(address(this));
     if (tokenBalance > 0) {
-      require(token.transfer(msg.sender, tokenBalance), "PBasicSmartPool.unbind: transfer failed");
+      require(token.transfer(msg.sender, tokenBalance), "PV2Pool.unbind: transfer failed");
     }
   }
 
@@ -354,14 +367,24 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     P2Storage.load().joinExitEnabled = _newValue;
   }
 
-  function tripCircuitBreaker() external onlyController {
+  function setCircuitBreaker(address _newCircuitBreaker) external override onlyController {
+    emit CircuitBreakerChanged(P2Storage.load().circuitBreaker, _newCircuitBreaker);
+    P2Storage.load().circuitBreaker = _newCircuitBreaker;
+  }
+
+  function tripCircuitBreaker() external onlyCircuitBreaker {
     P2Storage.load().joinExitEnabled = false;
     PBStorage.load().bPool.setPublicSwap(false);
     emit CircuitBreakerTripped();
   }
 
   // TOKEN AND WEIGHT FUNCTIONS -------------------------------
-  function updateWeight(address _token, uint256 _newWeight) external noReentry onlyController {
+  function updateWeight(address _token, uint256 _newWeight)
+    external
+    override
+    noReentry
+    onlyController
+  {
     LibWeights.updateWeight(_token, _newWeight);
   }
 
@@ -371,15 +394,15 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     uint256[] calldata _newWeights,
     uint256 _startBlock,
     uint256 _endBlock
-  ) external noReentry onlyController {
+  ) external override noReentry onlyController {
     LibWeights.updateWeightsGradually(_newWeights, _startBlock, _endBlock);
   }
 
-  function pokeWeights() external noReentry {
+  function pokeWeights() external override noReentry {
     LibWeights.pokeWeights();
   }
 
-  function applyAddToken() external noReentry onlyController {
+  function applyAddToken() external override noReentry onlyController {
     LibAddRemoveToken.applyAddToken();
   }
 
@@ -387,11 +410,11 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
     address _token,
     uint256 _balance,
     uint256 _denormalizedWeight
-  ) external noReentry onlyController {
+  ) external override noReentry onlyController {
     LibAddRemoveToken.commitAddToken(_token, _balance, _denormalizedWeight);
   }
 
-  function removeToken(address _token) external noReentry onlyController {
+  function removeToken(address _token) external override noReentry onlyController {
     LibAddRemoveToken.removeToken(_token);
   }
 
@@ -644,13 +667,13 @@ contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
         @notice Not Supported in PieDAO implementation of Balancer Smart Pools
     */
   function finalizeSmartPool() external override view {
-    revert("PBasicSmartPool.finalizeSmartPool: unsupported function");
+    revert("PV2Pool.finalizeSmartPool: unsupported function");
   }
 
   /**
         @notice Not Supported in PieDAO implementation of Balancer Smart Pools
     */
   function createPool(uint256 initialSupply) external override view {
-    revert("PBasicSmartPool.createPool: unsupported function");
+    revert("PV2Pool.createPool: unsupported function");
   }
 }

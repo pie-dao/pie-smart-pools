@@ -14,6 +14,7 @@ library PV2SmartPoolStorage {
     uint256 annualFee;
     uint256 lastAnnualFeeClaimed;
     address feeRecipient;
+    address circuitBreaker;
   }
 
   struct NewToken {
