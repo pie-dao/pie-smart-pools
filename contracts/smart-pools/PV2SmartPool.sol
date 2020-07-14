@@ -17,7 +17,7 @@ import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPool
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 
 
-contract PV2Pool is IPV2SmartPool, PCToken, ReentryProtection {
+contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
   event PublicSwapSetterChanged(address indexed previousSetter, address indexed newSetter);
