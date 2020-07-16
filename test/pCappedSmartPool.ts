@@ -10,9 +10,8 @@ import {deployContract, solidity} from "ethereum-waffle";
 import {deployBalancerPool, linkArtifact} from "../utils";
 import {IBPool} from "../typechain/IBPool";
 import {IBPoolFactory} from "../typechain/IBPoolFactory";
-import {PBasicSmartPoolFactory} from "../typechain/PBasicSmartPoolFactory";
-import {PCappedSmartPool} from "../typechain/PCappedSmartPool";
-import PCappedSmartPoolArtifact from "../artifacts/PCappedSmartPool.json";
+import {PV2SmartPool} from "../typechain/PV2SmartPool";
+import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -22,13 +21,13 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PCappedSmartPool", function () {
+describe("PV2SmartPool", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
   let tokens: MockToken[];
   let pool: IBPool;
-  let smartpool: PCappedSmartPool;
+  let smartpool: PV2SmartPool;
 
   beforeEach(async () => {
     signers = await ethers.signers();
@@ -49,10 +48,10 @@ describe("PCappedSmartPool", function () {
     }
 
     const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PCappedSmartPoolArtifact, libraries);
+    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
     smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PCappedSmartPool;
+    })) as PV2SmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);
@@ -103,4 +102,25 @@ describe("PCappedSmartPool", function () {
       "PCappedSmartPool.withinCap: Cap limit reached"
     );
   });
+
+  it.only("joinswapExternAmountIn with less than the cap should work", async () => {
+    const cap = constants.WeiPerEther.mul(100);
+    await smartpool.setCap(cap);
+    await smartpool.setPublicSwap(true);
+    const tokenBalance = constants.WeiPerEther.div(100);
+
+    await smartpool.joinswapExternAmountIn(tokens[0].address, tokenBalance);
+  });
+
+  // it("joinswapPoolAmountOut with less than the cap should work", async () => {
+
+  // });
+
+  // it("joinswapExternAmountIn with more than the cap should fail", async () => {
+
+  // });
+
+  // it("joinswapPoolAmountOut with more than the cap should fail", async () => {
+
+  // });
 });

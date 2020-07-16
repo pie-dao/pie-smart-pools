@@ -12,10 +12,9 @@ import {deployContract, solidity} from "ethereum-waffle";
 import {deployBalancerPool, linkArtifact} from "../utils";
 import {IBPool} from "../typechain/IBPool";
 import {IBPoolFactory} from "../typechain/IBPoolFactory";
-import {PBasicSmartPoolFactory} from "../typechain/PBasicSmartPoolFactory";
-import {PBasicSmartPool} from "../typechain/PBasicSmartPool";
-import PBasicSmartPoolArtifact from "../artifacts/PBasicSmartPool.json";
-import {EEXIST} from "constants";
+import {PV2SmartPoolFactory} from "../typechain/PV2SmartPoolFactory";
+import {PV2SmartPool} from "../typechain/PV2SmartPool";
+import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -32,7 +31,7 @@ describe.only("PBasicSmartPool", function () {
   let account: string;
   let tokens: MockToken[];
   let pool: IBPool;
-  let smartpool: PBasicSmartPool;
+  let smartpool: PV2SmartPool;
 
   beforeEach(async () => {
     signers = await ethers.signers();
@@ -50,11 +49,11 @@ describe.only("PBasicSmartPool", function () {
     }
 
     const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PBasicSmartPoolArtifact, libraries);
+    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
 
     smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PBasicSmartPool;
+    })) as PV2SmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
 
@@ -72,17 +71,17 @@ describe.only("PBasicSmartPool", function () {
 
   describe("init", async () => {
     it("Initialising with invalid bPool address should fail", async () => {
-      smartpool = (await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {
+      smartpool = (await deployContract(signers[0] as Wallet, PV2SmartPoolArtifact, [], {
         gasLimit: 100000000,
-      })) as PBasicSmartPool;
+      })) as PV2SmartPool;
       await expect(
         smartpool.init(ethers.constants.AddressZero, "TEST", "TEST", ethers.constants.WeiPerEther)
       ).to.be.revertedWith("PBasicSmartPool.init: _bPool cannot be 0x00....000");
     });
     it("Initialising with zero supply should fail", async () => {
-      smartpool = (await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {
+      smartpool = (await deployContract(signers[0] as Wallet, PV2SmartPoolArtifact, [], {
         gasLimit: 100000000,
-      })) as PBasicSmartPool;
+      })) as PV2SmartPool;
       await expect(
         smartpool.init(PLACE_HOLDER_ADDRESS, "TEST", "TEST", ethers.constants.Zero)
       ).to.be.revertedWith("PBasicSmartPool.init: _initialSupply can not zero");
@@ -251,7 +250,7 @@ describe.only("PBasicSmartPool", function () {
     });
     it("Removing liquidity should fail when removing more than balance", async () => {
       // First mint some more in another account to not withdraw all total liquidity in the actual test
-      const altSignerSmartPool = PBasicSmartPoolFactory.connect(smartpool.address, signers[1]);
+      const altSignerSmartPool = PV2SmartPoolFactory.connect(smartpool.address, signers[1]);
       await altSignerSmartPool.joinPool(constants.WeiPerEther);
       await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.revertedWith(
         "ERR_INSUFFICIENT_BAL"
@@ -287,7 +286,7 @@ describe.only("PBasicSmartPool", function () {
     });
     it("Removing liquidity leaving a single token should fail when removing more than balance", async () => {
       // First mint some more in another account to not withdraw all total liquidity in the actual test
-      const altSignerSmartPool = PBasicSmartPoolFactory.connect(smartpool.address, signers[1]);
+      const altSignerSmartPool = PV2SmartPoolFactory.connect(smartpool.address, signers[1]);
       await altSignerSmartPool.joinPool(constants.WeiPerEther);
       await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.revertedWith(
         "ERR_INSUFFICIENT_BAL"
@@ -505,9 +504,9 @@ describe.only("PBasicSmartPool", function () {
 
   describe("ready modifier", async () => {
     it("should revert when not ready", async () => {
-      smartpool = (await deployContract(signers[0] as Wallet, PBasicSmartPoolArtifact, [], {
+      smartpool = (await deployContract(signers[0] as Wallet, PV2SmartPoolArtifact, [], {
         gasLimit: 100000000,
-      })) as PBasicSmartPool;
+      })) as PV2SmartPool;
       await expect(smartpool.joinPool(constants.WeiPerEther)).to.be.revertedWith(
         "PBasicSmartPool.ready: not ready"
       );

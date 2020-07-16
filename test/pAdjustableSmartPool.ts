@@ -10,8 +10,8 @@ import {deployContract, solidity} from "ethereum-waffle";
 import {deployBalancerPool, linkArtifact} from "../utils";
 import {IBPool} from "../typechain/IBPool";
 import {IBPoolFactory} from "../typechain/IBPoolFactory";
-import {PAdjustableSmartPool} from "../typechain/PAdjustableSmartPool";
-import PAdjustableSmartPoolArtifact from "../artifacts/PAdjustableSmartPool.json";
+import {PV2SmartPool} from "../typechain/PV2SmartPool";
+import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -27,7 +27,7 @@ describe("PAdjustableSmartPool ", function () {
   let account2: string;
   let tokens: MockToken[];
   let pool: IBPool;
-  let smartpool: PAdjustableSmartPool;
+  let smartpool: PV2SmartPool;
   let startBlock: number;
   let endBlock: number;
 
@@ -51,12 +51,12 @@ describe("PAdjustableSmartPool ", function () {
     }
 
     const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PAdjustableSmartPoolArtifact, libraries);
+    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
 
     // Deploy this way to get the coverage provider to pick it up
     smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PAdjustableSmartPool;
+    })) as PV2SmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);

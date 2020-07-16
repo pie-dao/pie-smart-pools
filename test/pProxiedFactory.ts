@@ -9,8 +9,8 @@ import {deployContract, solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, deployBalancerFactory, linkArtifact} from "../utils";
 import {PProxiedFactory} from "../typechain/PProxiedFactory";
-import {PAdjustableSmartPool} from "../typechain/PAdjustableSmartPool";
-import PAdjustableSmartPoolArtifact from "../artifacts/PAdjustableSmartPool.json";
+import {PV2SmartPool} from "../typechain/PV2SmartPool";
+import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 import PProxiedFactoryArtifact from "../artifacts/PProxiedFactory.json";
 
 chai.use(solidity);
@@ -38,12 +38,12 @@ describe("PProxiedFactory", () => {
     })) as PProxiedFactory;
 
     const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PAdjustableSmartPoolArtifact, libraries);
+    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
 
     // Deploy this way to get the coverage provider to pick it up
     const implementation = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PAdjustableSmartPool;
+    })) as PV2SmartPool;
 
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMP", "IMP", 1337);
     await factory.init(balancerFactoryAddress, implementation.address);
