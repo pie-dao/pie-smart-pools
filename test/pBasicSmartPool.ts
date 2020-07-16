@@ -306,7 +306,7 @@ describe.only("PBasicSmartPool", function () {
 
       await expect(
         smartpool.joinswapExternAmountIn(tokens[0].address, mintAmount)
-      ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
+      ).to.be.revertedWith("LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
       await expect(
         smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
       ).to.be.revertedWith("LibPoolEntryExit.joinswapPoolAmountOut: Token Not Bound");
@@ -387,10 +387,10 @@ describe.only("PBasicSmartPool", function () {
 
       await expect(
         smartpool.exitswapExternAmountOut(tokens[1].address, exitAmount)
-      ).to.be.revertedWith("LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
+      ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolExternAmountOut: Token Not Bound");
       await expect(
         smartpool.exitswapPoolAmountIn(tokens[1].address, exitAmount)
-      ).to.be.revertedWith("LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
+      ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
     });
     it("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
       const tokenAmountOut = constants.One;

@@ -33,7 +33,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   );
 
   modifier ready() {
-    require(address(PBStorage.load().bPool) != address(0), "PBasicSmartPool.ready: not ready");
+    require(address(PBStorage.load().bPool) != address(0), "PV2SmartPool.ready: not ready");
     _;
   }
 
