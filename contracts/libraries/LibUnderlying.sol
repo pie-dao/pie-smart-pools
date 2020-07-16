@@ -23,7 +23,7 @@ library LibUnderlying {
 
     require(
       IERC20(_token).transferFrom(_from, address(this), _amount),
-      "PBasicSmartPool._pullUnderlying: transferFrom failed"
+      "LibUnderlying._pullUnderlying: transferFrom failed"
     );
     bPool.rebind(_token, _tokenBalance.badd(_amount), tokenWeight);
   }
@@ -41,7 +41,7 @@ library LibUnderlying {
 
     require(
       IERC20(_token).transfer(_to, _amount),
-      "PBasicSmartPool._pushUnderlying: transfer failed"
+      "LibUnderlying._pushUnderlying: transfer failed"
     );
   }
 }

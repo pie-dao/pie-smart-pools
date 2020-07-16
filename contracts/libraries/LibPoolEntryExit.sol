@@ -45,7 +45,7 @@ library LibPoolEntryExit {
   {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
-    require(bPool.isBound(_token), "PBasicSmartPool.exitswapPoolAmountIn: Token Not Bound");
+    require(bPool.isBound(_token), "LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
 
     tokenAmountOut = bPool.calcSingleOutGivenPoolIn(
       bPool.getBalance(_token),
@@ -74,7 +74,7 @@ library LibPoolEntryExit {
   {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
-    require(bPool.isBound(_token), "PBasicSmartPool.exitswapExternAmountOut: Token Not Bound");
+    require(bPool.isBound(_token), "LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
 
     poolAmountIn = bPool.calcPoolInGivenSingleOut(
       bPool.getBalance(_token),
