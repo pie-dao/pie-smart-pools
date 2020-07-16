@@ -69,7 +69,9 @@ describe("PCToken", function () {
     it("Burning more than an address's balance should fail", async () => {
       const mintAmount = constants.WeiPerEther;
       await pcToken.mint(account, mintAmount);
-      await expect(pcToken.burn(account, constants.WeiPerEther.add(1))).to.be.reverted;
+      await expect(pcToken.burn(account, constants.WeiPerEther.add(1))).to.be.revertedWith(
+        "ERR_INSUFFICIENT_BAL"
+      );
     });
   });
   describe("balanceOf", async () => {
@@ -87,7 +89,9 @@ describe("PCToken", function () {
   describe("transfer", async () => {
     it("Should fail when the sender does not have enought balance", async () => {
       await pcToken.mint(account, constants.WeiPerEther);
-      await expect(pcToken.transfer(account2, constants.WeiPerEther.add(1))).to.be.reverted;
+      await expect(pcToken.transfer(account2, constants.WeiPerEther.add(1))).to.be.revertedWith(
+        "ERR_INSUFFICIENT_BAL"
+      );
     });
     it("Sending the entire balance should work", async () => {
       await pcToken.mint(account, constants.WeiPerEther);
@@ -157,7 +161,9 @@ describe("PCToken", function () {
     });
     it("Increasing approval beyond max uint256 should fail", async () => {
       await pcToken.increaseApproval(account2, constants.MaxUint256);
-      await expect(pcToken.increaseApproval(account2, constants.WeiPerEther)).to.be.reverted;
+      await expect(pcToken.increaseApproval(account2, constants.WeiPerEther)).to.be.revertedWith(
+        "ERR_ADD_OVERFLOW"
+      );
     });
   });
   describe("decreaseApproval", async () => {
@@ -212,13 +218,16 @@ describe("PCToken", function () {
     it("Should fail when not enough allowance is set", async () => {
       await pcToken.approve(account2, constants.WeiPerEther.sub(1));
       pcToken = pcToken.connect(signers[1]);
-      await expect(pcToken.transferFrom(account, account2, constants.WeiPerEther)).to.be.reverted;
+      await expect(
+        pcToken.transferFrom(account, account2, constants.WeiPerEther)
+      ).to.be.revertedWith("ERR_PCTOKEN_BAD_CALLER");
     });
     it("Should fail when sender does not have enough balance", async () => {
       await pcToken.approve(account2, constants.WeiPerEther.add(1));
       pcToken = pcToken.connect(signers[1]);
-      await expect(pcToken.transferFrom(account, account2, constants.WeiPerEther.add(1))).to.be
-        .reverted;
+      await expect(
+        pcToken.transferFrom(account, account2, constants.WeiPerEther.add(1))
+      ).to.be.revertedWith("ERR_INSUFFICIENT_BAL");
     });
     it("Should not change approval amount when it was set to max uint256", async () => {
       await pcToken.approve(account2, constants.MaxUint256);

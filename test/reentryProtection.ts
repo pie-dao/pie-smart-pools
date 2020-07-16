@@ -28,6 +28,8 @@ describe("ReentryProtection", function () {
   });
 
   it("Should prevent reentry", async () => {
-    await expect(testContract.test()).to.be.reverted;
+    await expect(testContract.test()).to.be.revertedWith(
+      "ReentryProtection.noReentry: reentry detected"
+    );
   });
 });
