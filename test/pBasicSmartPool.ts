@@ -1,5 +1,3 @@
-// TODO use calcPoolOutGivenSingleIn calcSingleInGivenPoolOut, calcSingleOutGivenPoolIn, calcPoolInGivenSingleOut for single asset entry and exit
-
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
@@ -305,10 +303,10 @@ describe.only("PBasicSmartPool", function () {
       const mintAmount = constants.WeiPerEther;
 
       await expect(
-        smartpool.joinswapExternAmountIn(tokens[0].address, mintAmount)
+        smartpool.joinswapExternAmountIn(tokens[0].address, mintAmount, ethers.constants.Zero)
       ).to.be.revertedWith("LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
       await expect(
-        smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount)
+        smartpool.joinswapPoolAmountOut(tokens[0].address, mintAmount, ethers.constants.MaxUint256)
       ).to.be.revertedWith("LibPoolEntryExit.joinswapPoolAmountOut: Token Not Bound");
     });
 
@@ -326,7 +324,7 @@ describe.only("PBasicSmartPool", function () {
       );
       const poolTokenBalanceBefore = await pool.getBalance(inputToken.address);
 
-      await smartpool.joinswapPoolAmountOut(inputToken.address, mintAmount);
+      await smartpool.joinswapPoolAmountOut(inputToken.address, mintAmount, constants.MaxUint256);
 
       const userBalanceAfter = await inputToken.balanceOf(account);
       const userPoolBalanceAfter = await smartpool.balanceOf(account);
@@ -353,7 +351,7 @@ describe.only("PBasicSmartPool", function () {
       );
       const poolTokenBalanceBefore = await pool.getBalance(inputToken.address);
 
-      await smartpool.joinswapExternAmountIn(inputToken.address, tokenAmountIn);
+      await smartpool.joinswapExternAmountIn(inputToken.address, tokenAmountIn, constants.Zero);
 
       const userBalanceAfter = await inputToken.balanceOf(account);
       const userPoolBalanceAfter = await smartpool.balanceOf(account);
@@ -372,11 +370,11 @@ describe.only("PBasicSmartPool", function () {
       const tokenInAddress = tokens[0].address;
 
       await expect(
-        smartpool.joinswapExternAmountIn(tokenInAddress, tokenAmountIn)
+        smartpool.joinswapExternAmountIn(tokenInAddress, tokenAmountIn, constants.Zero)
       ).to.be.revertedWith("PV2SmartPool.onlyPublicSwap: swapping not enabled");
 
       await expect(
-        smartpool.joinswapPoolAmountOut(tokenInAddress, poolAmountOut)
+        smartpool.joinswapPoolAmountOut(tokenInAddress, poolAmountOut, constants.MaxUint256)
       ).to.be.revertedWith("PV2SmartPool.onlyPublicSwap: swapping not enabled");
     });
 
@@ -387,27 +385,52 @@ describe.only("PBasicSmartPool", function () {
 
       await expect(
         smartpool.exitswapExternAmountOut(tokens[1].address, exitAmount)
-      ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolExternAmountOut: Token Not Bound");
+      ).to.be.revertedWith("LibPoolEntryExit.exitswapExternAmountOut: Token Not Bound");
       await expect(
         smartpool.exitswapPoolAmountIn(tokens[1].address, exitAmount)
       ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
     });
-    it("tokenAmountOut = exitswapPoolAmountIn(exitswapExternAmountOut(tokenAmountOut))", async () => {
-      const tokenAmountOut = constants.One;
-      const poolAmountIn = await smartpool.joinswapPoolAmountOut(tokens[1].address, tokenAmountOut);
+
+    it("exitswapPoolAmountIn should work", async() => {
       await smartpool.setPublicSwap(true);
+      const outputToken = tokens[0];
+      const burnAmount = INITIAL_SUPPLY.div(100);
 
-      const pAIResponse = await poolAmountIn.wait(1);
-      const pAI = new BigNumber(pAIResponse.events[0].data);
+      const expectedOutputTokenAmount = await smartpool.calcSingleOutGivenPoolIn(outputToken.address, burnAmount);
+      const userBalanceBefore = await outputToken.balanceOf(account);
+      const userPoolBalanceBefore = await smartpool.balanceOf(account);
+      const totalSupplyBefore = await smartpool.totalSupply();
 
-      const calculatedTokenAmountOut = await smartpool.joinswapExternAmountIn(
-        tokens[1].address,
-        pAI
-      );
-      const cTAOResponse = await calculatedTokenAmountOut.wait(1);
-      const cTAO = new BigNumber(cTAOResponse.events[3].data);
+      await smartpool.exitswapPoolAmountIn(outputToken.address, burnAmount);
 
-      expect(cTAO).to.equal(tokenAmountOut);
+      const userBalanceAfter = await outputToken.balanceOf(account);
+      const userPoolBalanceAfter = await smartpool.balanceOf(account);
+      const totalSupplyAfter = await smartpool.totalSupply();
+
+      expect(userBalanceAfter).to.eq(userBalanceBefore.add(expectedOutputTokenAmount));
+      expect(userPoolBalanceAfter).to.eq(userPoolBalanceBefore.sub(burnAmount));
+      expect(totalSupplyAfter).to.eq(totalSupplyBefore.sub(burnAmount));
+    });
+
+    it("exitSwapExternAmountOut should work", async() => {
+      await smartpool.setPublicSwap(true);
+      const outputToken = tokens[0];
+      const outputTokenAmount = constants.WeiPerEther.div(100);
+
+      const expectedPoolAmountIn = await smartpool.calcPoolInGivenSingleOut(outputToken.address, outputTokenAmount);
+      const userBalanceBefore = await outputToken.balanceOf(account);
+      const userPoolBalanceBefore = await smartpool.balanceOf(account);
+      const totalSupplyBefore = await smartpool.totalSupply();
+
+      await smartpool.exitswapExternAmountOut(outputToken.address, outputTokenAmount);
+
+      const userBalanceAfter = await outputToken.balanceOf(account);
+      const userPoolBalanceAfter = await smartpool.balanceOf(account);
+      const totalSupplyAfter = await smartpool.totalSupply();
+
+      expect(userBalanceAfter).to.eq(userBalanceBefore.add(outputTokenAmount));
+      expect(userPoolBalanceAfter).to.eq(userPoolBalanceBefore.sub(expectedPoolAmountIn));
+      expect(totalSupplyAfter).to.eq(totalSupplyBefore.sub(expectedPoolAmountIn));
     });
 
     it("Exiting the pool to a single asset when public swap is disabled should fail", async () => {
