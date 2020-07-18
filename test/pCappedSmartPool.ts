@@ -109,7 +109,7 @@ describe("PV2SmartPool", function () {
     await smartpool.setPublicSwap(true);
     const tokenBalance = constants.WeiPerEther.div(100);
 
-    await smartpool.joinswapExternAmountIn(tokens[0].address, tokenBalance);
+    await smartpool.joinswapExternAmountIn(tokens[0].address, tokenBalance, constants.Zero);
   });
 
   // it("joinswapPoolAmountOut with less than the cap should work", async () => {

@@ -49,13 +49,13 @@ interface IPV2SmartPool is IERC20 {
 
   function joinPool(uint256 _amount) external;
 
+  function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn) external;
+
   function exitPool(uint256 _amount) external;
+  
+  function joinswapExternAmountIn(address _token, uint256 _amountIn, uint256 _minPoolAmountOut) external returns(uint256);
 
-  function joinswapExternAmountIn(address _token, uint256 _amountIn)
-    external
-    returns (uint256 poolAmountOut);
-
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut, uint256 _maxAmountIn)
     external
     returns (uint256 tokenAmountIn);
 
