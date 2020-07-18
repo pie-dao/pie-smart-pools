@@ -37,6 +37,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     _;
   }
 
+
   modifier onlyController() {
     require(
       msg.sender == PBStorage.load().controller,
@@ -190,12 +191,20 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
+      @notice Takes underlying assets and mints smart pool tokens. Enforces the cap. Allows you to specify the maximum amounts of underlying assets
+      @param _amount Amount of pool tokens to mint
+  */
+  function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn) external override withinCap ready noReentry {
+    LibPoolEntryExit.joinPool(_amount, _maxAmountsIn);
+  }
+
+  /**
         @notice Joinswap single asset pool entry given token amount in
         @param _token Address of entry token
         @param _amountIn Amount of entry tokens
         @return poolAmountOut
     */
-  function joinswapExternAmountIn(address _token, uint256 _amountIn)
+  function joinswapExternAmountIn(address _token, uint256 _amountIn, uint256 _minPoolAmountOut)
     external
     override
     ready
@@ -204,7 +213,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 poolAmountOut)
   {
-    return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn);
+    return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn, _minPoolAmountOut);
   }
 
   /**
@@ -213,7 +222,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _amountOut Amount of entry tokens to deposit into the pool
         @return tokenAmountIn
     */
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut)
+  function joinswapPoolAmountOut(address _token, uint256 _amountOut, uint256 _maxAmountIn)
     external
     override
     ready
@@ -222,7 +231,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     noReentry
     returns (uint256 tokenAmountIn)
   {
-    return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut);
+    return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut, _maxAmountIn);
   }
 
   // ADMIN FUNCTIONS ------------------------------------------
@@ -432,16 +441,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     view
     returns (address[] memory tokens, uint256[] memory amounts)
   {
-    tokens = PBStorage.load().bPool.getCurrentTokens();
-    amounts = new uint256[](tokens.length);
-    uint256 ratio = _amount.bdiv(totalSupply()).badd(LibFees.calcOutstandingAnnualFee());
-
-    for (uint256 i = 0; i < tokens.length; i++) {
-      address t = tokens[i];
-      uint256 bal = PBStorage.load().bPool.getBalance(t);
-      uint256 amount = ratio.bmul(bal);
-      amounts[i] = amount;
-    }
+    return LibPoolMath.calcTokensForAmount(_amount);
   }
 
   /**
@@ -456,23 +456,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     view
     returns (uint256)
   {
-    PBStorage.StorageStruct storage s = PBStorage.load();
-    uint256 tokenBalanceIn = s.bPool.getBalance(_token);
-    uint256 tokenWeightIn = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
-    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
-    uint256 swapFee = s.bPool.getSwapFee();
-
-    return (
-      LibPoolMath.calcPoolOutGivenSingleIn(
-        tokenBalanceIn,
-        tokenWeightIn,
-        poolSupply,
-        totalWeight,
-        _amount,
-        swapFee
-      )
-    );
+    return LibPoolMath.calcPoolOutGivenSingleIn(_token, _amount);
   }
 
   /**
@@ -487,23 +471,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     view
     returns (uint256)
   {
-    PBStorage.StorageStruct storage s = PBStorage.load();
-    uint256 tokenBalanceIn = s.bPool.getBalance(_token);
-    uint256 tokenWeightIn = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
-    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
-    uint256 swapFee = s.bPool.getSwapFee();
-
-    return (
-      LibPoolMath.calcSingleInGivenPoolOut(
-        tokenBalanceIn,
-        tokenWeightIn,
-        poolSupply,
-        totalWeight,
-        _amount,
-        swapFee
-      )
-    );
+    return LibPoolMath.calcSingleInGivenPoolOut(_token, _amount);
   }
 
   /**
@@ -518,23 +486,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     view
     returns (uint256)
   {
-    PBStorage.StorageStruct storage s = PBStorage.load();
-    uint256 tokenBalanceOut = s.bPool.getBalance(_token);
-    uint256 tokenWeightOut = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
-    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
-    uint256 swapFee = s.bPool.getSwapFee();
-
-    return (
-      LibPoolMath.calcSingleOutGivenPoolIn(
-        tokenBalanceOut,
-        tokenWeightOut,
-        poolSupply,
-        totalWeight,
-        _amount,
-        swapFee
-      )
-    );
+    return LibPoolMath.calcSingleOutGivenPoolIn(_token, _amount);
   }
 
   /**
@@ -549,23 +501,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     view
     returns (uint256)
   {
-    PBStorage.StorageStruct storage s = PBStorage.load();
-    uint256 tokenBalanceOut = s.bPool.getBalance(_token);
-    uint256 tokenWeightOut = s.bPool.getDenormalizedWeight(_token);
-    uint256 poolSupply = PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee());
-    uint256 totalWeight = s.bPool.getTotalDenormalizedWeight();
-    uint256 swapFee = s.bPool.getSwapFee();
-
-    return (
-      LibPoolMath.calcPoolInGivenSingleOut(
-        tokenBalanceOut,
-        tokenWeightOut,
-        poolSupply,
-        totalWeight,
-        _amount,
-        swapFee
-      )
-    );
+    return LibPoolMath.calcPoolInGivenSingleOut(_token, _amount);
   }
 
   function getTokens() external override view returns (address[] memory) {
