@@ -1,4 +1,4 @@
-import ethers, {constants, utils} from "ethers";
+import ethers from "ethers";
 import balancerFactoryBytecode from "./balancerFactoryBytecode";
 import balancerPoolBytecode from "./balancerPoolBytecode";
 
@@ -33,7 +33,13 @@ export const linkArtifact = (artifact: any, libraries: any[]) => {
     const libName = Object.keys(libPositions)[0];
     libPositions = libPositions[libName];
 
-    const libAddress = libraries.find((lib) => lib.name === libName).address.replace("0x", "");
+    const libContract = libraries.find((lib) => lib.name === libName)
+
+    if(libContract === undefined) {
+      throw new Error(`${libName} not deployed`);
+    }
+
+    const libAddress = libContract.address.replace("0x", "");
 
     for (const position of libPositions) {
       artifact.bytecode =
