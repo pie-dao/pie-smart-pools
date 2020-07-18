@@ -19,6 +19,7 @@ import PV2SmartPoolArtifact from "./artifacts/PV2SmartPool.json";
 import LibPoolEntryExitArtifact from "./artifacts/LibPoolEntryExit.json";
 import LibAddRemoveTokenArtifact from "./artifacts/LibAddRemoveToken.json";
 import LibWeightsArtifact from "./artifacts/LibWeights.json";
+import LibPoolMathArtifact from "./artifacts/LibPoolMath.json";
 
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
@@ -358,6 +359,7 @@ task("deploy-libraries", "deploys all external libraries")
     libraries.push(await deployAndGetLibObject(LibAddRemoveTokenArtifact, signers[0]));
     libraries.push(await deployAndGetLibObject(LibPoolEntryExitArtifact, signers[0]));
     libraries.push(await deployAndGetLibObject(LibWeightsArtifact, signers[0]));
+    libraries.push(await deployAndGetLibObject(LibPoolMathArtifact, signers[0]));
 
     return libraries;
   });
