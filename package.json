@@ -14,7 +14,7 @@
     "prettier:typescript": "npx prettier --write {test,typechain,utils}/**/*.ts --print-width 100",
     "prettier": "yarn prettier:solidity && yarn prettier:typescript",
     "test": "npx buidler test",
-    "typechain": "npx buidler --config ./buidler.compile.config.ts typechain",
+    "typechain": "typechain --target ethers-v4 --outDir typechain ./artifacts/**/*.json",
     "clean": "rm -rf ./artifacts && rm -rf ./cache && rm -rf ./coverage && rm -rf dist && rm -rf ./typechain",
     "remix": "remixd -s . --remix-ide https://remix.ethereum.org"
   },
@@ -33,10 +33,10 @@
     "@nomiclabs/buidler-ethers": "^1.1.2",
     "@nomiclabs/buidler-etherscan": "^1.1.2",
     "@nomiclabs/buidler-waffle": "^1.1.2",
+    "@typechain/ethers-v4": "^1.0.0",
     "@types/chai": "^4.2.8",
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
-    "buidler-typechain": "0.0.5",
     "chai": "^4.2.0",
     "ethereum-waffle": "^2.3.2",
     "ethers": "^4.0.44",
@@ -46,10 +46,7 @@
     "ts-generator": "0.0.8",
     "ts-node": "^8.6.2",
     "tslint": "^6.1.2",
-    "typechain": "^1.0.4",
-    "typechain-target-ethers": "^1.0.3",
-    "typechain-target-truffle": "^1.0.2",
-    "typechain-target-web3-v1": "^1.0.4",
+    "typechain": "^2.0.0",
     "typescript": "^3.7.5"
   },
   "directories": {
