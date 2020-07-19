@@ -5,7 +5,7 @@ import {ethers, run} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
-import {deployContract, solidity} from "ethereum-waffle";
+import {solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, linkArtifact} from "../utils";
 import {IbPool} from "../typechain/IBPool";
@@ -47,11 +47,8 @@ describe("PV2SmartPool", function () {
       tokens.push(token);
     }
 
-    const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
-    smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 100000000,
-    })) as Pv2SmartPool;
+    smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
+
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);

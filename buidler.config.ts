@@ -1,6 +1,6 @@
 // tslint:disable-next-line:no-var-requires
 require("dotenv").config();
-import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
+import { BuidlerConfig, usePlugin, task, internalTask } from "@nomiclabs/buidler/config";
 import { utils, constants, ContractTransaction, Wallet } from "ethers";
 import {deployContract, solidity} from "ethereum-waffle";
 import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
@@ -14,7 +14,7 @@ import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 
 import { Pv2SmartPool } from "./typechain/Pv2SmartPool";
 import { Pv2SmartPoolFactory } from "./typechain/Pv2SmartPoolFactory";
-import Pv2SmartPoolArtifact from "./artifacts/Pv2SmartPool.json";
+import Pv2SmartPoolArtifact from "./artifacts/PV2SmartPool.json";
 
 import LibPoolEntryExitArtifact from "./artifacts/LibPoolEntryExit.json";
 import LibAddRemoveTokenArtifact from "./artifacts/LibAddRemoveToken.json";
@@ -24,6 +24,7 @@ import LibPoolMathArtifact from "./artifacts/LibPoolMath.json";
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
 usePlugin("solidity-coverage");
+usePlugin("buidler-deploy");
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
@@ -352,8 +353,9 @@ task("balancer-set-controller")
 
 
 task("deploy-libraries", "deploys all external libraries")
-  .setAction(async(taskArgs, { ethers }) => {
+  .setAction(async(taskArgs, { ethers, deployments }) => {
     const signers = await ethers.getSigners();
+    const {deploy} = deployments;
     const libraries: any[] = [];
 
     libraries.push(await deployAndGetLibObject(LibAddRemoveTokenArtifact, signers[0]));
@@ -362,6 +364,31 @@ task("deploy-libraries", "deploys all external libraries")
     libraries.push(await deployAndGetLibObject(LibPoolMathArtifact, signers[0]));
 
     return libraries;
+  });
+
+task("deploy-libraries-and-get-object")
+  .setAction(async(taskArgs, { ethers, run }) => {
+    const libraries = await run("deploy-libraries");
+
+    const libObject: any = {};
+
+    for (const lib of libraries) {
+      libObject[lib.name] = lib.address;
+    }
+
+    return libObject;
+
+  });
+
+// Use only in testing!
+internalTask("deploy-libraries-and-smartpool")
+  .setAction(async(taskArgs, { ethers, run, deployments}) => {
+    const {deploy} = deployments;
+    const signers = await ethers.getSigners();
+    const libraries = await run("deploy-libraries-and-get-object");
+
+    const contract = (await deploy("PV2SmartPool", {contractName: "PV2SmartPool", from: await signers[0].getAddress(), libraries}));
+    return Pv2SmartPoolFactory.connect(contract.address, signers[0]);
   });
 
 

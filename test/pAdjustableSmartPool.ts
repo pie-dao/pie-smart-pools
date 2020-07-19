@@ -50,13 +50,8 @@ describe("PAdjustableSmartPool ", function () {
       tokens.push(token);
     }
 
-    const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
+    smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
 
-    // Deploy this way to get the coverage provider to pick it up
-    smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 100000000,
-    })) as Pv2SmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);

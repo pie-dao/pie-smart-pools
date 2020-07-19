@@ -1,7 +1,7 @@
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
-import {ethers, run} from "@nomiclabs/buidler";
+import {ethers, run, deployments, ethereum} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
@@ -12,7 +12,7 @@ import {IbPool} from "../typechain/IBPool";
 import {IbPoolFactory} from "../typechain/IBPoolFactory";
 import {Pv2SmartPoolFactory} from "../typechain/PV2SmartPoolFactory";
 import {Pv2SmartPool} from "../typechain/PV2SmartPool";
-import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
+// import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -46,12 +46,8 @@ describe("PBasicSmartPool", function () {
       tokens.push(token);
     }
 
-    const libraries = await run("deploy-libraries");
-    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
+    smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
 
-    smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 100000000,
-    })) as Pv2SmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
 
@@ -72,17 +68,13 @@ describe("PBasicSmartPool", function () {
 
   describe("init", async () => {
     it("Initialising with invalid bPool address should fail", async () => {
-      smartpool = (await deployContract(signers[0] as Wallet, PV2SmartPoolArtifact, [], {
-        gasLimit: 100000000,
-      })) as Pv2SmartPool;
+      smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
       await expect(
         smartpool.init(ethers.constants.AddressZero, "TEST", "TEST", ethers.constants.WeiPerEther)
       ).to.be.revertedWith("PV2SmartPool.init: _bPool cannot be 0x00....000");
     });
     it("Initialising with zero supply should fail", async () => {
-      smartpool = (await deployContract(signers[0] as Wallet, PV2SmartPoolArtifact, [], {
-        gasLimit: 100000000,
-      })) as Pv2SmartPool;
+      smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
       await expect(
         smartpool.init(PLACE_HOLDER_ADDRESS, "TEST", "TEST", ethers.constants.Zero)
       ).to.be.revertedWith("PV2SmartPool.init: _initialSupply can not zero");
@@ -536,9 +528,7 @@ describe("PBasicSmartPool", function () {
 
   describe("ready modifier", async () => {
     it("should revert when not ready", async () => {
-      smartpool = (await deployContract(signers[0] as Wallet, PV2SmartPoolArtifact, [], {
-        gasLimit: 100000000,
-      })) as Pv2SmartPool;
+      smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
       await expect(smartpool.joinPool(constants.WeiPerEther)).to.be.revertedWith(
         "PV2SmartPool.ready: not ready"
       );

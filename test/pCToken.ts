@@ -16,7 +16,7 @@ const {expect} = chai;
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 
-describe("PCToken", function () {
+describe("poolToken", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
