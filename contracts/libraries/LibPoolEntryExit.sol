@@ -8,7 +8,6 @@ import "./LibPoolToken.sol";
 import "./LibUnderlying.sol";
 import "./Math.sol";
 
-
 library LibPoolEntryExit {
   using Math for uint256;
 
@@ -44,7 +43,10 @@ library LibPoolEntryExit {
       uint256 balance = bPool.getBalance(token);
       uint256 tokenAmountOut = ratio.bmul(balance);
 
-      require(tokenAmountOut >= _minAmountsOut[i], "LibPoolEntryExit.exitPool: Token amount out too small");
+      require(
+        tokenAmountOut >= _minAmountsOut[i],
+        "LibPoolEntryExit.exitPool: Token amount out too small"
+      );
 
       emit LOG_EXIT(msg.sender, token, tokenAmountOut);
       LibUnderlying._pushUnderlying(token, msg.sender, tokenAmountOut, balance);
@@ -153,7 +155,7 @@ library LibPoolEntryExit {
   function joinPool(uint256 _amount) external {
     IBPool bPool = PBStorage.load().bPool;
     uint256[] memory maxAmountsIn = new uint256[](bPool.getCurrentTokens().length);
-    for(uint256 i = 0; i < maxAmountsIn.length; i++) {
+    for (uint256 i = 0; i < maxAmountsIn.length; i++) {
       maxAmountsIn[i] = uint256(-1);
     }
     _joinPool(_amount, maxAmountsIn);
@@ -176,7 +178,10 @@ library LibPoolEntryExit {
       address t = tokens[i];
       uint256 bal = bPool.getBalance(t);
       uint256 tokenAmountIn = ratio.bmul(bal);
-      require(tokenAmountIn <= _maxAmountsIn[i], "LibPoolEntryExit.joinPool: Token in amount too big");
+      require(
+        tokenAmountIn <= _maxAmountsIn[i],
+        "LibPoolEntryExit.joinPool: Token in amount too big"
+      );
       emit LOG_JOIN(msg.sender, t, tokenAmountIn);
       LibUnderlying._pullUnderlying(t, msg.sender, tokenAmountIn, bal);
     }
@@ -184,10 +189,11 @@ library LibPoolEntryExit {
     emit PoolJoined(msg.sender, _amount);
   }
 
-  function joinswapExternAmountIn(address _token, uint256 _amountIn, uint256 _minPoolAmountOut)
-    external
-    returns (uint256 poolAmountOut)
-  {
+  function joinswapExternAmountIn(
+    address _token,
+    uint256 _amountIn,
+    uint256 _minPoolAmountOut
+  ) external returns (uint256 poolAmountOut) {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
@@ -201,7 +207,10 @@ library LibPoolEntryExit {
       bPool.getSwapFee()
     );
 
-    require(poolAmountOut >= _minPoolAmountOut, "LibPoolEntryExit.joinswapExternAmountIn: Insufficient pool amount out");
+    require(
+      poolAmountOut >= _minPoolAmountOut,
+      "LibPoolEntryExit.joinswapExternAmountIn: Insufficient pool amount out"
+    );
 
     emit LOG_JOIN(msg.sender, _token, _amountIn);
 
@@ -215,10 +224,11 @@ library LibPoolEntryExit {
     return poolAmountOut;
   }
 
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut, uint256 _maxAmountIn)
-    external
-    returns (uint256 tokenAmountIn)
-  {
+  function joinswapPoolAmountOut(
+    address _token,
+    uint256 _amountOut,
+    uint256 _maxAmountIn
+  ) external returns (uint256 tokenAmountIn) {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.joinswapPoolAmountOut: Token Not Bound");
@@ -232,7 +242,10 @@ library LibPoolEntryExit {
       bPool.getSwapFee()
     );
 
-    require(tokenAmountIn <= _maxAmountIn, "LibPoolEntryExit.joinswapPoolAmountOut: Token amount in too big");
+    require(
+      tokenAmountIn <= _maxAmountIn,
+      "LibPoolEntryExit.joinswapPoolAmountOut: Token amount in too big"
+    );
 
     emit LOG_JOIN(msg.sender, _token, tokenAmountIn);
 

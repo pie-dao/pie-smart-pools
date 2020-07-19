@@ -7,7 +7,6 @@ import {LibConst as constants} from "./LibConst.sol";
 import "./LibPoolToken.sol";
 import "./Math.sol";
 
-
 library LibWeights {
   using Math for uint256;
 

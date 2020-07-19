@@ -2,7 +2,6 @@ pragma solidity ^0.6.4;
 
 import "../interfaces/IERC20.sol";
 
-
 interface IPV2SmartPool is IERC20 {
   function init(
     address _bPool,
@@ -52,12 +51,18 @@ interface IPV2SmartPool is IERC20 {
   function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn) external;
 
   function exitPool(uint256 _amount) external;
-  
-  function joinswapExternAmountIn(address _token, uint256 _amountIn, uint256 _minPoolAmountOut) external returns(uint256);
 
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut, uint256 _maxAmountIn)
-    external
-    returns (uint256 tokenAmountIn);
+  function joinswapExternAmountIn(
+    address _token,
+    uint256 _amountIn,
+    uint256 _minPoolAmountOut
+  ) external returns (uint256);
+
+  function joinswapPoolAmountOut(
+    address _token,
+    uint256 _amountOut,
+    uint256 _maxAmountIn
+  ) external returns (uint256 tokenAmountIn);
 
   function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
     external

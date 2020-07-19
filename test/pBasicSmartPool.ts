@@ -23,8 +23,8 @@ const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 let tokenFactory: MockTokenFactory;
 
-describe.only("PBasicSmartPool", function () {
-  this.timeout(30000);
+describe("PBasicSmartPool", function () {
+  this.timeout(300000);
   let signers: Signer[];
   let account: string;
   let tokens: MockToken[];
@@ -391,12 +391,15 @@ describe.only("PBasicSmartPool", function () {
       ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
     });
 
-    it("exitswapPoolAmountIn should work", async() => {
+    it("exitswapPoolAmountIn should work", async () => {
       await smartpool.setPublicSwap(true);
       const outputToken = tokens[0];
       const burnAmount = INITIAL_SUPPLY.div(100);
 
-      const expectedOutputTokenAmount = await smartpool.calcSingleOutGivenPoolIn(outputToken.address, burnAmount);
+      const expectedOutputTokenAmount = await smartpool.calcSingleOutGivenPoolIn(
+        outputToken.address,
+        burnAmount
+      );
       const userBalanceBefore = await outputToken.balanceOf(account);
       const userPoolBalanceBefore = await smartpool.balanceOf(account);
       const totalSupplyBefore = await smartpool.totalSupply();
@@ -412,12 +415,15 @@ describe.only("PBasicSmartPool", function () {
       expect(totalSupplyAfter).to.eq(totalSupplyBefore.sub(burnAmount));
     });
 
-    it("exitSwapExternAmountOut should work", async() => {
+    it("exitSwapExternAmountOut should work", async () => {
       await smartpool.setPublicSwap(true);
       const outputToken = tokens[0];
       const outputTokenAmount = constants.WeiPerEther.div(100);
 
-      const expectedPoolAmountIn = await smartpool.calcPoolInGivenSingleOut(outputToken.address, outputTokenAmount);
+      const expectedPoolAmountIn = await smartpool.calcPoolInGivenSingleOut(
+        outputToken.address,
+        outputTokenAmount
+      );
       const userBalanceBefore = await outputToken.balanceOf(account);
       const userPoolBalanceBefore = await smartpool.balanceOf(account);
       const totalSupplyBefore = await smartpool.totalSupply();

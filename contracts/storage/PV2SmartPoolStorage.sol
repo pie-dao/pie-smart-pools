@@ -1,6 +1,5 @@
 pragma solidity ^0.6.4;
 
-
 library PV2SmartPoolStorage {
   bytes32 public constant pasSlot = keccak256("PV2SmartPoolStorage.storage.location");
 

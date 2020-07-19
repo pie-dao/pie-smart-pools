@@ -81,7 +81,7 @@ describe("PV2SmartPool", function () {
   it("Setting the cap from a non controller address should fail", async () => {
     await smartpool.setController(await signers[1].getAddress());
     await expect(smartpool.setCap(100)).to.be.revertedWith(
-      "PBasicSmartPool.onlyController: not controller"
+      "PV2SmartPool.onlyController: not controller"
     );
   });
 
@@ -99,11 +99,11 @@ describe("PV2SmartPool", function () {
     const cap = constants.WeiPerEther.mul(100);
     await smartpool.setCap(cap);
     await expect(smartpool.joinPool(cap.add(1))).to.be.revertedWith(
-      "PCappedSmartPool.withinCap: Cap limit reached"
+      "PV2SmartPool.withinCap: Cap limit reached"
     );
   });
 
-  it.only("joinswapExternAmountIn with less than the cap should work", async () => {
+  it("joinswapExternAmountIn with less than the cap should work", async () => {
     const cap = constants.WeiPerEther.mul(100);
     await smartpool.setCap(cap);
     await smartpool.setPublicSwap(true);

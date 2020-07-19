@@ -1,6 +1,5 @@
 pragma solidity 0.6.4;
 
-
 library OwnableStorage {
   bytes32 public constant oSlot = keccak256("Ownable.storage.location");
   struct StorageStruct {

@@ -13,7 +13,6 @@
 
 pragma solidity 0.6.4;
 
-
 interface IBPool {
   function isBound(address token) external view returns (bool);
 

@@ -1,6 +1,5 @@
 pragma solidity 0.6.4;
 
-
 library PCTokenStorage {
   bytes32 public constant ptSlot = keccak256("PCToken.storage.location");
   struct StorageStruct {

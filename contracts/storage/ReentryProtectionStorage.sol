@@ -1,6 +1,5 @@
 pragma solidity 0.6.4;
 
-
 library ReentryProtectionStorage {
   bytes32 public constant rpSlot = keccak256("ReentryProtection.storage.location");
   struct StorageStruct {

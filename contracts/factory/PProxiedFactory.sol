@@ -8,7 +8,6 @@ import "../interfaces/IERC20.sol";
 import "../Ownable.sol";
 import "../interfaces/IPV2SmartPool.sol";
 
-
 contract PProxiedFactory is Ownable {
   IBFactory public balancerFactory;
   address public smartPoolImplementation;

@@ -2,7 +2,6 @@ pragma solidity ^0.6.4;
 
 import "../interfaces/IBPool.sol";
 
-
 library PBasicSmartPoolStorage {
   bytes32 public constant pbsSlot = keccak256("PBasicSmartPool.storage.location");
 

@@ -18,9 +18,8 @@ pragma solidity 0.6.4;
 
 import "./Math.sol";
 import "./LibFees.sol";
-import {PBasicSmartPoolStorage as PBStorage } from "../storage/PBasicSmartPoolStorage.sol";
+import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
-
 
 library LibPoolMath {
   using Math for uint256;
@@ -271,7 +270,9 @@ library LibPoolMath {
   {
     tokens = PBStorage.load().bPool.getCurrentTokens();
     amounts = new uint256[](tokens.length);
-    uint256 ratio = _amount.bdiv(PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee()));
+    uint256 ratio = _amount.bdiv(
+      PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee())
+    );
 
     for (uint256 i = 0; i < tokens.length; i++) {
       address t = tokens[i];
@@ -400,5 +401,4 @@ library LibPoolMath {
       )
     );
   }
-
 }

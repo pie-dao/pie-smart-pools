@@ -1,6 +1,5 @@
 pragma solidity ^0.6.4;
 
-
 library Math {
   uint256 internal constant BONE = 10**18;
   uint256 internal constant MIN_BPOW_BASE = 1 wei;

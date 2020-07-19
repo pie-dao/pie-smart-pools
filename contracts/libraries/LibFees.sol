@@ -5,7 +5,6 @@ import "./LibPoolToken.sol";
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 
-
 library LibFees {
   using Math for uint256;
 

@@ -2,7 +2,6 @@ pragma solidity 0.6.4;
 
 import "../PCToken.sol";
 
-
 contract TestPCToken is PCToken {
   constructor(string memory _name, string memory _symbol) public {
     PCStorage.load().name = _name;

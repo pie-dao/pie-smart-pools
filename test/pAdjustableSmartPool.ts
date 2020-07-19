@@ -79,7 +79,7 @@ describe("PAdjustableSmartPool ", function () {
       smartpool = smartpool.connect(signers[1]);
       await expect(
         smartpool.updateWeight(tokens[0].address, constants.WeiPerEther)
-      ).to.be.revertedWith("PBasicSmartPool.onlyController: not controller");
+      ).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
     });
 
     it("Updating down should work", async () => {
@@ -242,7 +242,7 @@ describe("PAdjustableSmartPool ", function () {
       smartpool = smartpool.connect(signers[1]);
       await expect(
         smartpool.updateWeightsGradually(weightsFixtureUp, startBlock, endBlock)
-      ).to.be.revertedWith("PBasicSmartPool.onlyController: not controller");
+      ).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
     });
 
     it("Updating should work", async () => {
