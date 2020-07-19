@@ -6,15 +6,15 @@ import {deployContract, solidity} from "ethereum-waffle";
 import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 
-import { IBFactoryFactory } from "./typechain/IBFactoryFactory";
+import { IbFactoryFactory } from "./typechain/IBFactoryFactory";
 import { deployBalancerFactory, deployAndGetLibObject, linkArtifact } from "./utils";
-import { IBPoolFactory } from "./typechain/IBPoolFactory";
-import { IERC20Factory } from "./typechain/IERC20Factory";
+import { IbPoolFactory } from "./typechain/IBPoolFactory";
+import { Ierc20Factory } from "./typechain/IERC20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 
-import { PV2SmartPool } from "./typechain/PV2SmartPool";
-import { PV2SmartPoolFactory } from "./typechain/PV2SmartPoolFactory";
-import PV2SmartPoolArtifact from "./artifacts/PV2SmartPool.json";
+import { Pv2SmartPool } from "./typechain/Pv2SmartPool";
+import { Pv2SmartPoolFactory } from "./typechain/Pv2SmartPoolFactory";
+import Pv2SmartPoolArtifact from "./artifacts/Pv2SmartPool.json";
 
 import LibPoolEntryExitArtifact from "./artifacts/LibPoolEntryExit.json";
 import LibAddRemoveTokenArtifact from "./artifacts/LibAddRemoveToken.json";
@@ -102,7 +102,7 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
     const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
     console.log(`Factory deployed at: ${factory.address}`);
 
-    const implementation = await run("deploy-pie-smart-pool") as PV2SmartPool;
+    const implementation = await run("deploy-pie-smart-pool") as Pv2SmartPool;
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMPL", "IMPL", "1337");
 
     await factory.init(taskArgs.balancerFactory, implementation.address);
@@ -137,7 +137,7 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
       const amount = new BigNumber(Math.floor((allocation.initialValue / token.value * token.weight / 100 * allocation.initialSupply * 10 ** token.decimals)).toString());
 
       // Approve factory to spend token
-      const tokenContract = IERC20Factory.connect(token.address, signers[0]);
+      const tokenContract = Ierc20Factory.connect(token.address, signers[0]);
 
       const allowance = await tokenContract.allowance(await signers[0].getAddress(), factory.address);
       if(allowance.lt(amount)) {
@@ -162,13 +162,13 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     const libraries = await run("deploy-libraries");
     console.log("libraries deployed");
     console.table(libraries);
-    const linkedArtifact = linkArtifact(PV2SmartPoolArtifact, libraries);
+    const linkedArtifact = linkArtifact(Pv2SmartPoolArtifact, libraries);
 
     const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PV2SmartPool;
+    })) as Pv2SmartPool;
 
-    console.log(`PV2SmartPool deployed at: ${smartpool.address}`);
+    console.log(`Pv2SmartPool deployed at: ${smartpool.address}`);
 });
 
 task("init-smart-pool", "initialises a smart pool")
@@ -179,7 +179,7 @@ task("init-smart-pool", "initialises a smart pool")
   .addParam("initialSupply", "Initial supply of the token")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const smartpool = PV2SmartPoolFactory.connect(taskArgs.smartPool, signers[0]);
+    const smartpool = Pv2SmartPoolFactory.connect(taskArgs.smartPool, signers[0]);
     const tx = await smartpool.init(taskArgs.pool, taskArgs.name, taskArgs.symbol, utils.parseEther(taskArgs.initialSupply));
     const receipt = await tx.wait(1);
 
@@ -218,7 +218,7 @@ task("set-cap", "Sets the cap on a capped pool")
   .addParam("cap")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const smartpool = PV2SmartPoolFactory.connect(taskArgs.pool, signers[0]);
+    const smartpool = Pv2SmartPoolFactory.connect(taskArgs.pool, signers[0]);
     const tx = await smartpool.setCap(parseEther(taskArgs.cap), {gasLimit: 2000000});
 
     console.log(`Cap set tx: ${tx.hash}`);
@@ -230,13 +230,13 @@ task("join-smart-pool")
   .addParam("amount")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const smartpool = PV2SmartPoolFactory.connect(taskArgs.pool, signers[0]);
+    const smartpool = Pv2SmartPoolFactory.connect(taskArgs.pool, signers[0]);
 
     // TODO fix this confusing line
-    const tokens = await IBPoolFactory.connect(await smartpool.getBPool(), signers[0]).getCurrentTokens();
+    const tokens = await IbPoolFactory.connect(await smartpool.getBPool(), signers[0]).getCurrentTokens();
 
     for(const tokenAddress of tokens) {
-      const token = IERC20Factory.connect(tokenAddress, signers[0]);
+      const token = Ierc20Factory.connect(tokenAddress, signers[0]);
       // TODO make below more readable
       console.log("approving tokens");
       await (await token.approve(smartpool.address, constants.MaxUint256)).wait(1);
@@ -251,13 +251,13 @@ task("approve-smart-pool")
   .addParam("pool")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const smartpool = PV2SmartPoolFactory.connect(taskArgs.pool, signers[0]);
+    const smartpool = Pv2SmartPoolFactory.connect(taskArgs.pool, signers[0]);
 
     // TODO fix this confusing line
-    const tokens = await IBPoolFactory.connect(await smartpool.bPool(), signers[0]).getCurrentTokens();
+    const tokens = await IbPoolFactory.connect(await smartpool.bPool(), signers[0]).getCurrentTokens();
 
     for(const tokenAddress of tokens) {
-      const token = IERC20Factory.connect(tokenAddress, signers[0]);
+      const token = Ierc20Factory.connect(tokenAddress, signers[0]);
       // TODO make below more readable
       const receipt = await (await token.approve(smartpool.address, constants.MaxUint256)).wait(1);
       console.log(`${tokenAddress} approved tx: ${receipt.transactionHash}`);
@@ -287,7 +287,7 @@ task("deploy-balancer-pool", "deploys a balancer pool from a factory")
   .addParam("factory", "Address of the balancer pool address")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const factory = await IBFactoryFactory.connect(taskArgs.factory, signers[0]);
+    const factory = await IbFactoryFactory.connect(taskArgs.factory, signers[0]);
     const tx = await factory.newBPool();
     const receipt = await tx.wait(2); // wait for 2 confirmations
     const event = receipt.events.pop();
@@ -304,12 +304,12 @@ task("balancer-bind-token", "binds a token to a balancer pool")
     // Approve token
     const signers = await ethers.getSigners();
     const account = await signers[0].getAddress();
-    const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
+    const pool = IbPoolFactory.connect(taskArgs.pool, signers[0]);
 
     const weight = parseUnits(taskArgs.weight, 18);
     // tslint:disable-next-line:radix
     const balance = utils.parseUnits(taskArgs.balance, parseInt(taskArgs.decimals));
-    const token = await IERC20Factory.connect(taskArgs.token, signers[0]);
+    const token = await Ierc20Factory.connect(taskArgs.token, signers[0]);
 
     const allowance = await token.allowance(account, pool.address);
 
@@ -329,7 +329,7 @@ task("balancer-unbind-token", "removed a balancer token from a pool")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
     const account = await signers[0].getAddress();
-    const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
+    const pool = IbPoolFactory.connect(taskArgs.pool, signers[0]);
 
     const tx = await pool.unbind(taskArgs.token);
     const receipt = await tx.wait(1);
@@ -342,7 +342,7 @@ task("balancer-set-controller")
   .addParam("controller")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
-    const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
+    const pool = IbPoolFactory.connect(taskArgs.pool, signers[0]);
 
     const tx = await pool.setController(taskArgs.controller);
     const receipt = await tx.wait(1);

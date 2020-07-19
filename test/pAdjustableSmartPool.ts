@@ -8,9 +8,9 @@ import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, linkArtifact} from "../utils";
-import {IBPool} from "../typechain/IBPool";
-import {IBPoolFactory} from "../typechain/IBPoolFactory";
-import {PV2SmartPool} from "../typechain/PV2SmartPool";
+import {IbPool} from "../typechain/IBPool";
+import {IbPoolFactory} from "../typechain/IBPoolFactory";
+import {Pv2SmartPool} from "../typechain/PV2SmartPool";
 import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
@@ -26,8 +26,8 @@ describe("PAdjustableSmartPool ", function () {
   let account: string;
   let account2: string;
   let tokens: MockToken[];
-  let pool: IBPool;
-  let smartpool: PV2SmartPool;
+  let pool: IbPool;
+  let smartpool: Pv2SmartPool;
   let startBlock: number;
   let endBlock: number;
 
@@ -36,7 +36,7 @@ describe("PAdjustableSmartPool ", function () {
     account = await signers[0].getAddress();
     account2 = await signers[1].getAddress();
 
-    pool = IBPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
+    pool = IbPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
 
     const tokenFactory = new MockTokenFactory(signers[0]);
     tokens = [];
@@ -56,7 +56,7 @@ describe("PAdjustableSmartPool ", function () {
     // Deploy this way to get the coverage provider to pick it up
     smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PV2SmartPool;
+    })) as Pv2SmartPool;
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);

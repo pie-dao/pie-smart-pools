@@ -9,7 +9,7 @@ import {deployContract, solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, deployBalancerFactory, linkArtifact} from "../utils";
 import {PProxiedFactory} from "../typechain/PProxiedFactory";
-import {PV2SmartPool} from "../typechain/PV2SmartPool";
+import {Pv2SmartPool} from "../typechain/PV2SmartPool";
 import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 import PProxiedFactoryArtifact from "../artifacts/PProxiedFactory.json";
 
@@ -43,7 +43,7 @@ describe("PProxiedFactory", () => {
     // Deploy this way to get the coverage provider to pick it up
     const implementation = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
       gasLimit: 100000000,
-    })) as PV2SmartPool;
+    })) as Pv2SmartPool;
 
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMP", "IMP", 1337);
     await factory.init(balancerFactoryAddress, implementation.address);
