@@ -7,7 +7,7 @@ import {BigNumber} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
-import {deployBalancerPool, linkArtifact} from "../utils";
+import {deployBalancerPool, TimeTraveler} from "../utils";
 import {IbPool} from "../typechain/IBPool";
 import {IbPoolFactory} from "../typechain/IBPoolFactory";
 import {Pv2SmartPoolFactory} from "../typechain/PV2SmartPoolFactory";
@@ -22,7 +22,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 let tokenFactory: MockTokenFactory;
-
+const timeTraveler = new TimeTraveler(ethereum);
 describe("PBasicSmartPool", function () {
   this.timeout(300000);
   let signers: Signer[];
@@ -48,6 +48,8 @@ describe("PBasicSmartPool", function () {
 
     smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
 
+    console.log(smartpool.address);
+
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
 
@@ -64,7 +66,14 @@ describe("PBasicSmartPool", function () {
 
     // Set cap to max to pass tests
     await smartpool.setCap(ethers.constants.MaxUint256);
+    // await timeTraveler.snapshot();
   });
+
+  // beforeEach(async() => {
+  //   await timeTraveler.snapshot();
+  // })
+
+  // });
 
   describe("init", async () => {
     it("Initialising with invalid bPool address should fail", async () => {
