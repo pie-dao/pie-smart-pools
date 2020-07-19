@@ -16,7 +16,6 @@ import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPoolStorage.sol";
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 
-
 contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
@@ -36,7 +35,6 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     require(address(PBStorage.load().bPool) != address(0), "PV2SmartPool.ready: not ready");
     _;
   }
-
 
   modifier onlyController() {
     require(
@@ -80,7 +78,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   modifier withinCap() {
     _;
-    require(totalSupply() < PCSStorage.load().cap, "PCappedSmartPool.withinCap: Cap limit reached");
+    require(totalSupply() < PCSStorage.load().cap, "PV2SmartPool.withinCap: Cap limit reached");
   }
 
   /**
@@ -194,7 +192,13 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
       @notice Takes underlying assets and mints smart pool tokens. Enforces the cap. Allows you to specify the maximum amounts of underlying assets
       @param _amount Amount of pool tokens to mint
   */
-  function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn) external override withinCap ready noReentry {
+  function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn)
+    external
+    override
+    withinCap
+    ready
+    noReentry
+  {
     LibPoolEntryExit.joinPool(_amount, _maxAmountsIn);
   }
 
@@ -204,15 +208,11 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _amountIn Amount of entry tokens
         @return poolAmountOut
     */
-  function joinswapExternAmountIn(address _token, uint256 _amountIn, uint256 _minPoolAmountOut)
-    external
-    override
-    ready
-    withinCap
-    onlyPublicSwap
-    noReentry
-    returns (uint256 poolAmountOut)
-  {
+  function joinswapExternAmountIn(
+    address _token,
+    uint256 _amountIn,
+    uint256 _minPoolAmountOut
+  ) external override ready withinCap onlyPublicSwap noReentry returns (uint256 poolAmountOut) {
     return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn, _minPoolAmountOut);
   }
 
@@ -222,15 +222,11 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _amountOut Amount of entry tokens to deposit into the pool
         @return tokenAmountIn
     */
-  function joinswapPoolAmountOut(address _token, uint256 _amountOut, uint256 _maxAmountIn)
-    external
-    override
-    ready
-    withinCap
-    onlyPublicSwap
-    noReentry
-    returns (uint256 tokenAmountIn)
-  {
+  function joinswapPoolAmountOut(
+    address _token,
+    uint256 _amountOut,
+    uint256 _maxAmountIn
+  ) external override ready withinCap onlyPublicSwap noReentry returns (uint256 tokenAmountIn) {
     return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut, _maxAmountIn);
   }
 
