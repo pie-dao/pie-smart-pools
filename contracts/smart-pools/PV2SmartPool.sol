@@ -529,6 +529,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
+      @notice Get the address of the circuitBreaker
+      @return The address of the circuitBreaker
+    */
+  function getCircuitBreaker() external override view returns (address) {
+    return P2Storage.load().circuitBreaker;
+  }
+
+  /**
         @notice Get if public swapping is enabled
         @return If public swapping is enabled
     */

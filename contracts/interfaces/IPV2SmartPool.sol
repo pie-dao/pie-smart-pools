@@ -94,6 +94,8 @@ interface IPV2SmartPool is IERC20 {
 
   function getTokenBinder() external view returns (address);
 
+  function getCircuitBreaker() external view returns (address);
+
   function isPublicSwap() external view returns (bool);
 
   function getTokens() external view returns (address[] memory);
