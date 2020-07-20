@@ -365,6 +365,53 @@ describe("PAdjustableSmartPool ", function () {
 
       expect(weightsAfter).to.eql(weigthsFixturePokeWeightsUp, "Weight increase incorrect");
     });
+
+    describe("removeToken", async() => {
+      it("removeToken should work", async() => {
+        const removedToken = tokens[0];
+        const tokenWeight = await smartpool.getDenormalizedWeight(removedToken.address);
+
+        const totalWeightBefore = await pool.getTotalDenormalizedWeight();
+        const totalSupplyBefore = await smartpool.totalSupply();
+        const userPoolBalanceBefore = await smartpool.balanceOf(account);
+        const userTokenBalanceBefore = await removedToken.balanceOf(account);
+        const poolTokenBalanceBefore = await removedToken.balanceOf(pool.address);
+        const tokensBefore = await smartpool.getTokens();
+
+        const expectedPoolBurn = totalSupplyBefore.mul(tokenWeight).div(totalWeightBefore);
+
+        await smartpool.removeToken(removedToken.address);
+
+        const totalWeightAfter = await pool.getTotalDenormalizedWeight();
+        const totalSupplyAfter = await smartpool.totalSupply();
+        const userPoolBalanceAfter = await smartpool.balanceOf(account);
+        const userTokenBalanceAfter = await removedToken.balanceOf(account);
+        const poolTokenBalanceAfter = await removedToken.balanceOf(pool.address);
+        const tokensAfter = await smartpool.getTokens();
+
+        expect(totalWeightAfter).to.eq(totalWeightBefore.sub(tokenWeight));
+        expect(totalSupplyAfter).to.eq(totalSupplyBefore.sub(expectedPoolBurn));
+        expect(userPoolBalanceAfter).to.eq(userPoolBalanceBefore.sub(expectedPoolBurn));
+        expect(userTokenBalanceAfter).to.eq(userTokenBalanceBefore.add(poolTokenBalanceBefore));
+        expect(poolTokenBalanceAfter).to.eq(0);
+        expect(tokensAfter.length).to.eq(tokensBefore.length - 1);
+      });
+
+      it("removeToken should fail when controller does not have enough pool tokens", async() => {
+        const removedToken = tokens[0];
+        const balance = await smartpool.balanceOf(account);
+        await smartpool.transfer(account2, balance);
+
+        await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith("ERR_INSUFFICIENT_BAL");
+      });
+
+      it("removeToken should fail if underlying token transfer returns false", async() => {
+        const removedToken = tokens[0];
+        await removedToken.setTransferReturnFalse(true);
+        await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith("ERR_ERC20_FALSE")
+      });
+    })
+
   });
 });
 
