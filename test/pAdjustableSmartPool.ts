@@ -410,7 +410,20 @@ describe("PAdjustableSmartPool ", function () {
         await removedToken.setTransferReturnFalse(true);
         await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith("ERR_ERC20_FALSE")
       });
-    })
+    });
+
+    describe("Circuit Breaker", async() => {
+      it("setCircuitBreaker should work", async() => {
+        await smartpool.setCircuitBreaker(account2);
+        const circuitBreaker = await smartpool.getCircuitBreaker();
+        expect(circuitBreaker).to.eq(account2);
+      });
+
+      it("setCircuitBreaker from a non controller should fail", async() => {
+        await smartpool.setController(account2);
+        await expect(smartpool.setCircuitBreaker(account2)).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
+      });
+    });
 
   });
 });
