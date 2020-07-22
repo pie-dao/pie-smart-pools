@@ -23,7 +23,8 @@ const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 let tokenFactory: MockTokenFactory;
 const timeTraveler = new TimeTraveler(ethereum);
-describe("PBasicSmartPool", function () {
+
+describe("Basic Pool Functionality", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
@@ -48,8 +49,6 @@ describe("PBasicSmartPool", function () {
 
     smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
 
-    console.log(smartpool.address);
-
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
 
@@ -66,6 +65,8 @@ describe("PBasicSmartPool", function () {
 
     // Set cap to max to pass tests
     await smartpool.setCap(ethers.constants.MaxUint256);
+    // Enable entry and exit for tests
+    await smartpool.setJoinExitEnabled(true);
     // await timeTraveler.snapshot();
   });
 
@@ -242,7 +243,7 @@ describe("PBasicSmartPool", function () {
     it("Removing liquidity should work", async () => {
       const removeAmount = constants.WeiPerEther.div(2);
 
-      await smartpool.exitPool(removeAmount);
+      await smartpool["exitPool(uint256)"](removeAmount);
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
@@ -250,27 +251,27 @@ describe("PBasicSmartPool", function () {
     });
     it("Removing all liquidity should fail", async () => {
       const removeAmount = constants.WeiPerEther;
-      await expect(smartpool.exitPool(removeAmount)).to.be.revertedWith("ERR_MIN_BALANCE");
+      await expect(smartpool["exitPool(uint256)"](removeAmount)).to.be.revertedWith("ERR_MIN_BALANCE");
     });
     it("Removing liquidity should fail when removing more than balance", async () => {
       // First mint some more in another account to not withdraw all total liquidity in the actual test
       const altSignerSmartPool = Pv2SmartPoolFactory.connect(smartpool.address, signers[1]);
       await altSignerSmartPool.joinPool(constants.WeiPerEther);
-      await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.revertedWith(
+      await expect(smartpool["exitPool(uint256)"](INITIAL_SUPPLY.add(1))).to.be.revertedWith(
         "ERR_INSUFFICIENT_BAL"
       );
     });
 
     it("Removing liquidity when a token transfer fails should fail", async () => {
       await tokens[0].setTransferFailed(true);
-      await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.revertedWith(
+      await expect(smartpool["exitPool(uint256)"](constants.WeiPerEther.div(2))).to.be.revertedWith(
         "MockToken.transfer: transferFrom set to fail"
       );
     });
 
     it("Removing liquidity when a token transfer returns false should fail", async () => {
       await tokens[0].setTransferReturnFalse(true);
-      await expect(smartpool.exitPool(constants.WeiPerEther.div(2))).to.be.revertedWith(
+      await expect(smartpool["exitPool(uint256)"](constants.WeiPerEther.div(2))).to.be.revertedWith(
         "ERR_ERC20_FALSE"
       );
     });
@@ -286,20 +287,17 @@ describe("PBasicSmartPool", function () {
     });
     it("Removing all liquidity leaving a single token should fail", async () => {
       const removeAmount = constants.WeiPerEther;
-      await expect(smartpool.exitPool(removeAmount)).to.be.revertedWith("ERR_MIN_BALANCE");
+      await expect(smartpool["exitPool(uint256)"](removeAmount)).to.be.revertedWith("ERR_MIN_BALANCE");
     });
     it("Removing liquidity leaving a single token should fail when removing more than balance", async () => {
       // First mint some more in another account to not withdraw all total liquidity in the actual test
       const altSignerSmartPool = Pv2SmartPoolFactory.connect(smartpool.address, signers[1]);
       await altSignerSmartPool.joinPool(constants.WeiPerEther);
-      await expect(smartpool.exitPool(INITIAL_SUPPLY.add(1))).to.be.revertedWith(
+      await expect(smartpool["exitPool(uint256)"](INITIAL_SUPPLY.add(1))).to.be.revertedWith(
         "ERR_INSUFFICIENT_BAL"
       );
     });
-    // it.only("Exiting the entire pool should fail", async() => {
-    //     smartpool.joinPool(constants.WeiPerEther.mul(constants.WeiPerEther).mul(10));
-    //     await smartpool.exitPool(1);
-    // });
+
     it("Should fail to join with a single token if token is unbound", async () => {
       await smartpool.unbind(tokens[0].address);
       await smartpool.setPublicSwap(true);
@@ -457,6 +455,92 @@ describe("PBasicSmartPool", function () {
     });
   });
 
+  describe("Front running protected join and exit", async() => {
+    it("Adding liquidity with frontrunning protection should work should work", async () => {
+      const mintAmount = constants.WeiPerEther;
+      const maxAmountsIn = createBigNumberArray(tokens.length, constants.MaxUint256);
+      await smartpool["joinPool(uint256,uint256[])"](mintAmount, maxAmountsIn);
+
+      const balance = await smartpool.balanceOf(account);
+      expect(balance).to.eq(mintAmount.add(INITIAL_SUPPLY));
+
+      // TODO Check if token balances are correct
+    });
+
+    it("Adding liquidity with front running protection when maxAmount of one of the tokens is too small should fail", async() => {
+      const mintAmount = constants.WeiPerEther;
+      const maxAmountsIn = createBigNumberArray(tokens.length, constants.MaxUint256);
+      maxAmountsIn[2] = new BigNumber(0);
+      await expect(smartpool["joinPool(uint256,uint256[])"](mintAmount, maxAmountsIn)).to.be.revertedWith("LibPoolEntryExit.joinPool: Token in amount too big");
+    });
+
+    it("Adding liquidity with front running protection when a transfer fails should fail", async () => {
+      const mintAmount = constants.WeiPerEther;
+      const maxAmountsIn = createBigNumberArray(tokens.length, constants.MaxUint256);
+      await tokens[1].approve(smartpool.address, constants.Zero);
+      await expect(smartpool["joinPool(uint256,uint256[])"](mintAmount, maxAmountsIn)).to.be.revertedWith(
+        "ERC20: transfer amount exceeds allowance"
+      );
+    });
+    it("Adding liquidity with front running protection when a token transfer returns false should fail", async () => {
+      const mintAmount = constants.WeiPerEther.div(4);
+      const maxAmountsIn = createBigNumberArray(tokens.length, constants.MaxUint256);
+      await tokens[1].setTransferFromReturnFalse(true);
+      await expect(smartpool["joinPool(uint256,uint256[])"](mintAmount, maxAmountsIn)).to.be.revertedWith(
+        "LibUnderlying._pullUnderlying: transferFrom failed"
+      );
+    });
+    it("Removing liquidity with front running protection should work", async () => {
+      const removeAmount = constants.WeiPerEther.div(2);
+      const minAmountsOut = createBigNumberArray(tokens.length, constants.Zero);
+      await smartpool["exitPool(uint256,uint256[])"](removeAmount, minAmountsOut);
+      const balance = await smartpool.balanceOf(account);
+      expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
+
+      // TODO check all balances
+    });
+
+    it("Removing liquidity with front running protection should fail when one of the token outputs is less than minAmount", async() => {
+      const removeAmount = constants.WeiPerEther.div(2);
+      const minAmountsOut = createBigNumberArray(tokens.length, constants.Zero);
+      minAmountsOut[2] = constants.MaxUint256;
+      await expect(smartpool["exitPool(uint256,uint256[])"](removeAmount, minAmountsOut)).to.be.revertedWith("LibPoolEntryExit.exitPool: Token amount out too small");
+    });
+
+    it("Removing all liquidity with front running protection should fail", async () => {
+      const removeAmount = constants.WeiPerEther;
+      const minAmountsOut = createBigNumberArray(tokens.length, constants.Zero);
+      await expect(smartpool["exitPool(uint256,uint256[])"](removeAmount, minAmountsOut)).to.be.revertedWith("ERR_MIN_BALANCE");
+    });
+
+    it("Removing liquidity with front running protection should fail when removing more than balance", async () => {
+      const minAmountsOut = createBigNumberArray(tokens.length, constants.Zero);
+      // First mint some more in another account to not withdraw all total liquidity in the actual test
+      const altSignerSmartPool = Pv2SmartPoolFactory.connect(smartpool.address, signers[1]);
+      await altSignerSmartPool.joinPool(constants.WeiPerEther);
+      await expect(smartpool["exitPool(uint256,uint256[])"](INITIAL_SUPPLY.add(1), minAmountsOut)).to.be.revertedWith(
+        "ERR_INSUFFICIENT_BAL"
+      );
+    });
+
+    it("Removing liquidity with front running protection when a token transfer fails should fail", async () => {
+      const minAmountsOut = createBigNumberArray(tokens.length, constants.Zero);
+      await tokens[0].setTransferFailed(true);
+      await expect(smartpool["exitPool(uint256,uint256[])"](constants.WeiPerEther.div(2), minAmountsOut)).to.be.revertedWith(
+        "MockToken.transfer: transferFrom set to fail"
+      );
+    });
+
+    it("Removing liquidity with frontrunning protection when a token transfer returns false should fail", async () => {
+      const minAmountsOut = createBigNumberArray(tokens.length, constants.Zero);
+      await tokens[0].setTransferReturnFalse(true);
+      await expect(smartpool["exitPool(uint256,uint256[])"](constants.WeiPerEther.div(2), minAmountsOut)).to.be.revertedWith(
+        "ERR_ERC20_FALSE"
+      );
+    });
+
+  });
+
   describe("Token binding", async () => {
     it("Binding a new token should work", async () => {
       const mintAmount = constants.WeiPerEther.mul(1000000);
@@ -572,5 +656,14 @@ describe("PBasicSmartPool", function () {
     for (const amount of amounts) {
       expect(amount).to.eq(0);
     }
+  }
+
+  function createBigNumberArray(length: number, value: BigNumber): BigNumber[] {
+    const result: BigNumber [] = [];
+    for(let i = 0; i < length; i ++) {
+      result.push(value);
+    }
+
+    return result;
   }
 });

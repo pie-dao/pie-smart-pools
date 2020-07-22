@@ -21,7 +21,7 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("Test Cap", function () {
+describe("Cap", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
@@ -61,6 +61,8 @@ describe("Test Cap", function () {
         constants.MaxUint256
       );
     }
+
+    await smartpool.setJoinExitEnabled(true);
   });
 
   it("Cap should initially zero", async () => {
@@ -109,15 +111,4 @@ describe("Test Cap", function () {
     await smartpool.joinswapExternAmountIn(tokens[0].address, tokenBalance, constants.Zero);
   });
 
-  // it("joinswapPoolAmountOut with less than the cap should work", async () => {
-
-  // });
-
-  // it("joinswapExternAmountIn with more than the cap should fail", async () => {
-
-  // });
-
-  // it("joinswapPoolAmountOut with more than the cap should fail", async () => {
-
-  // });
 });
