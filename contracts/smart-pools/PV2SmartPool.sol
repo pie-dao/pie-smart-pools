@@ -155,7 +155,13 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibPoolEntryExit.exitPool(_amount);
   }
 
-  function exitPool(uint256 _amount, uint256[] calldata _minAmountsOut) external override ready noReentry onlyJoinExitEnabled {
+  function exitPool(uint256 _amount, uint256[] calldata _minAmountsOut)
+    external
+    override
+    ready
+    noReentry
+    onlyJoinExitEnabled
+  {
     LibPoolEntryExit.exitPool(_amount, _minAmountsOut);
   }
 
@@ -229,7 +235,16 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     address _token,
     uint256 _amountIn,
     uint256 _minPoolAmountOut
-  ) external override ready withinCap onlyPublicSwap noReentry onlyJoinExitEnabled returns (uint256 poolAmountOut) {
+  )
+    external
+    override
+    ready
+    withinCap
+    onlyPublicSwap
+    noReentry
+    onlyJoinExitEnabled
+    returns (uint256 poolAmountOut)
+  {
     return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn, _minPoolAmountOut);
   }
 
@@ -243,7 +258,16 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     address _token,
     uint256 _amountOut,
     uint256 _maxAmountIn
-  ) external override ready withinCap onlyPublicSwap noReentry onlyJoinExitEnabled returns (uint256 tokenAmountIn) {
+  )
+    external
+    override
+    ready
+    withinCap
+    onlyPublicSwap
+    noReentry
+    onlyJoinExitEnabled
+    returns (uint256 tokenAmountIn)
+  {
     return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut, _maxAmountIn);
   }
 
@@ -396,6 +420,10 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   function setAnnualFee(uint256 _newFee) external override onlyController noReentry {
     LibFees.setAnnualFee(_newFee);
+  }
+
+  function setFeeRecipient(address _newRecipient) external override onlyController noReentry {
+    LibFees.setFeeRecipient(_newRecipient);
   }
 
   function tripCircuitBreaker() external onlyCircuitBreaker {
@@ -626,7 +654,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     return P2Storage.load().endBlock;
   }
 
-  function getNewToken() external view returns(P2Storage.NewToken memory) {
+  function getNewToken() external view returns (P2Storage.NewToken memory) {
     return P2Storage.load().newToken;
   }
 

@@ -110,5 +110,4 @@ describe("Cap", function () {
 
     await smartpool.joinswapExternAmountIn(tokens[0].address, tokenBalance, constants.Zero);
   });
-
 });

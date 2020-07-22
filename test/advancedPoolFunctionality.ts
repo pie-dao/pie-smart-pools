@@ -366,18 +366,18 @@ describe("Advanced Pool Functionality", function () {
       expect(weightsAfter).to.eql(weigthsFixturePokeWeightsUp, "Weight increase incorrect");
     });
 
-    describe("Adding tokens", async() => {
-      let newToken:MockToken;
+    describe("Adding tokens", async () => {
+      let newToken: MockToken;
 
-      beforeEach(async() => {
+      beforeEach(async () => {
         // Pop off the last token for testing
         await smartpool.removeToken(tokens[tokens.length - 1].address);
         newToken = tokens[tokens.length - 1];
       });
 
-      it("commitAddToken should work", async() => {
+      it("commitAddToken should work", async () => {
         const balance = constants.WeiPerEther.mul(100);
-        const weight = constants.WeiPerEther.mul(2)
+        const weight = constants.WeiPerEther.mul(2);
         await smartpool.commitAddToken(newToken.address, balance, weight);
         const blockNumber = await ethers.provider.getBlockNumber();
         const newTokenStruct = await smartpool.getNewToken();
@@ -389,12 +389,14 @@ describe("Advanced Pool Functionality", function () {
         expect(newTokenStruct.commitBlock).to.eq(blockNumber);
       });
 
-      it("commitAddToken from a non controller should fail", async() => {
+      it("commitAddToken from a non controller should fail", async () => {
         await smartpool.setController(account2);
-        await expect(smartpool.commitAddToken(newToken.address, new BigNumber(1), constants.WeiPerEther.mul(2))).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
+        await expect(
+          smartpool.commitAddToken(newToken.address, new BigNumber(1), constants.WeiPerEther.mul(2))
+        ).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
       });
 
-      it("Apply add token should work", async() => {
+      it("Apply add token should work", async () => {
         const balance = constants.WeiPerEther.mul(100);
         const weight = constants.WeiPerEther.mul(2);
         await smartpool.commitAddToken(newToken.address, balance, weight);
@@ -426,11 +428,10 @@ describe("Advanced Pool Functionality", function () {
         expect(totalSupplyAfter).to.eq(totalSupplyBefore.add(expectedMint));
         expect(userPoolBalanceAfter).to.eq(userPoolBalanceBefore.add(expectedMint));
       });
-
     });
 
-    describe("removeToken", async() => {
-      it("removeToken should work", async() => {
+    describe("removeToken", async () => {
+      it("removeToken should work", async () => {
         const removedToken = tokens[0];
         const tokenWeight = await smartpool.getDenormalizedWeight(removedToken.address);
 
@@ -460,45 +461,53 @@ describe("Advanced Pool Functionality", function () {
         expect(tokensAfter.length).to.eq(tokensBefore.length - 1);
       });
 
-      it("removeToken should fail when controller does not have enough pool tokens", async() => {
+      it("removeToken should fail when controller does not have enough pool tokens", async () => {
         const removedToken = tokens[0];
         const balance = await smartpool.balanceOf(account);
         await smartpool.transfer(account2, balance);
 
-        await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith("ERR_INSUFFICIENT_BAL");
+        await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith(
+          "ERR_INSUFFICIENT_BAL"
+        );
       });
 
-      it("removeToken should fail if underlying token transfer returns false", async() => {
+      it("removeToken should fail if underlying token transfer returns false", async () => {
         const removedToken = tokens[0];
         await removedToken.setTransferReturnFalse(true);
-        await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith("ERR_ERC20_FALSE")
+        await expect(smartpool.removeToken(removedToken.address)).to.be.revertedWith(
+          "ERR_ERC20_FALSE"
+        );
       });
     });
 
-    describe("Setting joining and exiting enabled", async() => {
-      it("setJoinExitEnabled should work", async() => {
+    describe("Setting joining and exiting enabled", async () => {
+      it("setJoinExitEnabled should work", async () => {
         await smartpool.setJoinExitEnabled(true);
         const joinExitEnabled = await smartpool.getJoinExitEnabled();
         expect(joinExitEnabled).to.eq(true);
       });
-      it("setJoinExitEnabled from a non controller address should fail", async() => {
+      it("setJoinExitEnabled from a non controller address should fail", async () => {
         await smartpool.setController(account2);
-        await expect(smartpool.setJoinExitEnabled(true)).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
+        await expect(smartpool.setJoinExitEnabled(true)).to.be.revertedWith(
+          "PV2SmartPool.onlyController: not controller"
+        );
       });
     });
 
-    describe("Circuit Breaker", async() => {
-      it("setCircuitBreaker should work", async() => {
+    describe("Circuit Breaker", async () => {
+      it("setCircuitBreaker should work", async () => {
         await smartpool.setCircuitBreaker(account2);
         const circuitBreaker = await smartpool.getCircuitBreaker();
         expect(circuitBreaker).to.eq(account2);
       });
 
-      it("setCircuitBreaker from a non controller should fail", async() => {
+      it("setCircuitBreaker from a non controller should fail", async () => {
         await smartpool.setController(account2);
-        await expect(smartpool.setCircuitBreaker(account2)).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
+        await expect(smartpool.setCircuitBreaker(account2)).to.be.revertedWith(
+          "PV2SmartPool.onlyController: not controller"
+        );
       });
-      it("tripCircuitBreaker should work", async() => {
+      it("tripCircuitBreaker should work", async () => {
         await smartpool.setCircuitBreaker(account);
         await smartpool.setPublicSwap(true);
         await smartpool.setJoinExitEnabled(true);
@@ -511,27 +520,20 @@ describe("Advanced Pool Functionality", function () {
         expect(joinExitEnabled).to.eq(false);
       });
 
-      it("tripCircuitBreaker from a non circuitbreaker address should fail", async() => {
-        await expect(smartpool.tripCircuitBreaker()).to.be.revertedWith("PV2SmartPool.onlyCircuitBreaker: not circuit breaker");
+      it("tripCircuitBreaker from a non circuitbreaker address should fail", async () => {
+        await expect(smartpool.tripCircuitBreaker()).to.be.revertedWith(
+          "PV2SmartPool.onlyCircuitBreaker: not circuit breaker"
+        );
       });
     });
 
-    describe("Annual Fee", async() => {
-      it("Charging the fee should work", async() => {
-
-      });
-      it("Setting the fee should work", async() => {
-
-      });s
-      it("Zero fee should work", async() => {
-
-      });
-      it("Changing the fee should charge it", async() => {
-
-      });
-
+    describe("Annual Fee", async () => {
+      it("Charging the fee should work", async () => {});
+      it("Setting the fee should work", async () => {});
+  
+      it("Zero fee should work", async () => {});
+      it("Changing the fee should charge it", async () => {});
     });
-
   });
 });
 

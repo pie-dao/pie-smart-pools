@@ -1,4 +1,4 @@
-import { EthereumProvider } from "@nomiclabs/buidler/types";
+import {EthereumProvider} from "@nomiclabs/buidler/types";
 
 class TimeTraveler {
   private snapshotID: any;
