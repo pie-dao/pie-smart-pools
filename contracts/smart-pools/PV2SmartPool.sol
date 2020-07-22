@@ -605,6 +605,10 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     return P2Storage.load().annualFee;
   }
 
+  function getFeeRecipient() external override view returns (address) {
+    return P2Storage.load().feeRecipient;
+  }
+
   /**
         @notice Get the denormalized weight of a specific token in the underlying balancer pool
         @return the normalized weight of the token in uint
