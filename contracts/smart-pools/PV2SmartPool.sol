@@ -1,3 +1,4 @@
+pragma experimental ABIEncoderV2;
 pragma solidity 0.6.4;
 
 import "../interfaces/IPV2SmartPool.sol";
@@ -76,6 +77,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     _;
   }
 
+  modifier onlyJoinExitEnabled() {
+    require(
+      P2Storage.load().joinExitEnabled,
+      "PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled"
+    );
+    _;
+  }
+
   modifier withinCap() {
     _;
     require(totalSupply() < PCSStorage.load().cap, "PV2SmartPool.withinCap: Cap limit reached");
@@ -133,6 +142,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     override
     ready
     noReentry
+    onlyJoinExitEnabled
   {
     LibPoolEntryExit.exitPoolTakingloss(_amount, _lossTokens);
   }
@@ -141,8 +151,12 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @notice Burns pool shares and sends back the underlying assets
         @param _amount Amount of pool tokens to burn
     */
-  function exitPool(uint256 _amount) external override ready noReentry {
+  function exitPool(uint256 _amount) external override ready noReentry onlyJoinExitEnabled {
     LibPoolEntryExit.exitPool(_amount);
+  }
+
+  function exitPool(uint256 _amount, uint256[] calldata _minAmountsOut) external override ready noReentry onlyJoinExitEnabled {
+    LibPoolEntryExit.exitPool(_amount, _minAmountsOut);
   }
 
   /**
@@ -157,6 +171,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     ready
     noReentry
     onlyPublicSwap
+    onlyJoinExitEnabled
     returns (uint256 tokenAmountOut)
   {
     return LibPoolEntryExit.exitswapPoolAmountIn(_token, _poolAmountIn);
@@ -174,6 +189,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     ready
     noReentry
     onlyPublicSwap
+    onlyJoinExitEnabled
     returns (uint256 poolAmountIn)
   {
     return LibPoolEntryExit.exitswapExternAmountOut(_token, _tokenAmountOut);
@@ -198,6 +214,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     withinCap
     ready
     noReentry
+    onlyJoinExitEnabled
   {
     LibPoolEntryExit.joinPool(_amount, _maxAmountsIn);
   }
@@ -212,7 +229,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     address _token,
     uint256 _amountIn,
     uint256 _minPoolAmountOut
-  ) external override ready withinCap onlyPublicSwap noReentry returns (uint256 poolAmountOut) {
+  ) external override ready withinCap onlyPublicSwap noReentry onlyJoinExitEnabled returns (uint256 poolAmountOut) {
     return LibPoolEntryExit.joinswapExternAmountIn(_token, _amountIn, _minPoolAmountOut);
   }
 
@@ -226,7 +243,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     address _token,
     uint256 _amountOut,
     uint256 _maxAmountIn
-  ) external override ready withinCap onlyPublicSwap noReentry returns (uint256 tokenAmountIn) {
+  ) external override ready withinCap onlyPublicSwap noReentry onlyJoinExitEnabled returns (uint256 tokenAmountIn) {
     return LibPoolEntryExit.joinswapPoolAmountOut(_token, _amountOut, _maxAmountIn);
   }
 
@@ -375,6 +392,10 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   function setCircuitBreaker(address _newCircuitBreaker) external override onlyController {
     emit CircuitBreakerChanged(P2Storage.load().circuitBreaker, _newCircuitBreaker);
     P2Storage.load().circuitBreaker = _newCircuitBreaker;
+  }
+
+  function setAnnualFee(uint256 _newFee) external override onlyController noReentry {
+    LibFees.setAnnualFee(_newFee);
   }
 
   function tripCircuitBreaker() external onlyCircuitBreaker {
@@ -552,6 +573,10 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     return PCSStorage.load().cap;
   }
 
+  function getAnnualFee() external override view returns (uint256) {
+    return PV2Storage.load().annualFee;
+  }
+
   /**
         @notice Get the denormalized weight of a specific token in the underlying balancer pool
         @return the normalized weight of the token in uint
@@ -599,6 +624,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   function getEndBlock() external view returns (uint256) {
     return P2Storage.load().endBlock;
+  }
+
+  function getNewToken() external view returns(P2Storage.NewToken memory) {
+    return P2Storage.load().newToken;
+  }
+
+  function getJoinExitEnabled() external view returns (bool) {
+    return P2Storage.load().joinExitEnabled;
   }
 
   // UNSUPORTED METHODS ---------------------------------------

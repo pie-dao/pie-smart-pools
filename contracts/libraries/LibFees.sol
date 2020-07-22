@@ -8,7 +8,10 @@ import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 library LibFees {
   using Math for uint256;
 
+  uint256 constant public MAX_ANNUAL_FEE = 1 ether / 10; // Max annual fee
+
   event AnnualFeeClaimed(uint256 amount);
+  event AnnualFeeChanged(uint256 _oldFee, uint256 _newFee);
 
   function calcOutstandingAnnualFee() internal view returns (uint256) {
     P2Storage.StorageStruct storage v2s = P2Storage.load();
@@ -41,5 +44,11 @@ library LibFees {
     v2s.lastAnnualFeeClaimed = block.timestamp;
 
     emit AnnualFeeClaimed(outstandingFee);
+  }
+
+  function setAnnualFee(uint256 _newFee) internal {
+    require(_newFee <= MAX_ANNUAL_FEE, "LibFees.setAnnualFee: Annual fee too high");
+    emit AnnualFeeChanged(P2Storage.load().annualFee, _newFee);
+    P2Storage.load().annualFee = _newFee;
   }
 }

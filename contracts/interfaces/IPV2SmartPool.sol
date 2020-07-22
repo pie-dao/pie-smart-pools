@@ -20,6 +20,8 @@ interface IPV2SmartPool is IERC20 {
 
   function setCap(uint256 _cap) external;
 
+  function setAnnualFee(uint256 _newFee) external;
+
   function setController(address _controller) external;
 
   function setCircuitBreaker(address _newCircuitBreaker) external;
@@ -51,6 +53,8 @@ interface IPV2SmartPool is IERC20 {
   function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn) external;
 
   function exitPool(uint256 _amount) external;
+
+  function exitPool(uint256 _amount, uint256[] calldata _minAmountsOut) external;
 
   function joinswapExternAmountIn(
     address _token,
@@ -101,6 +105,8 @@ interface IPV2SmartPool is IERC20 {
   function getTokens() external view returns (address[] memory);
 
   function getCap() external view returns (uint256);
+
+  function getAnnualFee() external view returns (uint256);
 
   function getDenormalizedWeight(address _token) external view returns (uint256);
 
