@@ -3,7 +3,7 @@ import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockToken
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
 import {ethers, run} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
-import {BigNumber, BigNumberish} from "ethers/utils";
+import {BigNumber, BigNumberish, parseEther} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
@@ -527,12 +527,50 @@ describe("Advanced Pool Functionality", function () {
       });
     });
 
+    describe("Join exit disabled enforcement", async() => {
+      // TODO actual tests
+    });
+
     describe("Annual Fee", async () => {
-      it("Charging the fee should work", async () => {});
-      it("Setting the fee should work", async () => {});
-  
-      it("Zero fee should work", async () => {});
-      it("Changing the fee should charge it", async () => {});
+      it("Charging the fee should work", async () => {
+        expect(true).to.eq(false);
+      });
+      it("Setting the fee should work", async () => {
+        const newFee = parseEther("0.01");
+
+        await smartpool.setAnnualFee(newFee);
+        const actualFee = await smartpool.getAnnualFee();
+
+        expect(actualFee).to.eq(newFee);
+      });
+      it("Setting the fee from a non controller should fail", async() => {
+        const newFee = parseEther("0.01");
+
+        await smartpool.setController(account2);
+        await expect(smartpool.setAnnualFee(newFee)).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
+      });
+
+      it("Setting the fee too high (10%) should fail", async() => {
+        const newFee = parseEther("0.1000001");
+
+        await expect(smartpool.setAnnualFee(newFee)).to.be.revertedWith("LibFees.setAnnualFee: Annual fee too high");
+      });
+      it("Setting the fee recipient should work", async() => {
+        await smartpool.setFeeRecipient(account2);
+        const newFeeRecipient = await smartpool.getFeeRecipient();
+
+        expect(newFeeRecipient).to.eq(account2);
+      })
+      it("Setting the fee recipient from a non controller should fail", async() => {
+        await smartpool.setController(account2);
+        await expect(smartpool.setFeeRecipient(account2)).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
+      });
+      it("Zero fee should work", async () => {
+        expect(true).to.eq(false);
+      });
+      it("Changing the fee should charge it", async () => {
+        expect(true).to.eq(false);
+      });
     });
   });
 });
