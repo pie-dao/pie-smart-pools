@@ -574,7 +574,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   function getAnnualFee() external override view returns (uint256) {
-    return PV2Storage.load().annualFee;
+    return P2Storage.load().annualFee;
   }
 
   /**
