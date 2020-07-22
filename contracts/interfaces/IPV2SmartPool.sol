@@ -110,6 +110,8 @@ interface IPV2SmartPool is IERC20 {
 
   function getAnnualFee() external view returns (uint256);
 
+  function getFeeRecipient() external view returns (address);
+
   function getDenormalizedWeight(address _token) external view returns (uint256);
 
   function getDenormalizedWeights() external view returns (uint256[] memory weights);
