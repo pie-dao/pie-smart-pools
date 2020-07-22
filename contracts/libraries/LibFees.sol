@@ -47,7 +47,7 @@ library LibFees {
     emit AnnualFeeClaimed(outstandingFee);
   }
 
-  function setFeeRecipient(uint256 _newRecipient) internal {
+  function setFeeRecipient(address _newRecipient) internal {
     emit FeeRecipientChanged(P2Storage.load().feeRecipient, _newRecipient);
     P2Storage.load().feeRecipient = _newRecipient;
   }
