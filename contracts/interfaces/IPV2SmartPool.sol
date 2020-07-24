@@ -22,6 +22,8 @@ interface IPV2SmartPool is IERC20 {
 
   function setAnnualFee(uint256 _newFee) external;
 
+  function chargeOutstandingAnnualFee() external;
+
   function setFeeRecipient(address _newRecipient) external;
 
   function setController(address _controller) external;

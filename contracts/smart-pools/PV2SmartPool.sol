@@ -422,6 +422,10 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibFees.setAnnualFee(_newFee);
   }
 
+  function chargeOutstandingAnnualFee() external override noReentry {
+    LibFees.chargeOutstandingAnnualFee();
+  }
+
   function setFeeRecipient(address _newRecipient) external override onlyController noReentry {
     LibFees.setFeeRecipient(_newRecipient);
   }
