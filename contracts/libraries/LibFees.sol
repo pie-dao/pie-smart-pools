@@ -30,7 +30,6 @@ library LibFees {
   }
 
   function chargeOutstandingAnnualFee() internal {
-    PCStorage.StorageStruct storage tokenStorage = PCStorage.load();
     P2Storage.StorageStruct storage v2s = P2Storage.load();
     uint256 outstandingFee = calcOutstandingAnnualFee();
 

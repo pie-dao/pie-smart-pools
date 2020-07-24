@@ -389,10 +389,10 @@ describe("Basic Pool Functionality", function () {
       await smartpool.setPublicSwap(true);
 
       await expect(
-        smartpool.exitswapExternAmountOut(tokens[1].address, exitAmount)
+        smartpool.exitswapExternAmountOut(tokens[1].address, exitAmount, constants.MaxUint256)
       ).to.be.revertedWith("LibPoolEntryExit.exitswapExternAmountOut: Token Not Bound");
       await expect(
-        smartpool.exitswapPoolAmountIn(tokens[1].address, exitAmount)
+        smartpool.exitswapPoolAmountIn(tokens[1].address, exitAmount, constants.Zero)
       ).to.be.revertedWith("LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
     });
 
@@ -409,7 +409,7 @@ describe("Basic Pool Functionality", function () {
       const userPoolBalanceBefore = await smartpool.balanceOf(account);
       const totalSupplyBefore = await smartpool.totalSupply();
 
-      await smartpool.exitswapPoolAmountIn(outputToken.address, burnAmount);
+      await smartpool.exitswapPoolAmountIn(outputToken.address, burnAmount, constants.Zero);
 
       const userBalanceAfter = await outputToken.balanceOf(account);
       const userPoolBalanceAfter = await smartpool.balanceOf(account);
@@ -433,7 +433,7 @@ describe("Basic Pool Functionality", function () {
       const userPoolBalanceBefore = await smartpool.balanceOf(account);
       const totalSupplyBefore = await smartpool.totalSupply();
 
-      await smartpool.exitswapExternAmountOut(outputToken.address, outputTokenAmount);
+      await smartpool.exitswapExternAmountOut(outputToken.address, outputTokenAmount, constants.MaxUint256);
 
       const userBalanceAfter = await outputToken.balanceOf(account);
       const userPoolBalanceAfter = await smartpool.balanceOf(account);
@@ -450,11 +450,11 @@ describe("Basic Pool Functionality", function () {
       const tokenAmountOut = constants.WeiPerEther.div(100);
 
       await expect(
-        smartpool.exitswapExternAmountOut(tokenOutAddress, tokenAmountOut)
+        smartpool.exitswapExternAmountOut(tokenOutAddress, tokenAmountOut, constants.MaxUint256)
       ).to.be.revertedWith("PV2SmartPool.onlyPublicSwap: swapping not enabled");
 
       await expect(
-        smartpool.exitswapPoolAmountIn(tokenOutAddress, poolAmountIn)
+        smartpool.exitswapPoolAmountIn(tokenOutAddress, poolAmountIn, constants.Zero)
       ).to.be.revertedWith("PV2SmartPool.onlyPublicSwap: swapping not enabled");
     });
   });

@@ -54,7 +54,7 @@ library LibPoolEntryExit {
     emit PoolExited(msg.sender, _amount);
   }
 
-  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
+  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn, uint256 _minAmountOut)
     external
     returns (uint256 tokenAmountOut)
   {
@@ -71,6 +71,8 @@ library LibPoolEntryExit {
       bPool.getSwapFee()
     );
 
+    require(tokenAmountOut >= _minAmountOut, "LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
+
     emit LOG_EXIT(msg.sender, _token, tokenAmountOut);
 
     LibPoolToken._burn(msg.sender, _poolAmountIn);
@@ -83,7 +85,7 @@ library LibPoolEntryExit {
     return tokenAmountOut;
   }
 
-  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
+  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut, uint256 _maxPoolAmountIn)
     external
     returns (uint256 poolAmountIn)
   {
@@ -99,6 +101,8 @@ library LibPoolEntryExit {
       _tokenAmountOut,
       bPool.getSwapFee()
     );
+
+    require(poolAmountIn <= _maxPoolAmountIn, "LibPoolEntryExit.exitswapExternAmountOut: pool amount in too large");
 
     emit LOG_EXIT(msg.sender, _token, _tokenAmountOut);
 

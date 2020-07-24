@@ -171,7 +171,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _poolAmountIn Amount of pool tokens sending to the pool
         @return tokenAmountOut amount of exit tokens being withdrawn
     */
-  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
+  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn, uint256 _minAmountOut)
     external
     override
     ready
@@ -180,7 +180,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     onlyJoinExitEnabled
     returns (uint256 tokenAmountOut)
   {
-    return LibPoolEntryExit.exitswapPoolAmountIn(_token, _poolAmountIn);
+    return LibPoolEntryExit.exitswapPoolAmountIn(_token, _poolAmountIn, _minAmountOut);
   }
 
   /**
@@ -189,7 +189,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _tokenAmountOut Amount of exit tokens
         @return poolAmountIn amount of pool tokens being deposited
     */
-  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
+  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut, uint256 _maxPoolAmountIn)
     external
     override
     ready
@@ -198,7 +198,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     onlyJoinExitEnabled
     returns (uint256 poolAmountIn)
   {
-    return LibPoolEntryExit.exitswapExternAmountOut(_token, _tokenAmountOut);
+    return LibPoolEntryExit.exitswapExternAmountOut(_token, _tokenAmountOut, _maxPoolAmountIn);
   }
 
   // POOL ENTRY -----------------------------------------------
@@ -206,7 +206,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @notice Takes underlying assets and mints smart pool tokens. Enforces the cap
         @param _amount Amount of pool tokens to mint
     */
-  function joinPool(uint256 _amount) external override withinCap ready noReentry {
+  function joinPool(uint256 _amount) external override withinCap ready noReentry onlyJoinExitEnabled {
     LibPoolEntryExit.joinPool(_amount);
   }
 

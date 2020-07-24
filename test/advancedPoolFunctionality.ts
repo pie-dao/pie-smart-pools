@@ -1,17 +1,18 @@
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
-import {ethers, run} from "@nomiclabs/buidler";
+import {ethers, run, ethereum} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber, BigNumberish, parseEther} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
-import {deployBalancerPool, linkArtifact} from "../utils";
+import {deployBalancerPool, linkArtifact, TimeTraveler} from "../utils";
 import {IbPool} from "../typechain/IBPool";
 import {IbPoolFactory} from "../typechain/IBPoolFactory";
 import {Pv2SmartPool} from "../typechain/PV2SmartPool";
 import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
+import { MaxUint256 } from "ethers/constants";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -19,6 +20,7 @@ const {expect} = chai;
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
+const timeTraveler = new TimeTraveler(ethereum);
 
 describe("Advanced Pool Functionality", function () {
   this.timeout(3000000);
@@ -528,12 +530,59 @@ describe("Advanced Pool Functionality", function () {
     });
 
     describe("Join exit disabled enforcement", async() => {
-      // TODO actual tests
+      beforeEach(async() => {
+        await smartpool.setPublicSwap(true);
+      })
+      it("joinPool", async() => {
+        await expect(smartpool.joinPool(constants.WeiPerEther)).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("joinPool with front running protection", async() => {
+        await expect(smartpool["joinPool(uint256,uint256[])"](constants.WeiPerEther, createBigNumberArray(8, constants.Zero))).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("exitPool", async() => {
+        await expect(smartpool["exitPool(uint256)"](constants.WeiPerEther.div(2))).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("exitPool with frontrunning protection", async() => {
+        await expect(smartpool["exitPool(uint256,uint256[])"](constants.WeiPerEther.div(2), createBigNumberArray(8, constants.MaxUint256))).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("exitPoolTakingLoss", async() => {
+        await expect(smartpool.exitPoolTakingloss(constants.WeiPerEther, [])).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("joinswapExternAmountIn", async() => {
+        await expect(smartpool.joinswapExternAmountIn(tokens[0].address, constants.WeiPerEther, constants.Zero)).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("joinswapPoolAmountOut", async() => {
+        await expect(smartpool.joinswapPoolAmountOut(tokens[0].address, constants.WeiPerEther, constants.MaxUint256)).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("exitswapPoolAmountIn", async() => {
+        await expect(smartpool.exitswapPoolAmountIn(tokens[0].address, constants.WeiPerEther, constants.Zero)).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
+      it("exitswapExternAmountOut", async() => {
+        await expect(smartpool.exitswapExternAmountOut(tokens[0].address, constants.WeiPerEther, MaxUint256)).to.be.revertedWith("PV2SmartPool.onlyJoinExitEnabled: join and exit not enabled");
+      });
     });
 
+    // TODO finish failing tests
+
     describe("Annual Fee", async () => {
-      it("Charging the fee should work", async () => {
-        expect(true).to.eq(false);
+      it("Charging the fee should work [ @skip-on-coverage ]", async () => {
+        const totalSupplyBefore = await smartpool.totalSupply();
+        const feePercentage = parseEther("0.1");
+
+        const beginTimeStamp = Math.floor(Date.now() / 1000) + 3600;
+        const endTimeStamp = beginTimeStamp + (60*60*24*365);
+        const expectedMint = totalSupplyBefore.mul(feePercentage).div(constants.WeiPerEther);
+
+        await timeTraveler.setNextBlockTimestamp(beginTimeStamp);
+        await smartpool.setAnnualFee(feePercentage);
+        await timeTraveler.setNextBlockTimestamp(endTimeStamp);
+        await smartpool.chargeOutstandingAnnualFee();
+
+        const feeRecipientPoolBalanceAfter = await smartpool.balanceOf(constants.AddressZero);
+        const totalSupplyAfter = await smartpool.totalSupply();
+
+        expect(totalSupplyAfter).to.eq(totalSupplyBefore.add(expectedMint));
+        expect(feeRecipientPoolBalanceAfter).to.eq(expectedMint);
       });
       it("Setting the fee should work", async () => {
         const newFee = parseEther("0.01");
@@ -565,15 +614,37 @@ describe("Advanced Pool Functionality", function () {
         await smartpool.setController(account2);
         await expect(smartpool.setFeeRecipient(account2)).to.be.revertedWith("PV2SmartPool.onlyController: not controller");
       });
-      it("Zero fee should work", async () => {
-        expect(true).to.eq(false);
-      });
-      it("Changing the fee should charge it", async () => {
-        expect(true).to.eq(false);
+      it("Changing the fee should charge it [ @skip-on-coverage ]", async () => {
+        const totalSupplyBefore = await smartpool.totalSupply();
+        const feePercentage = parseEther("0.1");
+
+        const beginTimeStamp = Math.floor(Date.now() / 1000) + ((60*60*24*365) * 2);
+        const endTimeStamp = beginTimeStamp + (60*60*24*365);
+        const expectedMint = totalSupplyBefore.mul(feePercentage).div(constants.WeiPerEther);
+
+        await timeTraveler.setNextBlockTimestamp(beginTimeStamp);
+        await smartpool.setAnnualFee(feePercentage);
+        await timeTraveler.setNextBlockTimestamp(endTimeStamp);
+        await smartpool.setAnnualFee(parseEther("0.05"));
+
+        const feeRecipientPoolBalanceAfter = await smartpool.balanceOf(constants.AddressZero);
+        const totalSupplyAfter = await smartpool.totalSupply();
+
+        expect(totalSupplyAfter).to.eq(totalSupplyBefore.add(expectedMint));
+        expect(feeRecipientPoolBalanceAfter).to.eq(expectedMint);
       });
     });
   });
 });
+
+function createBigNumberArray(length: number, value: BigNumber): BigNumber[] {
+  const result: BigNumber[] = [];
+  for (let i = 0; i < length; i++) {
+    result.push(value);
+  }
+
+  return result;
+}
 
 async function mine_blocks(amount: number) {
   for (let i = 0; i < amount; i++) {

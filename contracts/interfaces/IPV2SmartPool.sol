@@ -72,11 +72,11 @@ interface IPV2SmartPool is IERC20 {
     uint256 _maxAmountIn
   ) external returns (uint256 tokenAmountIn);
 
-  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn)
+  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn, uint256 _minAmountOut)
     external
     returns (uint256 tokenAmountOut);
 
-  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut)
+  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut, uint256 _maxPoolAmountIn)
     external
     returns (uint256 poolAmountIn);
 
