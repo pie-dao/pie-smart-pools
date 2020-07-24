@@ -9,11 +9,9 @@ class TimeTraveler {
   }
 
   public async snapshot() {
-    console.log("snapshotting");
     const snapshot = await this.ethereum.send("evm_snapshot", []);
     await this.mine_blocks(1);
     this.snapshotID = snapshot;
-    console.log("new snapshot", this.snapshotID);
     return;
   }
 
@@ -27,6 +25,14 @@ class TimeTraveler {
     for (let i = 0; i < amount; i++) {
       await this.ethereum.send("evm_mine", []);
     }
+  }
+
+  public async increaseTime(amount: number) {
+    await this.ethereum.send("evm_increaseTime", [amount]);
+  }
+
+  public async setNextBlockTimestamp(timestamp: number) {
+    await this.ethereum.send("evm_setNextBlockTimestamp", [timestamp]);
   }
 }
 
