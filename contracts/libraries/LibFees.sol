@@ -39,7 +39,6 @@ library LibFees {
       return;
     }
 
-    tokenStorage.totalSupply = tokenStorage.totalSupply.badd(outstandingFee);
     LibPoolToken._mint(v2s.feeRecipient, outstandingFee);
 
     v2s.lastAnnualFeeClaimed = block.timestamp;
