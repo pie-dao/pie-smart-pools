@@ -433,7 +433,11 @@ describe("Basic Pool Functionality", function () {
       const userPoolBalanceBefore = await smartpool.balanceOf(account);
       const totalSupplyBefore = await smartpool.totalSupply();
 
-      await smartpool.exitswapExternAmountOut(outputToken.address, outputTokenAmount, constants.MaxUint256);
+      await smartpool.exitswapExternAmountOut(
+        outputToken.address,
+        outputTokenAmount,
+        constants.MaxUint256
+      );
 
       const userBalanceAfter = await outputToken.balanceOf(account);
       const userPoolBalanceAfter = await smartpool.balanceOf(account);
