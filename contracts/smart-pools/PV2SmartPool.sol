@@ -155,6 +155,11 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibPoolEntryExit.exitPool(_amount);
   }
 
+  /**
+    @notice Burn pool tokens and redeem underlying assets. With front running protection
+    @param _amount Amount of pool tokens to burn
+    @param _minAmountsOut Minimum amounts of underlying assets
+  */
   function exitPool(uint256 _amount, uint256[] calldata _minAmountsOut)
     external
     override
@@ -171,7 +176,11 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _poolAmountIn Amount of pool tokens sending to the pool
         @return tokenAmountOut amount of exit tokens being withdrawn
     */
-  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn, uint256 _minAmountOut)
+  function exitswapPoolAmountIn(
+    address _token,
+    uint256 _poolAmountIn,
+    uint256 _minAmountOut
+  )
     external
     override
     ready
@@ -189,7 +198,11 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _tokenAmountOut Amount of exit tokens
         @return poolAmountIn amount of pool tokens being deposited
     */
-  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut, uint256 _maxPoolAmountIn)
+  function exitswapExternAmountOut(
+    address _token,
+    uint256 _tokenAmountOut,
+    uint256 _maxPoolAmountIn
+  )
     external
     override
     ready
@@ -206,7 +219,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @notice Takes underlying assets and mints smart pool tokens. Enforces the cap
         @param _amount Amount of pool tokens to mint
     */
-  function joinPool(uint256 _amount) external override withinCap ready noReentry onlyJoinExitEnabled {
+  function joinPool(uint256 _amount)
+    external
+    override
+    withinCap
+    ready
+    noReentry
+    onlyJoinExitEnabled
+  {
     LibPoolEntryExit.joinPool(_amount);
   }
 
@@ -408,35 +428,62 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     PCSStorage.load().cap = _cap;
   }
 
-  function setJoinExitEnabled(bool _newValue) external onlyController {
+  /**
+    @notice Enable or disable joining and exiting
+    @param _newValue enabled or not
+  */
+  function setJoinExitEnabled(bool _newValue) external override onlyController noReentry {
     emit JoinExitEnabledChanged(msg.sender, P2Storage.load().joinExitEnabled, _newValue);
     P2Storage.load().joinExitEnabled = _newValue;
   }
 
-  function setCircuitBreaker(address _newCircuitBreaker) external override onlyController {
+  /**
+    @notice Set the circuit breaker address. Can only be called by the controller
+    @param _newCircuitBreaker Address of the new circuit breaker
+  */
+  function setCircuitBreaker(address _newCircuitBreaker) external override onlyController noReentry {
     emit CircuitBreakerChanged(P2Storage.load().circuitBreaker, _newCircuitBreaker);
     P2Storage.load().circuitBreaker = _newCircuitBreaker;
   }
 
+  /**
+    @notice Set the annual fee. Can only be called by the controller
+    @param _newFee new fee 10**18 == 100% per 365 days. Max 10%
+  */
   function setAnnualFee(uint256 _newFee) external override onlyController noReentry {
     LibFees.setAnnualFee(_newFee);
   }
 
+  /**
+    @notice Charge the outstanding annual fee
+  */
   function chargeOutstandingAnnualFee() external override noReentry {
     LibFees.chargeOutstandingAnnualFee();
   }
 
+  /**
+    @notice Set the address that receives the annual fee. Can only be called by the controller
+  */
   function setFeeRecipient(address _newRecipient) external override onlyController noReentry {
     LibFees.setFeeRecipient(_newRecipient);
   }
 
-  function tripCircuitBreaker() external onlyCircuitBreaker {
+  /**
+    @notice Trip the circuit breaker which disabled exit, join and swaps
+  */
+  function tripCircuitBreaker() external override onlyCircuitBreaker {
     P2Storage.load().joinExitEnabled = false;
     PBStorage.load().bPool.setPublicSwap(false);
     emit CircuitBreakerTripped();
   }
 
   // TOKEN AND WEIGHT FUNCTIONS -------------------------------
+
+  /**
+    @notice Update the weight of a token. Can only be called by the controller
+    @param _token Token to adjust the weight of
+    @param _newWeight New denormalized weight
+  */
   function updateWeight(address _token, uint256 _newWeight)
     external
     override
@@ -446,8 +493,12 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibWeights.updateWeight(_token, _newWeight);
   }
 
-  // Let external actors poke the contract with pokeWeights(),
-  // to slowly get to newWeights at endBlock
+  /** 
+    @notice Gradually adjust the weights of a token. Can only be called by the controller
+    @param _newWeights Target weights
+    @param _startBlock Block to start weight adjustment
+    @param _endBlock Block to finish weight adjustment
+  */
   function updateWeightsGradually(
     uint256[] calldata _newWeights,
     uint256 _startBlock,
@@ -456,14 +507,26 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibWeights.updateWeightsGradually(_newWeights, _startBlock, _endBlock);
   }
 
+  /**
+    @notice Poke the weight adjustment
+  */
   function pokeWeights() external override noReentry {
     LibWeights.pokeWeights();
   }
 
+  /**
+    @notice Apply the adding of a token. Can only be called by the controller
+  */
   function applyAddToken() external override noReentry onlyController {
     LibAddRemoveToken.applyAddToken();
   }
 
+  /** 
+    @notice Commit a token to be added. Can only be called by the controller
+    @param _token Address of the token to add
+    @param _balance Amount of token to add
+    @param _denormalizedWeight Denormalized weight
+  */
   function commitAddToken(
     address _token,
     uint256 _balance,
@@ -472,6 +535,10 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibAddRemoveToken.commitAddToken(_token, _balance, _denormalizedWeight);
   }
 
+  /**
+    @notice Remove a token from the smart pool. Can only be called by the controller
+    @param _token Address of the token to remove
+  */
   function removeToken(address _token) external override noReentry onlyController {
     LibAddRemoveToken.removeToken(_token);
   }
@@ -553,53 +620,57 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     return LibPoolMath.calcPoolInGivenSingleOut(_token, _amount);
   }
 
+  /** 
+    @notice Get the current tokens in the smart pool
+    @return Addresses of the tokens in the smart pool
+  */
   function getTokens() external override view returns (address[] memory) {
     return PBStorage.load().bPool.getCurrentTokens();
   }
 
   /**
-        @notice Get the address of the controller
-        @return The address of the pool
-    */
+    @notice Get the address of the controller
+    @return The address of the pool
+  */
   function getController() external override view returns (address) {
     return PBStorage.load().controller;
   }
 
   /**
-        @notice Get the address of the public swap setter
-        @return The public swap setter address
-    */
+    @notice Get the address of the public swap setter
+    @return The public swap setter address
+  */
   function getPublicSwapSetter() external override view returns (address) {
     return PBStorage.load().publicSwapSetter;
   }
 
   /**
-        @notice Get the address of the token binder
-        @return The token binder address
-    */
+    @notice Get the address of the token binder
+    @return The token binder address
+  */
   function getTokenBinder() external override view returns (address) {
     return PBStorage.load().tokenBinder;
   }
 
   /**
-      @notice Get the address of the circuitBreaker
-      @return The address of the circuitBreaker
-    */
+    @notice Get the address of the circuitBreaker
+    @return The address of the circuitBreaker
+  */
   function getCircuitBreaker() external override view returns (address) {
     return P2Storage.load().circuitBreaker;
   }
 
   /**
-        @notice Get if public swapping is enabled
-        @return If public swapping is enabled
-    */
+    @notice Get if public swapping is enabled
+    @return If public swapping is enabled
+  */
   function isPublicSwap() external override view returns (bool) {
     return PBStorage.load().bPool.isPublicSwap();
   }
 
   /**
-      @notice Get the current cap
-      @return The current cap in wei
+    @notice Get the current cap
+    @return The current cap in wei
   */
   function getCap() external override view returns (uint256) {
     return PCSStorage.load().cap;
@@ -614,13 +685,17 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
-        @notice Get the denormalized weight of a specific token in the underlying balancer pool
-        @return the normalized weight of the token in uint
+    @notice Get the denormalized weight of a specific token in the underlying balancer pool
+    @return the normalized weight of the token in uint
   */
   function getDenormalizedWeight(address _token) external override view returns (uint256) {
     return PBStorage.load().bPool.getDenormalizedWeight(_token);
   }
 
+  /**
+    @notice Get all denormalized weights
+    @return weights Denormalized weights
+  */
   function getDenormalizedWeights() external override view returns (uint256[] memory weights) {
     PBStorage.StorageStruct storage s = PBStorage.load();
     address[] memory tokens = s.bPool.getCurrentTokens();
@@ -631,57 +706,81 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
-        @notice Get the address of the underlying Balancer pool
-        @return The address of the underlying balancer pool
-    */
+    @notice Get the address of the underlying Balancer pool
+    @return The address of the underlying balancer pool
+  */
   function getBPool() external override view returns (address) {
     return address(PBStorage.load().bPool);
   }
 
   /**
-        @notice Get the current swap fee
-        @return The current swap fee
-    */
+    @notice Get the current swap fee
+    @return The current swap fee
+  */
   function getSwapFee() external override view returns (uint256) {
     return PBStorage.load().bPool.getSwapFee();
   }
 
-  function getNewWeights() external view returns (uint256[] memory weights) {
+  /**
+    @notice Get the target weights
+    @return weights Target weights
+  */
+  function getNewWeights() external override view returns (uint256[] memory weights) {
     return P2Storage.load().newWeights;
   }
 
-  function getStartWeights() external view returns (uint256[] memory weights) {
+  /**
+    @notice Get weights at start of weight adjustment
+    @return weights Start weights
+  */
+  function getStartWeights() external override view returns (uint256[] memory weights) {
     return P2Storage.load().startWeights;
   }
 
-  function getStartBlock() external view returns (uint256) {
+  /**
+    @notice Get start block of weight adjustment
+    @return Start block
+  */
+  function getStartBlock() external override view returns (uint256) {
     return P2Storage.load().startBlock;
   }
 
-  function getEndBlock() external view returns (uint256) {
+  /**
+    @notice Get end block of weight adjustment
+    @return End block
+  */
+  function getEndBlock() external override view returns (uint256) {
     return P2Storage.load().endBlock;
   }
 
-  function getNewToken() external view returns (P2Storage.NewToken memory) {
+  /**
+    @notice Get new token being added
+    @return New token
+  */
+  function getNewToken() external override view returns (P2Storage.NewToken memory) {
     return P2Storage.load().newToken;
   }
 
-  function getJoinExitEnabled() external view returns (bool) {
+  /**
+    @notice Get if joining and exiting is enabled
+    @return Enabled or not
+  */
+  function getJoinExitEnabled() external override view returns (bool) {
     return P2Storage.load().joinExitEnabled;
   }
 
   // UNSUPORTED METHODS ---------------------------------------
 
   /**
-        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
-    */
+    @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+  */
   function finalizeSmartPool() external override view {
     revert("PV2SmartPool.finalizeSmartPool: unsupported function");
   }
 
   /**
-        @notice Not Supported in PieDAO implementation of Balancer Smart Pools
-    */
+    @notice Not Supported in PieDAO implementation of Balancer Smart Pools
+  */
   function createPool(uint256 initialSupply) external override view {
     revert("PV2SmartPool.createPool: unsupported function");
   }

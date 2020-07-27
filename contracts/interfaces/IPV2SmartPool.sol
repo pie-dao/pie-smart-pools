@@ -1,9 +1,10 @@
+pragma experimental ABIEncoderV2;
 pragma solidity ^0.6.4;
 
 import "../interfaces/IERC20.sol";
+import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 
 interface IPV2SmartPool is IERC20 {
-
   /**
     @notice Initialise smart pool. Can only be called once
     @param _bPool Address of the underlying bPool
@@ -77,6 +78,17 @@ interface IPV2SmartPool is IERC20 {
   function setCircuitBreaker(address _newCircuitBreaker) external;
 
   /**
+    @notice Enable or disable joining and exiting
+    @param _newValue enabled or not
+  */
+  function setJoinExitEnabled(bool _newValue) external;
+
+  /**
+    @notice Trip the circuit breaker which disabled exit, join and swaps
+  */
+  function tripCircuitBreaker() external;
+
+  /**
     @notice Update the weight of a token. Can only be called by the controller
     @param _token Token to adjust the weight of
     @param _newWeight New denormalized weight
@@ -116,7 +128,6 @@ interface IPV2SmartPool is IERC20 {
     uint256 _balance,
     uint256 _denormalizedWeight
   ) external;
-
 
   /**
     @notice Remove a token from the smart pool. Can only be called by the controller
@@ -185,9 +196,11 @@ interface IPV2SmartPool is IERC20 {
     @param _poolAmountIn Amount of pool token to burn
     @param _minAmountOut Minimum amount of underlying asset to withdraw
   */
-  function exitswapPoolAmountIn(address _token, uint256 _poolAmountIn, uint256 _minAmountOut)
-    external
-    returns (uint256 tokenAmountOut);
+  function exitswapPoolAmountIn(
+    address _token,
+    uint256 _poolAmountIn,
+    uint256 _minAmountOut
+  ) external returns (uint256 tokenAmountOut);
 
   /**
     @notice Exit with a single asset, given token amount out
@@ -195,9 +208,11 @@ interface IPV2SmartPool is IERC20 {
     @param _tokenAmountOut Amount of underlying asset to withdraw
     @param _maxPoolAmountIn Maximimum pool amount to burn
   */
-  function exitswapExternAmountOut(address _token, uint256 _tokenAmountOut, uint256 _maxPoolAmountIn)
-    external
-    returns (uint256 poolAmountIn);
+  function exitswapExternAmountOut(
+    address _token,
+    uint256 _tokenAmountOut,
+    uint256 _maxPoolAmountIn
+  ) external returns (uint256 poolAmountIn);
 
   /**
     @notice Exit pool, ignoring some tokens
@@ -302,6 +317,42 @@ interface IPV2SmartPool is IERC20 {
     @return weights Denormalized weights
   */
   function getDenormalizedWeights() external view returns (uint256[] memory weights);
+
+  /**
+    @notice Get the target weights
+    @return weights Target weights
+  */
+  function getNewWeights() external view returns (uint256[] memory weights);
+
+  /**
+    @notice Get weights at start of weight adjustment
+    @return weights Start weights
+  */
+  function getStartWeights() external view returns (uint256[] memory weights);
+
+  /**
+    @notice Get start block of weight adjustment
+    @return Start block
+  */
+  function getStartBlock() external view returns (uint256);
+
+  /**
+    @notice Get end block of weight adjustment
+    @return End block
+  */
+  function getEndBlock() external view returns (uint256);
+
+  /**
+    @notice Get new token being added
+    @return New token
+  */
+  function getNewToken() external view returns (P2Storage.NewToken memory);
+
+  /**
+    @notice Get if joining and exiting is enabled
+    @return Enabled or not
+  */
+  function getJoinExitEnabled() external view returns (bool);
 
   /**
     @notice Get the underlying Balancer pool address
