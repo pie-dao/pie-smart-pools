@@ -231,7 +231,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
-      @notice Takes underlying assets and mints smart pool tokens. Enforces the cap. Allows you to specify the maximum amounts of underlying assets
+      @notice Takes underlying assets and mints smart pool tokens. 
+      Enforces the cap. Allows you to specify the maximum amounts of underlying assets
       @param _amount Amount of pool tokens to mint
   */
   function joinPool(uint256 _amount, uint256[] calldata _maxAmountsIn)
@@ -441,7 +442,9 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Set the circuit breaker address. Can only be called by the controller
     @param _newCircuitBreaker Address of the new circuit breaker
   */
-  function setCircuitBreaker(address _newCircuitBreaker) external override onlyController noReentry {
+  function setCircuitBreaker(
+    address _newCircuitBreaker
+  ) external override onlyController noReentry {
     emit CircuitBreakerChanged(P2Storage.load().circuitBreaker, _newCircuitBreaker);
     P2Storage.load().circuitBreaker = _newCircuitBreaker;
   }
@@ -561,7 +564,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
-    @notice Calculate the amount of pool tokens out for a given amount for adding removing a certain amount of token
+    @notice Calculate the amount of pool tokens out for a given amount in
     @param _token Address of the input token
     @param _amount Amount of input token
     @return Amount of pool token

@@ -283,7 +283,7 @@ library LibPoolMath {
   }
 
   /**
-    @notice Calculate the amount of pool tokens out for a given amount for adding removing a certain amount of token
+    @notice Calculate the amount of pool tokens out for a given amount in
     @param _token Address of the input token
     @param _amount Amount of input token
     @return Amount of pool token

@@ -20,19 +20,22 @@ interface IPV2SmartPool is IERC20 {
   ) external;
 
   /**
-    @notice Set the address that can set public swap enabled or disabled. Can only be called by the controller
+    @notice Set the address that can set public swap enabled or disabled. 
+    Can only be called by the controller
     @param _swapSetter Address of the new swapSetter
   */
   function setPublicSwapSetter(address _swapSetter) external;
 
   /**
-    @notice Set the address that can bind, unbind and rebind tokens. Can only be called by the controller
+    @notice Set the address that can bind, unbind and rebind tokens.
+    Can only be called by the controller
     @param _tokenBinder Address of the new token binder
   */
   function setTokenBinder(address _tokenBinder) external;
 
   /**
-    @notice Enable or disable trading on the underlying balancer pool. Can only be called by the public swap setter
+    @notice Enable or disable trading on the underlying balancer pool.
+    Can only be called by the public swap setter
     @param _public Wether public swap is enabled or not
   */
   function setPublicSwap(bool _public) external;
