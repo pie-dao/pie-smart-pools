@@ -8,7 +8,9 @@
     "typechain": "npx buidler typechain",
     "compile": "npx buidler compile",
     "test": "npx buidler test",
-    "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage"
+    "coverage": "npm run build && npx buidler coverage --temp artifacts --network coverage",
+    "remix": "remixd -s . --remix-ide https://remix.ethereum.org",
+    "ganache": "ganache-cli --fork https://mainnet.infura.io/v3/ffa6c1dc83e44e6c9971d4706311d5ab --deterministic"
   },
   "repository": {
     "type": "git",

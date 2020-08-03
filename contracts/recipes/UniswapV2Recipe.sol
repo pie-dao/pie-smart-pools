@@ -26,7 +26,11 @@ contract UniswapV2Recipe {
         for(uint256 i = 0; i < tokens.length; i++) {
             IUniswapV2Exchange pair = IUniswapV2Exchange(uniswapFactory.getPair(tokens[i], address(WETH)));
 
-            WETH.approve(address(pair), uint256(-1));
+            (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
+            uint256 amountIn = UniLib.getAmountIn(amounts[i], reserveA, reserveB);
+
+            // UniswapV2 does not pull the token
+            WETH.transfer(address(pair), amountIn);
 
             if(token0Or1(address(pair), tokens[i]) == 0) {
                 pair.swap(amounts[i], 0, address(this), new bytes(0));
@@ -76,7 +80,9 @@ contract UniswapV2Recipe {
             (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), tokens[i], address(WETH));
             uint256 wethAmountOut = UniLib.getAmountOut(amounts[i], reserveA, reserveB);
             IUniswapV2Exchange pair = IUniswapV2Exchange(uniswapFactory.getPair(tokens[i], address(WETH)));
-            IERC20(tokens[i]).approve(address(pair), uint256(-1));
+
+            // Uniswap V2 does not pull the token
+            IERC20(tokens[i]).transfer(address(pair), amounts[i]);
 
             if(token0Or1(address(pair), tokens[i]) == 0) {
                 pair.swap(0, wethAmountOut, address(this), new bytes(0));
