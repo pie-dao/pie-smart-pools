@@ -3,8 +3,9 @@ import {UniswapV2Library as UniLib} from "./UniswapV2Library.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../interfaces/IUniswapV2Factory.sol";
 import "../interfaces/IUniswapV2Exchange.sol";
+import "../Ownable.sol"
 
-contract UniswapV2Recipe {
+contract UniswapV2Recipe is Ownable {
 
     IWETH public WETH;
     IUniswapV2Factory public uniswapFactory;
@@ -12,6 +13,7 @@ contract UniswapV2Recipe {
     constructor(address _WETH, address _uniswapFactory) public {
         WETH = IWETH(_WETH);
         uniswapFactory = IUniswapV2Factory(_uniswapFactory);
+        _setOwner(msg.sender);
     }
 
     // Max eth amount enforced by msg.value
@@ -116,6 +118,15 @@ contract UniswapV2Recipe {
         }
 
         return 1;
+    }
+
+    function saveEth() onlyOwner {
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function saveToken(address _token) onlyOwner {
+        IERC20 token = IERC20(_token);
+        token.transfer(msg.sender, token.balanceOf(address(this)));
     }
 
 }
