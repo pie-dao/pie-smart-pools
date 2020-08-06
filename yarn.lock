@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@emilianobonassi/gas-saver@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@emilianobonassi/gas-saver/-/gas-saver-1.1.0.tgz#a0cbc098ccca6b9d0fd3a0559e29273dd08d9f33"
+  integrity sha512-bYQAOOTbVFFLUEuzOznC6rk6i0RQC2cXQ6x7tPyYE3QhX+llKLrgeUio9C+VgYP1ADwKf+cebHrKPv5b/SQjzA==
+  dependencies:
+    "@openzeppelin/contracts" "^2.5.0"
+
 "@ethereum-waffle/chai@^2.4.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@ethereum-waffle/chai/-/chai-2.4.0.tgz#209cb1e3eaef23945f371ed616c027e47a3af98b"
@@ -140,6 +147,11 @@
     rustbn.js "~0.2.0"
     safe-buffer "^5.1.1"
     util.promisify "^1.0.0"
+
+"@openzeppelin/contracts@^2.5.0":
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-2.5.1.tgz#c76e3fc57aa224da3718ec351812a4251289db31"
+  integrity sha512-qIy6tLx8rtybEsIOAlrM4J/85s2q2nPkDqj/Rx46VakBZ0LwtFhXIVub96LXHczQX0vaqmAueDqNPXtbSXSaYQ==
 
 "@openzeppelin/contracts@^3.0.0-beta.0":
   version "3.0.0"

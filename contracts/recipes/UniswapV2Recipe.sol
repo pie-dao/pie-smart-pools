@@ -5,8 +5,9 @@ import "../interfaces/IUniswapV2Factory.sol";
 import "../interfaces/IUniswapV2Exchange.sol";
 import "../interfaces/ISmartPoolRegistry.sol";
 import "../Ownable.sol";
+import "@emilianobonassi/gas-saver/ChiGasSaver.sol";
 
-contract UniswapV2Recipe is Ownable {
+contract UniswapV2Recipe is Ownable, ChiGasSaver {
 
     IWETH public WETH;
     IUniswapV2Factory public uniswapFactory;
@@ -20,7 +21,7 @@ contract UniswapV2Recipe is Ownable {
     }
 
     // Max eth amount enforced by msg.value
-    function toPie(address _pie, uint256 _poolAmount) external payable {
+    function toPie(address _pie, uint256 _poolAmount) external payable saveGas(msg.sender) {
         uint256 totalEth = calcToPie(_pie, _poolAmount);
         require(msg.value >= totalEth, "Amount ETH too low");
 
@@ -86,7 +87,9 @@ contract UniswapV2Recipe is Ownable {
         return totalEth;
     }
 
-    function toEth(address _pie, uint256 _poolAmount, uint256 _minEthAmount) external {
+
+    // TODO recursive exit
+    function toEth(address _pie, uint256 _poolAmount, uint256 _minEthAmount) external saveGas(msg.sender) {
         uint256 totalEth = calcToPie(_pie, _poolAmount);
         require(_minEthAmount <= totalEth, "Output ETH amount too low");
         IPSmartPool pie = IPSmartPool(_pie);
