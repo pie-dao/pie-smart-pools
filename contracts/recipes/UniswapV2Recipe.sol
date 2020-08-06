@@ -3,16 +3,19 @@ import {UniswapV2Library as UniLib} from "./UniswapV2Library.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../interfaces/IUniswapV2Factory.sol";
 import "../interfaces/IUniswapV2Exchange.sol";
-import "../Ownable.sol"
+import "../interfaces/ISmartPoolRegistry.sol";
+import "../Ownable.sol";
 
 contract UniswapV2Recipe is Ownable {
 
     IWETH public WETH;
     IUniswapV2Factory public uniswapFactory;
+    ISmartPoolRegistry public registry;
 
-    constructor(address _WETH, address _uniswapFactory) public {
+    constructor(address _WETH, address _uniswapFactory, address _registry) public {
         WETH = IWETH(_WETH);
         uniswapFactory = IUniswapV2Factory(_uniswapFactory);
+        registry = ISmartPoolRegistry(_registry);
         _setOwner(msg.sender);
     }
 
@@ -23,37 +26,47 @@ contract UniswapV2Recipe is Ownable {
 
         WETH.deposit{value: totalEth}();
 
+        _toPie(_pie, _poolAmount);
+
+        // return excess ETH
+        if(address(this).balance != 0) {
+            // Send any excess ETH back
+            msg.sender.transfer(address(this).balance);
+        }
+
+        // Transfer pool tokens to msg.sender
+        IERC20 pie = IERC20(_pie);
+
+        IERC20(pie).transfer(msg.sender, pie.balanceOf(address(this)));
+    }
+
+    function _toPie(address _pie, uint256 _poolAmount) internal {
         (address[] memory tokens, uint256[] memory amounts) = IPSmartPool(_pie).calcTokensForAmount(_poolAmount);
 
         for(uint256 i = 0; i < tokens.length; i++) {
-            IUniswapV2Exchange pair = IUniswapV2Exchange(uniswapFactory.getPair(tokens[i], address(WETH)));
-
-            (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
-            uint256 amountIn = UniLib.getAmountIn(amounts[i], reserveA, reserveB);
-
-            // UniswapV2 does not pull the token
-            WETH.transfer(address(pair), amountIn);
-
-            if(token0Or1(address(pair), tokens[i]) == 0) {
-                pair.swap(amounts[i], 0, address(this), new bytes(0));
+            if(registry.inRegistry(tokens[i])) {
+                _toPie(tokens[i], amounts[i]);
             } else {
-                pair.swap(0, amounts[i], address(this), new bytes(0));
+                IUniswapV2Exchange pair = IUniswapV2Exchange(uniswapFactory.getPair(tokens[i], address(WETH)));
+
+                (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
+                uint256 amountIn = UniLib.getAmountIn(amounts[i], reserveA, reserveB);
+
+                // UniswapV2 does not pull the token
+                WETH.transfer(address(pair), amountIn);
+
+                if(token0Or1(address(pair), tokens[i]) == 0) {
+                    pair.swap(amounts[i], 0, address(this), new bytes(0));
+                } else {
+                    pair.swap(0, amounts[i], address(this), new bytes(0));
+                }
             }
 
             IERC20(tokens[i]).approve(_pie, uint256(-1));
         }
 
         IPSmartPool pie = IPSmartPool(_pie);
-
-        if(address(this).balance != 0) {
-            // Send any excess ETH back
-            msg.sender.transfer(address(this).balance);
-        }
-        
-        // Join pool
         pie.joinPool(_poolAmount);
-        // Transfer pool tokens to msg.sender
-        pie.transfer(msg.sender, pie.balanceOf(address(this)));
     }
 
     function calcToPie(address _pie, uint256 _poolAmount) public view returns(uint256) {
@@ -62,8 +75,12 @@ contract UniswapV2Recipe is Ownable {
         uint256 totalEth = 0;
 
         for(uint256 i = 0; i < tokens.length; i++) {
-            (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
-            totalEth += UniLib.getAmountIn(amounts[i], reserveA, reserveB);
+            if(registry.inRegistry(tokens[i])) {
+                totalEth += calcToPie(tokens[i], amounts[i]);
+            } else {
+                (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
+                totalEth += UniLib.getAmountIn(amounts[i], reserveA, reserveB);
+            }
         }
 
         return totalEth;
@@ -120,11 +137,11 @@ contract UniswapV2Recipe is Ownable {
         return 1;
     }
 
-    function saveEth() onlyOwner {
+    function saveEth() external onlyOwner {
         msg.sender.transfer(address(this).balance);
     }
 
-    function saveToken(address _token) onlyOwner {
+    function saveToken(address _token) external onlyOwner {
         IERC20 token = IERC20(_token);
         token.transfer(msg.sender, token.balanceOf(address(this)));
     }
