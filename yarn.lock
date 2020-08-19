@@ -2,10 +2,15 @@
 # yarn lockfile v1
 
 
-"@emilianobonassi/gas-saver@^1.1.0":
+"@emilianobonassi/gas-saver@emilianobonassi/gas-saver":
+  version "1.2.1"
+  resolved "https://codeload.github.com/emilianobonassi/gas-saver/tar.gz/abaf5b9571bcf446e4cdbfda4707687a6d8cff95"
+  dependencies:
+    "@openzeppelin/contracts" "^2.5.0"
+
+"@emilianobonassi/gas-saver@https://github.com/MickdeGraaf/gas-saver#feature/solidity-0.6.0":
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@emilianobonassi/gas-saver/-/gas-saver-1.1.0.tgz#a0cbc098ccca6b9d0fd3a0559e29273dd08d9f33"
-  integrity sha512-bYQAOOTbVFFLUEuzOznC6rk6i0RQC2cXQ6x7tPyYE3QhX+llKLrgeUio9C+VgYP1ADwKf+cebHrKPv5b/SQjzA==
+  resolved "https://github.com/MickdeGraaf/gas-saver#0328b0910535d6e18f5bbdabf75ebef810f7c546"
   dependencies:
     "@openzeppelin/contracts" "^2.5.0"
 

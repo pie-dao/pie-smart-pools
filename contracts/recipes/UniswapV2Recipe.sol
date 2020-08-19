@@ -1,5 +1,6 @@
 import "../interfaces/IWETH.sol";
 import {UniswapV2Library as UniLib} from "./UniswapV2Library.sol";
+import "./LibSafeApproval.sol";
 import "../interfaces/IPSmartPool.sol";
 import "../interfaces/IUniswapV2Factory.sol";
 import "../interfaces/IUniswapV2Exchange.sol";
@@ -8,6 +9,7 @@ import "../Ownable.sol";
 import "@emilianobonassi/gas-saver/ChiGasSaver.sol";
 
 contract UniswapV2Recipe is Ownable, ChiGasSaver {
+    using LibSafeApprove for IERC20;
 
     IWETH public WETH;
     IUniswapV2Factory public uniswapFactory;
@@ -63,7 +65,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
                 }
             }
 
-            IERC20(tokens[i]).approve(_pie, uint256(-1));
+            IERC20(tokens[i]).safeApprove(_pie, amounts[i]);
         }
 
         IPSmartPool pie = IPSmartPool(_pie);
