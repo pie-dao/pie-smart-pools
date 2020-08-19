@@ -4,11 +4,13 @@ import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolSto
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import {LibConst as constants} from "./LibConst.sol";
+import "./LibSafeApprove.sol";
 import "./LibPoolToken.sol";
 import "./Math.sol";
 
 library LibAddRemoveToken {
   using Math for uint256;
+  using LibSafeApprove for IERC20;
 
   function applyAddToken() external {
     P2Storage.StorageStruct storage ws = P2Storage.load();
@@ -30,7 +32,7 @@ library LibAddRemoveToken {
     );
 
     // Approves bPool to pull from this controller
-    IERC20(ws.newToken.addr).approve(address(s.bPool), uint256(-1));
+    IERC20(ws.newToken.addr).safeApprove(address(s.bPool), uint256(-1));
     s.bPool.bind(ws.newToken.addr, ws.newToken.balance, ws.newToken.denorm);
     LibPoolToken._mint(msg.sender, poolShares);
   }

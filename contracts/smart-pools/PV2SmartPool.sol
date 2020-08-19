@@ -11,6 +11,7 @@ import "../libraries/LibAddRemoveToken.sol";
 import "../libraries/LibPoolEntryExit.sol";
 import "../libraries/LibPoolMath.sol";
 import "../libraries/LibWeights.sol";
+import "../libraries/LibSafeApprove.sol";
 
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
@@ -18,6 +19,8 @@ import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPool
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 
 contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
+  using LibSafeApprove for IERC20;
+
   event TokensApproved();
   event ControllerChanged(address indexed previousController, address indexed newController);
   event PublicSwapSetterChanged(address indexed previousSetter, address indexed newSetter);
@@ -125,7 +128,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     IBPool bPool = PBStorage.load().bPool;
     address[] memory tokens = bPool.getCurrentTokens();
     for (uint256 i = 0; i < tokens.length; i++) {
-      IERC20(tokens[i]).approve(address(bPool), uint256(-1));
+      IERC20(tokens[i]).safeApprove(address(bPool), uint256(-1));
     }
     emit TokensApproved();
   }
@@ -311,7 +314,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
       token.transferFrom(msg.sender, address(this), _balance),
       "PV2SmartPool.bind: transferFrom failed"
     );
-    token.approve(address(bPool), uint256(-1));
+    token.safeApprove(address(bPool), uint256(-1));
     bPool.bind(_token, _balance, _denorm);
   }
 
@@ -339,7 +342,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         token.transferFrom(msg.sender, address(this), _balance.bsub(oldBalance)),
         "PV2SmartPool.rebind: transferFrom failed"
       );
-      token.approve(address(bPool), uint256(-1));
+      token.safeApprove(address(bPool), uint256(-1));
     }
 
     bPool.rebind(_token, _balance, _denorm);
