@@ -6,8 +6,7 @@ import "../interfaces/IBFactory.sol";
 import "../interfaces/IBPool.sol";
 import "../interfaces/IERC20.sol";
 import "../Ownable.sol";
-import "../interfaces/IPCappedSmartPool.sol";
-
+import "../interfaces/IPV2SmartPool.sol";
 
 contract PProxiedFactory is Ownable {
   IBFactory public balancerFactory;
@@ -62,7 +61,7 @@ contract PProxiedFactory is Ownable {
     bPool.setController(address(proxy));
 
     // Setup smart pool
-    IPCappedSmartPool smartPool = IPCappedSmartPool(address(proxy));
+    IPV2SmartPool smartPool = IPV2SmartPool(address(proxy));
 
     smartPool.init(balancerPoolAddress, _name, _symbol, _initialSupply);
     smartPool.setCap(_cap);

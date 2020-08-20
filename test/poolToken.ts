@@ -8,7 +8,7 @@ import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
 import TestPCTokenArtifact from "../artifacts/TestPCToken.json";
-import {TestPCToken} from "../typechain/TestPCToken";
+import {TestPcToken} from "../typechain/TestPCToken";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -16,12 +16,12 @@ const {expect} = chai;
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 
-describe("PCToken", function () {
+describe("poolToken", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
   let account2: string;
-  let pcToken: TestPCToken;
+  let pcToken: TestPcToken;
 
   beforeEach(async () => {
     signers = await ethers.signers();
@@ -30,7 +30,7 @@ describe("PCToken", function () {
 
     pcToken = (await deployContract(signers[0] as Wallet, TestPCTokenArtifact, [NAME, SYMBOL], {
       gasLimit: 100000000,
-    })) as TestPCToken;
+    })) as TestPcToken;
   });
 
   describe("token metadata", async () => {

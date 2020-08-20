@@ -1,6 +1,4 @@
-import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
-
-usePlugin("buidler-typechain");
+import { BuidlerConfig } from "@nomiclabs/buidler/config";
 
 interface ExtendedBuidlerConfig extends BuidlerConfig {
     [x:string]: any
@@ -13,10 +11,6 @@ const config: ExtendedBuidlerConfig = {
         runs: 200,
         enabled: true,
       }
-    },
-    typechain: {
-        outDir: "typechain",
-        target: "ethers"
     },
 }
 

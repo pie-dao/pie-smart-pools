@@ -1,20 +1,13 @@
 pragma solidity 0.6.4;
 
 
-// TODO move this generic contract to a seperate repo with all generic smart contracts
+import {OwnableStorage as OStorage} from "./storage/OwnableStorage.sol"; 
 
 contract Ownable {
-  bytes32 public constant oSlot = keccak256("Ownable.storage.location");
-
   event OwnerChanged(address indexed previousOwner, address indexed newOwner);
 
-  // Ownable struct
-  struct os {
-    address owner;
-  }
-
   modifier onlyOwner() {
-    require(msg.sender == los().owner, "Ownable.onlyOwner: msg.sender not owner");
+    require(msg.sender == OStorage.load().owner, "Ownable.onlyOwner: msg.sender not owner");
     _;
   }
 
@@ -31,18 +24,9 @@ contract Ownable {
         @param _newOwner Address of the new owner
     */
   function _setOwner(address _newOwner) internal {
-    emit OwnerChanged(los().owner, _newOwner);
-    los().owner = _newOwner;
+    OStorage.StorageStruct storage s = OStorage.load();
+    emit OwnerChanged(s.owner, _newOwner);
+    s.owner = _newOwner;
   }
 
-  /**
-        @notice Load ownable storage
-        @return s Storage pointer to the Ownable storage struct
-    */
-  function los() internal pure returns (os storage s) {
-    bytes32 loc = oSlot;
-    assembly {
-      s_slot := loc
-    }
-  }
 }

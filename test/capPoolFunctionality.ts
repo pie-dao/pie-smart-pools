@@ -1,18 +1,17 @@
 // This way of importing is a bit funky. We should fix this in the Mock Contracts package
 import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
-import {ethers} from "@nomiclabs/buidler";
+import {ethers, run} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
 import {BigNumber} from "ethers/utils";
 import chai from "chai";
-import {deployContract, solidity} from "ethereum-waffle";
+import {solidity} from "ethereum-waffle";
 
-import {deployBalancerPool} from "../utils";
-import {IBPool} from "../typechain/IBPool";
-import {IBPoolFactory} from "../typechain/IBPoolFactory";
-import {PBasicSmartPoolFactory} from "../typechain/PBasicSmartPoolFactory";
-import {PCappedSmartPool} from "../typechain/PCappedSmartPool";
-import PCappedSmartPoolArtifact from "../artifacts/PCappedSmartPool.json";
+import {deployBalancerPool, linkArtifact} from "../utils";
+import {IbPool} from "../typechain/IBPool";
+import {IbPoolFactory} from "../typechain/IBPoolFactory";
+import {Pv2SmartPool} from "../typechain/PV2SmartPool";
+import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
 const {expect} = chai;
@@ -22,19 +21,19 @@ const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
 
-describe("PCappedSmartPool", function () {
+describe("Cap", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
   let tokens: MockToken[];
-  let pool: IBPool;
-  let smartpool: PCappedSmartPool;
+  let pool: IbPool;
+  let smartpool: Pv2SmartPool;
 
   beforeEach(async () => {
     signers = await ethers.signers();
     account = await signers[0].getAddress();
 
-    pool = IBPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
+    pool = IbPoolFactory.connect(await deployBalancerPool(signers[0]), signers[0]);
 
     const tokenFactory = new MockTokenFactory(signers[0]);
     tokens = [];
@@ -48,10 +47,8 @@ describe("PCappedSmartPool", function () {
       tokens.push(token);
     }
 
-    // Deploy this way to get the coverage provider to pick it up
-    smartpool = (await deployContract(signers[0] as Wallet, PCappedSmartPoolArtifact, [], {
-      gasLimit: 100000000,
-    })) as PCappedSmartPool;
+    smartpool = (await run("deploy-libraries-and-smartpool")) as Pv2SmartPool;
+
     await smartpool.init(pool.address, NAME, SYMBOL, INITIAL_SUPPLY);
     await smartpool.approveTokens();
     await pool.setController(smartpool.address);
@@ -64,6 +61,8 @@ describe("PCappedSmartPool", function () {
         constants.MaxUint256
       );
     }
+
+    await smartpool.setJoinExitEnabled(true);
   });
 
   it("Cap should initially zero", async () => {
@@ -81,7 +80,7 @@ describe("PCappedSmartPool", function () {
   it("Setting the cap from a non controller address should fail", async () => {
     await smartpool.setController(await signers[1].getAddress());
     await expect(smartpool.setCap(100)).to.be.revertedWith(
-      "PBasicSmartPool.onlyController: not controller"
+      "PV2SmartPool.onlyController: not controller"
     );
   });
 
@@ -99,7 +98,16 @@ describe("PCappedSmartPool", function () {
     const cap = constants.WeiPerEther.mul(100);
     await smartpool.setCap(cap);
     await expect(smartpool.joinPool(cap.add(1))).to.be.revertedWith(
-      "PCappedSmartPool.withinCap: Cap limit reached"
+      "PV2SmartPool.withinCap: Cap limit reached"
     );
+  });
+
+  it("joinswapExternAmountIn with less than the cap should work", async () => {
+    const cap = constants.WeiPerEther.mul(100);
+    await smartpool.setCap(cap);
+    await smartpool.setPublicSwap(true);
+    const tokenBalance = constants.WeiPerEther.div(100);
+
+    await smartpool.joinswapExternAmountIn(tokens[0].address, tokenBalance, constants.Zero);
   });
 });
