@@ -11,7 +11,7 @@ import TestLibSafeApproveArtifact from "../artifacts/TestLibSafeApprove.json";
 chai.use(solidity);
 const {expect} = chai;
 
-describe.only("LibSafeApproval", function () {
+describe("LibSafeApproval", function () {
   this.timeout(300000);
   let signers: Signer[];
   let account: string;
