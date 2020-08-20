@@ -55,7 +55,6 @@
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.1",
-    "@pie-dao/mock-contracts": "^0.0.7",
     "@pie-dao/proxy": "^0.0.6",
     "dotenv": "^8.2.0"
   }
