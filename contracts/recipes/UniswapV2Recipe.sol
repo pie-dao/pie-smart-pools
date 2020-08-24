@@ -123,7 +123,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
             // Uniswap V2 does not pull the token
             IERC20(tokens[i]).transfer(address(pair), amounts[i]);
 
-            if(token0Or1(address(WETH), tokens[i], tokens[i]) == 0) {
+            if(token0Or1(address(WETH), tokens[i]) == 0) {
                 pair.swap(0, wethAmountOut, address(this), new bytes(0));
             } else {
                 pair.swap(wethAmountOut, 0, address(this), new bytes(0));
@@ -147,10 +147,10 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         return totalEth;
     }
 
-    function token0Or1(address tokenA, address tokenB, address tokenTocheck) internal view returns(uint256) {
+    function token0Or1(address tokenA, address tokenB) internal view returns(uint256) {
         (address token0, address token1) = UniLib.sortTokens(tokenA, tokenB);
 
-        if(token0 == tokenTocheck) {
+        if(token0 == tokenB) {
             return 0;
         }
 
