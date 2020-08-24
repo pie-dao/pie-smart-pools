@@ -1,3 +1,5 @@
+pragma solidity 0.6.4;
+
 import "../interfaces/IWETH.sol";
 import {UniswapV2Library as UniLib} from "./UniswapV2Library.sol";
 import "./LibSafeApproval.sol";
@@ -11,19 +13,32 @@ import "@emilianobonassi/gas-saver/ChiGasSaver.sol";
 contract UniswapV2Recipe is Ownable, ChiGasSaver {
     using LibSafeApprove for IERC20;
 
-    IWETH public WETH;
-    IUniswapV2Factory public uniswapFactory;
-    ISmartPoolRegistry public registry;
+    IWETH constant public WETH = IWETH(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    IUniswapV2Factory constant uniswapFactory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+    ISmartPoolRegistry constant public registry = ISmartPoolRegistry(0x412a5d5eC35fF185D6BfF32a367a985e1FB7c296);
+    address payable public constant gasSponsor = 0x3bFdA5285416eB06Ebc8bc0aBf7d105813af06d0;
+    bool private isPaused = false;
+    
+    // Pauzer
+    modifier revertIfPaused {
+        if (isPaused) {
+            revert("[UniswapV2Recipe] is Paused");
+        } else {
+            _;
+        }
+    }
+    
+    function togglePause() public onlyOwner {
+        isPaused = !isPaused;
+    }
 
-    constructor(address _WETH, address _uniswapFactory, address _registry) public {
-        WETH = IWETH(_WETH);
-        uniswapFactory = IUniswapV2Factory(_uniswapFactory);
-        registry = ISmartPoolRegistry(_registry);
+    constructor() public {
         _setOwner(msg.sender);
     }
 
     // Max eth amount enforced by msg.value
-    function toPie(address _pie, uint256 _poolAmount) external payable saveGas(msg.sender) {
+    function toPie(address _pie, uint256 _poolAmount) external payable revertIfPaused saveGas(gasSponsor) {
+        require(registry.inRegistry(_pie), "Not a Pie");
         uint256 totalEth = calcToPie(_pie, _poolAmount);
         require(msg.value >= totalEth, "Amount ETH too low");
 
@@ -54,6 +69,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
 
                 (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
                 uint256 amountIn = UniLib.getAmountIn(amounts[i], reserveA, reserveB);
+
 
                 // UniswapV2 does not pull the token
                 WETH.transfer(address(pair), amountIn);
@@ -91,7 +107,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
 
 
     // TODO recursive exit
-    function toEth(address _pie, uint256 _poolAmount, uint256 _minEthAmount) external saveGas(msg.sender) {
+    function toEth(address _pie, uint256 _poolAmount, uint256 _minEthAmount) external revertIfPaused saveGas(gasSponsor) {
         uint256 totalEth = calcToPie(_pie, _poolAmount);
         require(_minEthAmount <= totalEth, "Output ETH amount too low");
         IPSmartPool pie = IPSmartPool(_pie);
@@ -140,6 +156,11 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         }
 
         return 1;
+    }
+    
+    function die() public onlyOwner {
+        address payable _to = payable(los().owner);
+        selfdestruct(_to);
     }
 
     function saveEth() external onlyOwner {
