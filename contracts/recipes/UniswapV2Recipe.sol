@@ -65,16 +65,15 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
             if(registry.inRegistry(tokens[i])) {
                 _toPie(tokens[i], amounts[i]);
             } else {
-                IUniswapV2Exchange pair = IUniswapV2Exchange(uniswapFactory.getPair(tokens[i], address(WETH)));
+                IUniswapV2Exchange pair = IUniswapV2Exchange(UniLib.pairFor(uniswapFactory, tokens[i], address(WETH)));
 
                 (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
                 uint256 amountIn = UniLib.getAmountIn(amounts[i], reserveA, reserveB);
 
-
                 // UniswapV2 does not pull the token
                 WETH.transfer(address(pair), amountIn);
 
-                if(token0Or1(address(pair), tokens[i]) == 0) {
+                if(token0Or1(address(WETH), tokens[i], tokens[i]) == 0) {
                     pair.swap(amounts[i], 0, address(this), new bytes(0));
                 } else {
                     pair.swap(0, amounts[i], address(this), new bytes(0));
@@ -119,12 +118,12 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         for(uint256 i = 0; i < tokens.length; i++) {
             (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), tokens[i], address(WETH));
             uint256 wethAmountOut = UniLib.getAmountOut(amounts[i], reserveA, reserveB);
-            IUniswapV2Exchange pair = IUniswapV2Exchange(uniswapFactory.getPair(tokens[i], address(WETH)));
+            IUniswapV2Exchange pair = IUniswapV2Exchange(UniLib.pairFor(uniswapFactory, tokens[i], address(WETH)));
 
             // Uniswap V2 does not pull the token
             IERC20(tokens[i]).transfer(address(pair), amounts[i]);
 
-            if(token0Or1(address(pair), tokens[i]) == 0) {
+            if(token0Or1(address(WETH), tokens[i], tokens[i]) == 0) {
                 pair.swap(0, wethAmountOut, address(this), new bytes(0));
             } else {
                 pair.swap(wethAmountOut, 0, address(this), new bytes(0));
@@ -148,10 +147,10 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         return totalEth;
     }
 
-    function token0Or1(address _pair, address _token) internal view returns(uint256) {
-        IUniswapV2Exchange pair = IUniswapV2Exchange(_pair);
+    function token0Or1(address tokenA, address tokenB, address tokenTocheck) internal view returns(uint256) {
+        (address token0, address token1) = UniLib.sortTokens(tokenA, tokenB);
 
-        if(pair.token0() == _token) {
+        if(token0 == tokenTocheck) {
             return 0;
         }
 
