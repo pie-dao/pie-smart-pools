@@ -73,7 +73,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
                 // UniswapV2 does not pull the token
                 WETH.transfer(address(pair), amountIn);
 
-                if(token0Or1(address(WETH), tokens[i], tokens[i]) == 0) {
+                if(token0Or1(address(WETH), tokens[i]) == 0) {
                     pair.swap(amounts[i], 0, address(this), new bytes(0));
                 } else {
                     pair.swap(0, amounts[i], address(this), new bytes(0));
