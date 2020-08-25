@@ -7,8 +7,11 @@ import "../interfaces/IBPool.sol";
 import "../interfaces/IERC20.sol";
 import "../Ownable.sol";
 import "../interfaces/IPV2SmartPool.sol";
+import "../libraries/LibSafeApprove.sol";
 
 contract PProxiedFactory is Ownable {
+  using LibSafeApprove for IERC20;
+
   IBFactory public balancerFactory;
   address public smartPoolImplementation;
   mapping(address => bool) public isPool;
@@ -54,7 +57,7 @@ contract PProxiedFactory is Ownable {
       // Transfer tokens to this contract
       token.transferFrom(msg.sender, address(this), _amounts[i]);
       // Approve the balancer pool
-      token.approve(balancerPoolAddress, uint256(-1));
+      token.safeApprove(balancerPoolAddress, uint256(-1));
       // Bind tokens
       bPool.bind(_tokens[i], _amounts[i], _weights[i]);
     }
