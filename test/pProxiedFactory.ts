@@ -9,7 +9,7 @@ import {deployContract, solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, deployBalancerFactory, linkArtifact} from "../utils";
 import {PProxiedFactory} from "../typechain/PProxiedFactory";
-import {Pv2SmartPool} from "../typechain/PV2SmartPool";
+import {Pv2SmartPool} from "../typechain/Pv2SmartPool";
 import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 import PProxiedFactoryArtifact from "../artifacts/PProxiedFactory.json";
 

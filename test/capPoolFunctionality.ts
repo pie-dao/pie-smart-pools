@@ -8,9 +8,9 @@ import chai from "chai";
 import {solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, linkArtifact} from "../utils";
-import {IbPool} from "../typechain/IBPool";
-import {IbPoolFactory} from "../typechain/IBPoolFactory";
-import {Pv2SmartPool} from "../typechain/PV2SmartPool";
+import {IbPool} from "../typechain/IbPool";
+import {IbPoolFactory} from "../typechain/IbPoolFactory";
+import {Pv2SmartPool} from "../typechain/Pv2SmartPool";
 import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
