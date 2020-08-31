@@ -21,6 +21,16 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _;
   }
 
+  modifier lockUnderlyingPool() {
+      // Turn off swapping on the underlying pool during joins
+      // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
+      IBPool bPool = lpbs().bPool;
+      bool origSwapState = bPool.isPublicSwap();
+      bPool.setPublicSwap(false);
+      _;
+      bPool.setPublicSwap(origSwapState);
+  }
+
   event LOG_JOIN(address indexed caller, address indexed tokenIn, uint256 tokenAmountIn);
 
   event LOG_EXIT(address indexed caller, address indexed tokenOut, uint256 tokenAmountOut);
@@ -153,16 +163,12 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Internal join pool function. See joinPool for more info
         @param _amount Amount of pool shares to mint
     */
-  function _joinPool(uint256 _amount) internal virtual ready {
+  function _joinPool(uint256 _amount) internal virtual ready lockUnderlyingPool {
     IBPool bPool = lpbs().bPool;
     uint256 poolTotal = totalSupply();
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
 
-    // Turn off swapping on the underlying pool during joins
-    // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
-    bool origSwapState = bPool.isPublicSwap();
-    bPool.setPublicSwap(false);
 
     address[] memory tokens = bPool.getCurrentTokens();
 
@@ -176,7 +182,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     _mintPoolShare(_amount);
     _pushPoolShare(msg.sender, _amount);
 
-    bPool.setPublicSwap(origSwapState);
     emit PoolJoined(msg.sender, _amount);
   }
 
@@ -184,16 +189,11 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
         @notice Burns pool shares and sends back the underlying assets
         @param _amount Amount of pool tokens to burn
     */
-  function exitPool(uint256 _amount) external override ready noReentry {
+  function exitPool(uint256 _amount) external override ready noReentry lockUnderlyingPool{
     IBPool bPool = lpbs().bPool;
     uint256 poolTotal = totalSupply();
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
-
-    // Turn off swapping on the underlying pool during joins
-    // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
-    bool origSwapState = bPool.isPublicSwap();
-    bPool.setPublicSwap(false);
 
     _pullPoolShare(msg.sender, _amount);
     _burnPoolShare(_amount);
@@ -207,7 +207,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       emit LOG_EXIT(msg.sender, t, tAo);
       _pushUnderlying(t, msg.sender, tAo, bal);
     }
-    bPool.setPublicSwap(origSwapState);
     emit PoolExited(msg.sender, _amount);
   }
 
@@ -220,16 +219,12 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     external
     ready
     noReentry
+    lockUnderlyingPool
   {
     IBPool bPool = lpbs().bPool;
     uint256 poolTotal = totalSupply();
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
-
-    // Turn off swapping on the underlying pool during joins
-    // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
-    bool origSwapState = bPool.isPublicSwap();
-    bPool.setPublicSwap(false);
 
     _pullPoolShare(msg.sender, _amount);
     _burnPoolShare(_amount);
@@ -247,7 +242,6 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       emit LOG_EXIT(msg.sender, t, tAo);
       _pushUnderlying(t, msg.sender, tAo, bal);
     }
-    bPool.setPublicSwap(origSwapState);
     emit PoolExitedWithLoss(msg.sender, _amount, _lossTokens);
   }
 
