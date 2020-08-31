@@ -190,6 +190,11 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
 
+    // Turn off swapping on the underlying pool during joins
+    // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
+    bool origSwapState = bPool.isPublicSwap();
+    bPool.setPublicSwap(false);
+
     _pullPoolShare(msg.sender, _amount);
     _burnPoolShare(_amount);
 
@@ -202,6 +207,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       emit LOG_EXIT(msg.sender, t, tAo);
       _pushUnderlying(t, msg.sender, tAo, bal);
     }
+    bPool.setPublicSwap(origSwapState);
     emit PoolExited(msg.sender, _amount);
   }
 
@@ -220,6 +226,11 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
 
+    // Turn off swapping on the underlying pool during joins
+    // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
+    bool origSwapState = bPool.isPublicSwap();
+    bPool.setPublicSwap(false);
+
     _pullPoolShare(msg.sender, _amount);
     _burnPoolShare(_amount);
 
@@ -236,6 +247,7 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
       emit LOG_EXIT(msg.sender, t, tAo);
       _pushUnderlying(t, msg.sender, tAo, bal);
     }
+    bPool.setPublicSwap(origSwapState);
     emit PoolExitedWithLoss(msg.sender, _amount, _lossTokens);
   }
 
