@@ -159,6 +159,11 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     uint256 ratio = _amount.bdiv(poolTotal);
     require(ratio != 0);
 
+    // Turn off swapping on the underlying pool during joins
+    // Otherwise tokens with callbacks would enable attacks involving simultaneous swaps and joins
+    bool origSwapState = bPool.isPublicSwap();
+    bPool.setPublicSwap(false);
+
     address[] memory tokens = bPool.getCurrentTokens();
 
     for (uint256 i = 0; i < tokens.length; i++) {
@@ -170,6 +175,8 @@ contract PBasicSmartPool is IPSmartPool, PCToken, ReentryProtection {
     }
     _mintPoolShare(_amount);
     _pushPoolShare(msg.sender, _amount);
+
+    bPool.setPublicSwap(origSwapState);
     emit PoolJoined(msg.sender, _amount);
   }
 
