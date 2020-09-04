@@ -8,7 +8,7 @@ import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
 import TestPCTokenArtifact from "../artifacts/TestPCToken.json";
-import {TestPcToken} from "../typechain/TestPCToken";
+import {TestPcToken} from "../typechain/TestPcToken";
 
 chai.use(solidity);
 const {expect} = chai;

@@ -8,10 +8,10 @@ import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
 import {deployBalancerPool, TimeTraveler} from "../utils";
-import {IbPool} from "../typechain/IBPool";
-import {IbPoolFactory} from "../typechain/IBPoolFactory";
-import {Pv2SmartPoolFactory} from "../typechain/PV2SmartPoolFactory";
-import {Pv2SmartPool} from "../typechain/PV2SmartPool";
+import {IbPool} from "../typechain/IbPool";
+import {IbPoolFactory} from "../typechain/IbPoolFactory";
+import {Pv2SmartPoolFactory} from "../typechain/Pv2SmartPoolFactory";
+import {Pv2SmartPool} from "../typechain/Pv2SmartPool";
 // import PV2SmartPoolArtifact from "../artifacts/PV2SmartPool.json";
 
 chai.use(solidity);
@@ -21,6 +21,7 @@ const PLACE_HOLDER_ADDRESS = "0x0000000000000000000000000000000000000001";
 const NAME = "TEST POOL";
 const SYMBOL = "TPL";
 const INITIAL_SUPPLY = constants.WeiPerEther;
+const INITIAL_TOKEN_SUPPLY = constants.WeiPerEther.mul(constants.WeiPerEther.mul(1000000));
 let tokenFactory: MockTokenFactory;
 const timeTraveler = new TimeTraveler(ethereum);
 
@@ -40,7 +41,7 @@ describe("Basic Pool Functionality", function () {
     tokens = [];
     for (let i = 0; i < 7; i++) {
       const token: MockToken = await tokenFactory.deploy(`Mock ${i}`, `M${i}`, 18);
-      await token.mint(account, constants.WeiPerEther.mul(constants.WeiPerEther.mul(1000000)));
+      await token.mint(account, INITIAL_TOKEN_SUPPLY);
       await token.mint(await signers[1].getAddress(), constants.WeiPerEther.mul(1000000));
       await token.approve(pool.address, constants.MaxUint256);
       pool.bind(token.address, constants.WeiPerEther.div(2), constants.WeiPerEther);
@@ -224,7 +225,10 @@ describe("Basic Pool Functionality", function () {
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(mintAmount.add(INITIAL_SUPPLY));
 
-      // TODO Check if token balances are correct
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(mintAmount));
+      }
     });
     it("Adding liquidity when a transfer fails should fail", async () => {
       const mintAmount = constants.WeiPerEther;
@@ -247,7 +251,10 @@ describe("Basic Pool Functionality", function () {
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
-      // TODO check all balances
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeAmount.div(2)));
+      }
     });
     it("Removing all liquidity should fail", async () => {
       const removeAmount = constants.WeiPerEther;
@@ -285,7 +292,12 @@ describe("Basic Pool Functionality", function () {
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
-      // TODO check all balances
+      const userBalance = await tokens[0].balanceOf(account)
+      expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeAmount));
+      for (let entry of tokens.slice(1)) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeAmount.div(2)));
+      }
     });
     it("Removing all liquidity leaving a single token should fail", async () => {
       const removeAmount = constants.WeiPerEther;
@@ -472,7 +484,10 @@ describe("Basic Pool Functionality", function () {
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(mintAmount.add(INITIAL_SUPPLY));
 
-      // TODO Check if token balances are correct
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(mintAmount));
+      }
     });
 
     it("Adding liquidity with front running protection when maxAmount of one of the tokens is too small should fail", async () => {
@@ -507,7 +522,10 @@ describe("Basic Pool Functionality", function () {
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
-      // TODO check all balances
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeAmount.div(2)));
+      }
     });
 
     it("Removing liquidity with front running protection should fail when one of the token outputs is less than minAmount", async () => {
@@ -565,7 +583,11 @@ describe("Basic Pool Functionality", function () {
 
       const tokenBalance = await token.balanceOf(account);
       expect(tokenBalance).to.eq(mintAmount.sub(constants.WeiPerEther));
-      // TODO checks for balances
+
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(constants.WeiPerEther.div(2)));
+      }
     });
     it("Binding a token when transferFrom returns false should fail", async () => {
       const mintAmount = constants.WeiPerEther.mul(1000000);
@@ -624,7 +646,10 @@ describe("Basic Pool Functionality", function () {
     });
     it("Unbinding a token should work", async () => {
       smartpool.unbind(tokens[0].address);
-      // TODO balance checks
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(constants.WeiPerEther.div(2)));
+      }
     });
     it("Unbinding a token from a non token binder address should fail", async () => {
       smartpool = smartpool.connect(signers[1]);

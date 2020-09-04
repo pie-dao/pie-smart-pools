@@ -6,10 +6,10 @@ import {deployContract, solidity} from "ethereum-waffle";
 import { parseUnits, parseEther, BigNumberish, BigNumber } from "ethers/utils";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 
-import { IbFactoryFactory } from "./typechain/IBFactoryFactory";
+import { IbFactoryFactory } from "./typechain/IbFactoryFactory";
 import { deployBalancerFactory, deployAndGetLibObject, linkArtifact } from "./utils";
-import { IbPoolFactory } from "./typechain/IBPoolFactory";
-import { Ierc20Factory } from "./typechain/IERC20Factory";
+import { IbPoolFactory } from "./typechain/IbPoolFactory";
+import { Ierc20Factory } from "./typechain/Ierc20Factory";
 import { PProxiedFactoryFactory } from "./typechain/PProxiedFactoryFactory";
 
 import { Pv2SmartPool } from "./typechain/Pv2SmartPool";

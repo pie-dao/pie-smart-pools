@@ -493,17 +493,17 @@
     safe-buffer "^5.1.1"
     util.promisify "^1.0.0"
 
-"@openzeppelin/contracts@^3.0.0-beta.0":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.0.2.tgz#7f3e7f234b8d3f1ad818581c71b6cccc7fdc35f5"
-  integrity sha512-eK9F3jEbjQeRYLiqrHUrXCZBxE+7L4Ve5scYInsLezuasoFkrrEFlnDWD8gbN+6e5NgdgJP9fTWxjxWmaHh7dA==
+"@openzeppelin/contracts@^3.0.1":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.1.0.tgz#bcea457ef89069fbe5a617f50b25b6a8272895d5"
+  integrity sha512-dVXDnUKxrAKLzPdCRkz+N8qsVkK1XxJ6kk3zuI6zaQmcKxN7CkizoDP7lXxcs/Mi2I0mxceTRjJBqlzFffLJrQ==
 
-"@pie-dao/mock-contracts@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@pie-dao/mock-contracts/-/mock-contracts-0.0.7.tgz#9b40941f5c34e126278e08e828df02ed59b87554"
-  integrity sha512-U7vlNoEMFpPMNOz+qeufs8Gq2s1fCDZKMdf7LmlAjl06voMLqQK4LqTTPChe7blwbFw19hTe+BiP3ytBAH1hSA==
+"@pie-dao/mock-contracts@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@pie-dao/mock-contracts/-/mock-contracts-0.0.9.tgz#55f10b0b3f30c37a2e944a8e79943f2f2f33023a"
+  integrity sha512-vC4mGRorUt+0g7Fbq29EvSv7RbS99YUfgmmZjuUfj+60P9nZLQ2kflo5ye1aC+j9RY0Oa6f5EM2upvgDnqNMkg==
   dependencies:
-    "@openzeppelin/contracts" "^3.0.0-beta.0"
+    "@openzeppelin/contracts" "^3.0.1"
 
 "@pie-dao/proxy@^0.0.6":
   version "0.0.6"
