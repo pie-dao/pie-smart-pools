@@ -1,6 +1,6 @@
 require("dotenv").config();
 import { BuidlerConfig, usePlugin, task } from "@nomiclabs/buidler/config";
-import { utils, constants } from "ethers";
+import { utils, constants, ContractTransaction } from "ethers";
 import { MockTokenFactory } from "@pie-dao/mock-contracts/dist/typechain/MockTokenFactory";
 import { PBasicSmartPoolFactory } from "./typechain/PBasicSmartPoolFactory";
 import { PCappedSmartPoolFactory } from "./typechain/PCappedSmartPoolFactory";
@@ -18,7 +18,11 @@ usePlugin("solidity-coverage");
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const KOVAN_PRIVATE_KEY = process.env.KOVAN_PRIVATE_KEY || "";
+const KOVAN_PRIVATE_KEY_SECONDARY = process.env.KOVAN_PRIVATE_KEY_SECONDARY || "";
+const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || "";
+const RINKEBY_PRIVATE_KEY_SECONDARY = process.env.RINKEBY_PRIVATE_KEY_SECONDARY || "";
 const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || "";
+const MAINNET_PRIVATE_KEY_SECONDARY = process.env.MAINNET_PRIVATE_KEY_SECONDARY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 
 const PLACE_HOLDER_ADDRESS = "0x1000000000000000000000000000000000000001";
@@ -46,11 +50,26 @@ const config: ExtendedBuidlerConfig = {
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [MAINNET_PRIVATE_KEY]
+      accounts: [
+        MAINNET_PRIVATE_KEY,
+        MAINNET_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item != "")
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [KOVAN_PRIVATE_KEY]
+      accounts: [
+        KOVAN_PRIVATE_KEY,
+        KOVAN_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item != "")
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
+      blockGasLimit: 8000000,
+      gas: 8000000,
+      accounts: [
+        RINKEBY_PRIVATE_KEY,
+        RINKEBY_PRIVATE_KEY_SECONDARY
+      ].filter((item) => item != "")
     },
     coverage: {
       url: 'http://127.0.0.1:8555', // Coverage launches its own ganache-cli client
@@ -68,6 +87,9 @@ const config: ExtendedBuidlerConfig = {
   typechain: {
     outDir: "typechain",
     target: "ethers"
+  },
+  mocha: {
+
   }
 };
 
@@ -100,12 +122,10 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
     const tokenAmounts: BigNumberish[] = [];
     const tokenWeights: BigNumberish[] = [];
 
-    
-
     for (const token of tokens) {
       tokenAddresses.push(token.address);
-      tokenWeights.push(constants.WeiPerEther.mul(token.weight).div(2));
-      
+      tokenWeights.push(parseEther(token.weight).div(2));
+
       // Calc amount
       let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
       tokenAmounts.push(amount);
@@ -202,10 +222,10 @@ task("deploy-smart-pool-complete")
 
     for (const token of tokens) {
       tokenAddresses.push(token.address);
-      tokenWeights.push(constants.WeiPerEther.mul(token.weight).div(2));
-      
+      tokenWeights.push(parseEther(token.weight).div(2));
+
       // Calc amount
-      let amount = new BigNumber((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals).toString());
+      const amount = new BigNumber(Math.floor((config.initialValue / token.value * token.weight / 100 * config.initialSupply * 10 ** token.decimals)).toString());
       tokenAmounts.push(amount);
 
       // Approve factory to spend token
@@ -213,18 +233,30 @@ task("deploy-smart-pool-complete")
 
       const allowance = await tokenContract.allowance(await signers[0].getAddress(), factory.address);
       if(allowance.lt(amount)) {
-        const approveTx = await tokenContract.approve(factory.address, constants.WeiPerEther);
+        const approveTx = await tokenContract.approve(factory.address, constants.MaxUint256);
         console.log(`Approved: ${token.address} tx: ${approveTx.hash}`);
         await approveTx.wait(1);
       }
-      
+
     }
 
-    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap);
+    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap, {gasLimit: 8000000});
     const receipt = await tx.wait(2); //wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
-  });
+});
+
+task("set-cap", "Sets the cap on a capped pool")
+  .addParam("pool")
+  .addParam("cap")
+  .setAction(async(taskArgs, { ethers }) => {
+    const signers = await ethers.getSigners();
+    const smartpool = PCappedSmartPoolFactory.connect(taskArgs.pool, signers[0]);
+    const tx = await smartpool.setCap(parseEther(taskArgs.cap), {gasLimit: 2000000});
+
+    console.log(`Cap set tx: ${tx.hash}`);
+});
+
 
 task("join-smart-pool")
   .addParam("pool")
@@ -234,14 +266,15 @@ task("join-smart-pool")
     const smartpool = PBasicSmartPoolFactory.connect(taskArgs.pool, signers[0]);
 
     // TODO fix this confusing line
-    const tokens = await IBPoolFactory.connect(await smartpool.bPool(), signers[0]).getCurrentTokens();
+    const tokens = await IBPoolFactory.connect(await smartpool.getBPool(), signers[0]).getCurrentTokens();
 
     for(const tokenAddress of tokens) {
       const token = IERC20Factory.connect(tokenAddress, signers[0]);
       // TODO make below more readable
+      console.log("approving tokens");
       await (await token.approve(smartpool.address, constants.MaxUint256)).wait(1);
     }
-    const tx = await smartpool.joinPool(parseEther(taskArgs.amount));
+    const tx = await smartpool.joinPool(parseEther(taskArgs.amount), {gasLimit: 2000000});
     const receipt = await tx.wait(1);
 
     console.log(`Pool joined tx: ${receipt.transactionHash}`)
@@ -294,7 +327,6 @@ task("deploy-balancer-pool", "deploys a balancer pool from a factory")
     console.log(`Deployed balancer pool at : ${event.address}`);
 });
 
-//npx buidler balancer-bind-token --pool 0xfE682598599015d9f0EE4A4B56dE1CEfd27Cb7d5 --token 0x363BE4b8F3a341f720AbCDC666b1FB769BE73852 --balance 0.07 --decimals 6 --weight 3.5 --network kovan
 task("balancer-bind-token", "binds a token to a balancer pool")
   .addParam("pool", "the address of the Balancer pool")
   .addParam("token", "address of the token to bind")
@@ -343,11 +375,11 @@ task("balancer-set-controller")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
     const pool = IBPoolFactory.connect(taskArgs.pool, signers[0]);
-    
+
     const tx = await pool.setController(taskArgs.controller);
     const receipt = await tx.wait(1);
 
-    console.log(`Controller set tx: ${receipt.transactionHash}`); 
+    console.log(`Controller set tx: ${receipt.transactionHash}`);
 });
 
 

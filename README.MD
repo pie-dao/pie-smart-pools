@@ -4,6 +4,37 @@
 
 All Smart Pools are fully upgradeable to make it easy to add features and optimise gas usage at later stages.
 
+## Development
+
+### Setup the dev enviroment
+
+Clone this repo. And copy the contents of ``env.example`` to a new file called ``.env`` and edit the the relevant values inside. **DO NOT** share this file with anyone as it will contain sensitive data.
+
+Install all dependencies: 
+```
+yarn
+```
+Build the project:
+```
+yarn build
+```
+Run the tests:
+```
+yarn test
+```
+Create coverage report:
+```
+yarn coverage
+```
+
+### Running mainnet/testnet test
+
+To test a new implementation in testnet conditions. Set the implementation of a test pool to the new version and run the following script.
+
+```
+POOL=[POOL_ADDRESS] npx buidler test ./mainnet-test/test.ts --network [rinkeby|kovan|rinkeby]
+```
+
 ## Integration
 
 ### Adding and removing liquidity
@@ -66,13 +97,3 @@ function getCap() external view returns(uint256);
 | Name         | Symbol | Address                                                                                                                       | Type            |
 |--------------|--------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
 | PieDAO BTC++ | BTC++  | [0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd](https://etherscan.io/address/0x0327112423f3a68efdf1fcf402f6c5cb9f7c33fd) | Balancer Capped |
-
-## Development
-
-To install the dependencies and run the tests, run the following commands.
-
-```
-yarn install
-yarn build
-yarn test
-```
