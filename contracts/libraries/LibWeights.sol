@@ -114,6 +114,7 @@ library LibWeights {
     PBStorage.StorageStruct storage s = PBStorage.load();
     P2Storage.StorageStruct storage ws = P2Storage.load();
 
+    require(ws.startBlock != 0, "ERR_WEIGHT_ADJUSTMENT_FINISHED");
     require(block.number >= ws.startBlock, "ERR_CANT_POKE_YET");
 
     // This allows for pokes after endBlock that get weights to endWeights
@@ -141,6 +142,14 @@ library LibWeights {
         );
       }
       s.bPool.rebind(tokens[i], s.bPool.getBalance(tokens[i]), newWeight);
+    }
+
+    if(minBetweenEndBlockAndThisBlock == ws.endBlock) {
+      // All the weights are adjusted, adjustment finished.
+
+      // save gas option: set this to max number instead of 0
+      // And be able to remove ERR_WEIGHT_ADJUSTMENT_FINISHED check
+      ws.startBlock = 0;
     }
   }
 }

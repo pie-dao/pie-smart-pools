@@ -368,6 +368,16 @@ describe("Advanced Pool Functionality", function () {
       expect(weightsAfter).to.eql(weigthsFixturePokeWeightsUp, "Weight increase incorrect");
     });
 
+    it("Poking the weight twice after the end block should fail", async () => {
+      await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+      await smartpool.pokeWeights();
+      await mine_blocks(5);
+      await smartpool.pokeWeights();
+      await mine_blocks(200);
+      await smartpool.pokeWeights();
+      await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+    });
+
     describe("Adding tokens", async () => {
       let newToken: MockToken;
 
