@@ -17,6 +17,19 @@ library LibPoolEntryExit {
   event PoolExitedWithLoss(address indexed from, uint256 amount, address[] lossTokens);
   event PoolJoined(address indexed from, uint256 amount);
 
+  modifier lockBPoolSwap() {
+    IBPool bPool = PBStorage.load().bPool;
+    if(bPool.isPublicSwap()) {
+      // If public swap is enabled turn it of, execute function and turn it off again
+      bPool.setPublicSwap(false);
+      _;
+      bPool.setPublicSwap(true);
+    } else {
+      // If public swap is not enabled just execute
+      _;
+    }
+  }
+
   function exitPool(uint256 _amount) internal {
     IBPool bPool = PBStorage.load().bPool;
     uint256[] memory minAmountsOut = new uint256[](bPool.getCurrentTokens().length);
@@ -27,7 +40,7 @@ library LibPoolEntryExit {
     _exitPool(_amount, _minAmountsOut);
   }
 
-  function _exitPool(uint256 _amount, uint256[] memory _minAmountsOut) internal {
+  function _exitPool(uint256 _amount, uint256[] memory _minAmountsOut) internal lockBPoolSwap {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     uint256 poolTotal = PCStorage.load().totalSupply;
@@ -58,7 +71,7 @@ library LibPoolEntryExit {
     address _token,
     uint256 _poolAmountIn,
     uint256 _minAmountOut
-  ) external returns (uint256 tokenAmountOut) {
+  ) external lockBPoolSwap returns (uint256 tokenAmountOut) {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.exitswapPoolAmountIn: Token Not Bound");
@@ -93,7 +106,7 @@ library LibPoolEntryExit {
     address _token,
     uint256 _tokenAmountOut,
     uint256 _maxPoolAmountIn
-  ) external returns (uint256 poolAmountIn) {
+  ) external lockBPoolSwap returns (uint256 poolAmountIn) {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.exitswapExternAmountOut: Token Not Bound");
@@ -124,7 +137,10 @@ library LibPoolEntryExit {
     return poolAmountIn;
   }
 
-  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens) external {
+  function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens)
+    external
+    lockBPoolSwap
+  {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     uint256 poolTotal = PCStorage.load().totalSupply;
@@ -177,7 +193,7 @@ library LibPoolEntryExit {
     _joinPool(_amount, _maxAmountsIn);
   }
 
-  function _joinPool(uint256 _amount, uint256[] memory _maxAmountsIn) internal {
+  function _joinPool(uint256 _amount, uint256[] memory _maxAmountsIn) internal lockBPoolSwap {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     uint256 poolTotal = PCStorage.load().totalSupply;
@@ -205,7 +221,7 @@ library LibPoolEntryExit {
     address _token,
     uint256 _amountIn,
     uint256 _minPoolAmountOut
-  ) external returns (uint256 poolAmountOut) {
+  ) external lockBPoolSwap returns (uint256 poolAmountOut)  {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
@@ -240,7 +256,7 @@ library LibPoolEntryExit {
     address _token,
     uint256 _amountOut,
     uint256 _maxAmountIn
-  ) external returns (uint256 tokenAmountIn) {
+  ) external lockBPoolSwap returns (uint256 tokenAmountIn) {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.joinswapPoolAmountOut: Token Not Bound");
