@@ -378,6 +378,17 @@ describe("Advanced Pool Functionality", function () {
       await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
     });
 
+    it("Weight update should cancel when removing token", async () => {
+      // verify there is no current adjustment going on
+      await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+      // start adjustment
+      await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+      await smartpool.pokeWeights();
+      // remove a token
+      await smartpool.removeToken(tokens[tokens.length - 1].address);
+      await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+    })
+
     describe("Adding tokens", async () => {
       let newToken: MockToken;
 
