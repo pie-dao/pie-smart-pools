@@ -389,6 +389,26 @@ describe("Advanced Pool Functionality", function () {
       await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
     })
 
+    it("Weight update should cancel when adding token", async () => {
+      // verify there is no current adjustment going on
+      await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+      // remove token
+      await smartpool.removeToken(tokens[tokens.length - 1].address);
+      // start adjustment
+      await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+      await smartpool.pokeWeights();
+      // add new token
+      const newToken = tokens[tokens.length - 1];
+      const balance = constants.WeiPerEther.mul(100);
+      const weight = constants.WeiPerEther.mul(2);
+      await smartpool.commitAddToken(newToken.address, balance, weight);
+      await smartpool.pokeWeights();
+      await smartpool.applyAddToken();
+
+      // throws 'VM Exception while processing transaction: invalid opcode' @ f4aab193
+      await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+    })
+
     describe("Adding tokens", async () => {
       let newToken: MockToken;
 

@@ -31,6 +31,9 @@ library LibAddRemoveToken {
       "ERR_ERC20_FALSE"
     );
 
+    // Cancel potential weight adjustment process.
+    ws.startBlock = 0;
+
     // Approves bPool to pull from this controller
     IERC20(ws.newToken.addr).safeApprove(address(s.bPool), uint256(-1));
     s.bPool.bind(ws.newToken.addr, ws.newToken.balance, ws.newToken.denorm);
