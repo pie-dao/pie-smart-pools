@@ -465,6 +465,32 @@ describe("Advanced Pool Functionality", function () {
         await smartpool.pokeWeights();
       });
 
+      it("Weight update should cancel when calling updateWeight (down)", async () => {
+        // start adjustment
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
+        // updating weight down
+        const weightsBefore = await smartpool.getDenormalizedWeights();
+        await smartpool.updateWeight(tokens[0].address, weightsBefore[0].div(2))
+        await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
+      });
+
+      it("Weight update should cancel when calling updateWeight (up)", async () => {
+        // start adjustment
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
+        // updating weight up
+        const weightsBefore = await smartpool.getDenormalizedWeights();
+        await smartpool.updateWeight(tokens[0].address, weightsBefore[0].mul(2))
+        await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
+      });
+
       it("commitAddToken should work", async () => {
         const balance = constants.WeiPerEther.mul(100);
         const weight = constants.WeiPerEther.mul(2);

@@ -12,6 +12,7 @@ library LibWeights {
 
   function updateWeight(address _token, uint256 _newWeight) external {
     PBStorage.StorageStruct storage s = PBStorage.load();
+    P2Storage.StorageStruct storage ws = P2Storage.load();
 
     require(_newWeight >= constants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
     require(_newWeight <= constants.MAX_WEIGHT, "ERR_MAX_WEIGHT");
@@ -45,6 +46,9 @@ library LibWeights {
       // Now with the tokens this contract can send them to msg.sender
       require(IERC20(_token).transfer(msg.sender, deltaBalance), "ERR_ERC20_FALSE");
 
+      // Cancel potential weight adjustment process.
+      ws.startBlock = 0;
+
       LibPoolToken._burn(msg.sender, poolShares);
     } else {
       // This means the controller will deposit tokens to keep the price.
@@ -65,6 +69,9 @@ library LibWeights {
       );
       // Now with the tokens this contract can bind them to the pool it controls
       s.bPool.rebind(_token, currentBalance.badd(deltaBalance), _newWeight);
+
+      // Cancel potential weight adjustment process.
+      ws.startBlock = 0;
 
       LibPoolToken._mint(msg.sender, poolShares);
     }
