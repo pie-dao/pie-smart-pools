@@ -397,6 +397,9 @@ describe("Advanced Pool Functionality", function () {
         // remove a token
         await smartpool.removeToken(tokens[tokens.length - 2].address);
         await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
       });
 
       it("Weight update should cancel when adding token", async () => {
@@ -412,6 +415,9 @@ describe("Advanced Pool Functionality", function () {
 
         // throws 'VM Exception while processing transaction: invalid opcode' @ f4aab193
         await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
       });
 
       it("Weight update should cancel when calling bind", async () => {
@@ -426,6 +432,9 @@ describe("Advanced Pool Functionality", function () {
         await smartpool.bind(token.address, constants.WeiPerEther, constants.WeiPerEther);
 
         await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
       });
 
       it("Weight update should cancel when calling unbind", async () => {
@@ -435,6 +444,9 @@ describe("Advanced Pool Functionality", function () {
         // unbinding a token
         smartpool.unbind(tokens[0].address);
         await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
       });
 
       it("Weight update should cancel when calling rebind", async () => {
@@ -448,6 +460,9 @@ describe("Advanced Pool Functionality", function () {
           constants.WeiPerEther.mul(2)
         );
         await expect(smartpool.pokeWeights()).to.be.revertedWith("ERR_WEIGHT_ADJUSTMENT_FINISHED");
+        // weight adjustment should still work
+        await smartpool.updateWeightsGradually(weigthsFixturePokeWeightsUp, startBlock, endBlock);
+        await smartpool.pokeWeights();
       });
 
       it("commitAddToken should work", async () => {
