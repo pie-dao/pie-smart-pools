@@ -234,7 +234,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
-      @notice Takes underlying assets and mints smart pool tokens. 
+      @notice Takes underlying assets and mints smart pool tokens.
       Enforces the cap. Allows you to specify the maximum amounts of underlying assets
       @param _amount Amount of pool tokens to mint
   */
@@ -308,12 +308,15 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     uint256 _balance,
     uint256 _denorm
   ) external override onlyTokenBinder noReentry {
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     IBPool bPool = PBStorage.load().bPool;
     IERC20 token = IERC20(_token);
     require(
       token.transferFrom(msg.sender, address(this), _balance),
       "PV2SmartPool.bind: transferFrom failed"
     );
+    // Cancel potential weight adjustment process.
+    ws.startBlock = 0;
     token.safeApprove(address(bPool), uint256(-1));
     bPool.bind(_token, _balance, _denorm);
   }
@@ -329,6 +332,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     uint256 _balance,
     uint256 _denorm
   ) external override onlyTokenBinder noReentry {
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     IBPool bPool = PBStorage.load().bPool;
     IERC20 token = IERC20(_token);
 
@@ -346,7 +350,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     }
 
     bPool.rebind(_token, _balance, _denorm);
-
+    // Cancel potential weight adjustment process.
+    ws.startBlock = 0;
     // If any tokens are in this contract send them to msg.sender
     uint256 tokenBalance = token.balanceOf(address(this));
     if (tokenBalance > 0) {
@@ -359,10 +364,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @param _token Token to unbind
     */
   function unbind(address _token) external override onlyTokenBinder noReentry {
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     IBPool bPool = PBStorage.load().bPool;
     IERC20 token = IERC20(_token);
     // unbind the token in the bPool
     bPool.unbind(_token);
+
+    // Cancel potential weight adjustment process.
+    ws.startBlock = 0;
 
     // If any tokens are in this contract send them to msg.sender
     uint256 tokenBalance = token.balanceOf(address(this));
@@ -499,7 +508,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibWeights.updateWeight(_token, _newWeight);
   }
 
-  /** 
+  /**
     @notice Gradually adjust the weights of a token. Can only be called by the controller
     @param _newWeights Target weights
     @param _startBlock Block to start weight adjustment
@@ -527,7 +536,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     LibAddRemoveToken.applyAddToken();
   }
 
-  /** 
+  /**
     @notice Commit a token to be added. Can only be called by the controller
     @param _token Address of the token to add
     @param _balance Amount of token to add
@@ -626,7 +635,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     return LibPoolMath.calcPoolInGivenSingleOut(_token, _amount);
   }
 
-  /** 
+  /**
     @notice Get the current tokens in the smart pool
     @return Addresses of the tokens in the smart pool
   */

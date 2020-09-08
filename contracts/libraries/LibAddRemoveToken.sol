@@ -31,6 +31,9 @@ library LibAddRemoveToken {
       "ERR_ERC20_FALSE"
     );
 
+    // Cancel potential weight adjustment process.
+    ws.startBlock = 0;
+
     // Approves bPool to pull from this controller
     IERC20(ws.newToken.addr).safeApprove(address(s.bPool), uint256(-1));
     s.bPool.bind(ws.newToken.addr, ws.newToken.balance, ws.newToken.denorm);
@@ -61,6 +64,7 @@ library LibAddRemoveToken {
   }
 
   function removeToken(address _token) external {
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     PBStorage.StorageStruct storage s = PBStorage.load();
 
     uint256 totalSupply = PCStorage.load().totalSupply;
@@ -73,6 +77,9 @@ library LibAddRemoveToken {
     // this is what will be unbound from the pool
     // Have to get it before unbinding
     uint256 balance = s.bPool.getBalance(_token);
+
+    // Cancel potential weight adjustment process.
+    ws.startBlock = 0;
 
     // Unbind and get the tokens out of balancer pool
     s.bPool.unbind(_token);

@@ -668,6 +668,25 @@ describe("Basic Pool Functionality", function () {
     });
   });
 
+  describe("lockBPoolSwap modifier", async () => {
+    it("If swap disabled, keep disabled", async () => {
+      await expect (await smartpool.isPublicSwap()).is.eq(false);
+      await smartpool.joinPool(constants.WeiPerEther);
+      await expect (await pool.isPublicSwap()).is.eq(false);
+    });
+    it("If swap enabled, keep enabled", async () => {
+      await smartpool.setPublicSwap(true);
+      await expect (await smartpool.isPublicSwap()).is.eq(true);
+      // would be nice of we can verify the following calls
+      //    setPublicSwap(false)
+      //    setPublicSwap(true)
+      // Is there a mocking library that allows this?
+      // Or test by require(isPublicSwap == false) in a function
+      await smartpool.joinPool(constants.WeiPerEther);
+      await expect (await smartpool.isPublicSwap()).is.eq(true);
+    });
+  });
+
   describe("Utility Functions", async () => {
     describe("getDenormalizedWeight(address _token)", async () => {
       it("Should return denormalized weight of underlying token in bPool", async () => {

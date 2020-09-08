@@ -12,6 +12,7 @@ library LibWeights {
 
   function updateWeight(address _token, uint256 _newWeight) external {
     PBStorage.StorageStruct storage s = PBStorage.load();
+    P2Storage.StorageStruct storage ws = P2Storage.load();
 
     require(_newWeight >= constants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
     require(_newWeight <= constants.MAX_WEIGHT, "ERR_MAX_WEIGHT");
@@ -45,6 +46,9 @@ library LibWeights {
       // Now with the tokens this contract can send them to msg.sender
       require(IERC20(_token).transfer(msg.sender, deltaBalance), "ERR_ERC20_FALSE");
 
+      // Cancel potential weight adjustment process.
+      ws.startBlock = 0;
+
       LibPoolToken._burn(msg.sender, poolShares);
     } else {
       // This means the controller will deposit tokens to keep the price.
@@ -65,6 +69,9 @@ library LibWeights {
       );
       // Now with the tokens this contract can bind them to the pool it controls
       s.bPool.rebind(_token, currentBalance.badd(deltaBalance), _newWeight);
+
+      // Cancel potential weight adjustment process.
+      ws.startBlock = 0;
 
       LibPoolToken._mint(msg.sender, poolShares);
     }
@@ -114,6 +121,7 @@ library LibWeights {
     PBStorage.StorageStruct storage s = PBStorage.load();
     P2Storage.StorageStruct storage ws = P2Storage.load();
 
+    require(ws.startBlock != 0, "ERR_WEIGHT_ADJUSTMENT_FINISHED");
     require(block.number >= ws.startBlock, "ERR_CANT_POKE_YET");
 
     // This allows for pokes after endBlock that get weights to endWeights
@@ -141,6 +149,14 @@ library LibWeights {
         );
       }
       s.bPool.rebind(tokens[i], s.bPool.getBalance(tokens[i]), newWeight);
+    }
+
+    if(minBetweenEndBlockAndThisBlock == ws.endBlock) {
+      // All the weights are adjusted, adjustment finished.
+
+      // save gas option: set this to max number instead of 0
+      // And be able to remove ERR_WEIGHT_ADJUSTMENT_FINISHED check
+      ws.startBlock = 0;
     }
   }
 }
