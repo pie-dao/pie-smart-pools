@@ -148,7 +148,7 @@ library LibPoolMath {
     // pAo = poolAmountOut              \\    pS    /     \(wI / tW)//                           //
     // bI = balanceIn          tAi =  --------------------------------------------               //
     // wI = weightIn                              /      wI  \                                   //
-    // tW = totalWeight                          |  1 - ----  |  * sF                            //
+    // tW = totalWeight                      1 - |  1 - ----  |  * sF                            //
     // sF = swapFee                               \      tW  /                                   //
     **********************************************************************************************/
   function calcSingleInGivenPoolOut(
