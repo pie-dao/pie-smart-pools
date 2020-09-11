@@ -704,8 +704,6 @@ describe("Advanced Pool Functionality", function () {
       });
     });
 
-    // TODO finish failing tests
-
     describe("Annual Fee", async () => {
       it("Charging the fee should work [ @skip-on-coverage ]", async () => {
         const totalSupplyBefore = await smartpool.totalSupply();
