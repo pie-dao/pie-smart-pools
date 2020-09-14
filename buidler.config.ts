@@ -281,6 +281,7 @@ task("deploy-balancer-factory", "deploys a balancer factory")
   .setAction(async(taskArgs, { ethers }) => {
     const signers = await ethers.getSigners();
     const factoryAddress = await deployBalancerFactory(signers[0]);
+
     console.log(`Deployed balancer factory at: ${factoryAddress}`);
 });
 
