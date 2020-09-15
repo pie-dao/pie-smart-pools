@@ -8,14 +8,14 @@
         {
             "name": "pBTC",
             "decimals": "18",
-            "address": "0x013882e5481ec8a93BcDC45bEb0314006718ffD8",
+            "address": "0x5228a22e72ccc52d415ecfd199f99d0665e7733b",
             "weight": "70",
             "value": "10466.54"
         },
         {
             "name": "pLTC",
             "decimals": "18",
-            "address": "0xB9335F7985Bb9B7F8293cab50b95938895BCD78c",
+            "address": "0x5979F50f1D4c08f9A53863C2f39A7B0492C38d0f",
             "weight": "30",
             "value": "48.22"
         }

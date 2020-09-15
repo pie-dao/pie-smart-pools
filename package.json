@@ -37,6 +37,7 @@
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.0",
     "buidler-deploy": "^0.4.13",
+    "buidler-gas-reporter": "^0.1.3",
     "chai": "^4.2.0",
     "ethereum-waffle": "^2.3.2",
     "ethers": "^4.0.47",

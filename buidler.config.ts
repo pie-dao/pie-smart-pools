@@ -21,6 +21,8 @@ import LibAddRemoveTokenArtifact from "./artifacts/LibAddRemoveToken.json";
 import LibWeightsArtifact from "./artifacts/LibWeights.json";
 import LibPoolMathArtifact from "./artifacts/LibPoolMath.json";
 
+// Uncomment line below when doing gas optimisations on a local network
+usePlugin("buidler-gas-reporter");
 usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
 usePlugin("solidity-coverage");
@@ -74,8 +76,9 @@ const config: ExtendedBuidlerConfig = {
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
-      blockGasLimit: 8000000,
-      gas: 8000000,
+      blockGasLimit: 12000000,
+      gas: 12000000,
+      gasPrice: 20000000000,
       accounts: [
         RINKEBY_PRIVATE_KEY,
         RINKEBY_PRIVATE_KEY_SECONDARY
@@ -103,7 +106,7 @@ task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
     const factory = await (new PProxiedFactoryFactory(signers[0])).deploy();
     console.log(`Factory deployed at: ${factory.address}`);
 
-    const implementation = await run("deploy-pie-smart-pool") as Pv2SmartPool;
+    const implementation = await run("deploy-libraries-and-smartpool") as Pv2SmartPool;
     await implementation.init(PLACE_HOLDER_ADDRESS, "IMPL", "IMPL", "1337");
 
     await factory.init(taskArgs.balancerFactory, implementation.address);
@@ -136,7 +139,7 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
 
       // Calc amount
       const amount = new BigNumber(Math.floor((allocation.initialValue / token.value * token.weight / 100 * allocation.initialSupply * 10 ** token.decimals)).toString());
-
+      tokenAmounts.push(amount);
       // Approve factory to spend token
       const tokenContract = Ierc20Factory.connect(token.address, signers[0]);
 
@@ -148,8 +151,8 @@ task("deploy-pool-from-factory", "deploys a pie smart pool from the factory")
       }
     }
 
-    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap);
-    const receipt = await tx.wait(2); // wait for 2 confirmations
+    const tx = await factory.newProxiedSmartPool(name, symbol, initialSupply, tokenAddresses, tokenAmounts, tokenWeights, cap, { gasLimit: 10000000 });
+    const receipt = await tx.wait(); // wait for 2 confirmations
     const event = receipt.events.pop();
     console.log(`Deployed smart pool at : ${event.address}`);
     return event.address;
@@ -166,7 +169,7 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     const linkedArtifact = linkArtifact(Pv2SmartPoolArtifact, libraries);
 
     const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 10000000,
+      gasLimit: 12000000,
     })) as Pv2SmartPool;
 
     console.log(`Pv2SmartPool deployed at: ${smartpool.address}`);
@@ -210,6 +213,7 @@ task("deploy-smart-pool-complete")
   .setAction(async(taskArgs, { ethers, run }) => {
     // run deploy factory task
     const smartPoolFactoryAddress = await run("deploy-pie-smart-pool-factory", {balancerFactory: taskArgs.balancerFactory});
+
     // run deploy pool from factory task
     await run("deploy-pool-from-factory", { factory: smartPoolFactoryAddress, allocation: taskArgs.allocation });
 });
@@ -388,7 +392,17 @@ internalTask("deploy-libraries-and-smartpool")
     const signers = await ethers.getSigners();
     const libraries = await run("deploy-libraries-and-get-object");
 
+    console.log("libraries");
+    console.log(libraries);
+
     const contract = (await deploy("PV2SmartPool", {contractName: "PV2SmartPool", from: await signers[0].getAddress(), libraries}));
+
+    await run("verify-contract", {
+      address: contract.address,
+      contractName: "PV2SmartPool",
+      libraries: libraries.toString()
+    })
+
     return Pv2SmartPoolFactory.connect(contract.address, signers[0]);
   });
 
