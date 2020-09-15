@@ -173,7 +173,7 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     const linkedArtifact = linkArtifact(Pv2SmartPoolArtifact, libraries);
 
     const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 10000000,
+      gasLimit: 12000000,
     })) as Pv2SmartPool;
 
     console.log(`Pv2SmartPool deployed at: ${smartpool.address}`);
