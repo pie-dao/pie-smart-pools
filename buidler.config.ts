@@ -96,6 +96,14 @@ const config: ExtendedBuidlerConfig = {
   },
 };
 
+// Coverage fix
+const {TASK_COMPILE_GET_COMPILER_INPUT} = require("@nomiclabs/buidler/builtin-tasks/task-names");
+task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, __, runSuper) => {
+  const input = await runSuper();
+  input.settings.metadata.useLiteralContent = false;
+  return input;
+});
+
 task("deploy-pie-smart-pool-factory", "deploys a pie smart pool factory")
   .addParam("balancerFactory", "Address of the balancer factory")
   .setAction(async(taskArgs, { ethers, run }) => {
