@@ -1,0 +1,24 @@
+{   
+    "name": "PieDAO UTXO",
+    "symbol": "UTXO",
+    "initialValue": "1",
+    "initialSupply": "1",
+    "cap": "10",
+    "tokens": [
+        {
+            "name": "pBTC",
+            "decimals": "18",
+            "address": "0x5228a22e72ccc52d415ecfd199f99d0665e7733b",
+            "weight": "70",
+            "value": "10466.54"
+        },
+        {
+            "name": "pLTC",
+            "decimals": "18",
+            "address": "0x5979F50f1D4c08f9A53863C2f39A7B0492C38d0f",
+            "weight": "30",
+            "value": "48.22"
+        }
+    ]
+}
+
