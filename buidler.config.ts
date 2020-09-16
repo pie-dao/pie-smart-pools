@@ -91,10 +91,6 @@ const config: ExtendedBuidlerConfig = {
     }
   },
   etherscan: {
-    // The url for the Etherscan API you want to use.
-    url: "https://api.etherscan.io/api",
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
     apiKey: ETHERSCAN_API_KEY
   },
 };
@@ -396,12 +392,6 @@ internalTask("deploy-libraries-and-smartpool")
     console.log(libraries);
 
     const contract = (await deploy("PV2SmartPool", {contractName: "PV2SmartPool", from: await signers[0].getAddress(), libraries}));
-
-    await run("verify-contract", {
-      address: contract.address,
-      contractName: "PV2SmartPool",
-      libraries: libraries.toString()
-    })
 
     return Pv2SmartPoolFactory.connect(contract.address, signers[0]);
   });
