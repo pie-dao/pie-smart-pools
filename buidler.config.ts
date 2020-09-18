@@ -173,10 +173,12 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     const linkedArtifact = linkArtifact(Pv2SmartPoolArtifact, libraries);
 
     const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 12000000,
+      gasLimit: 10000000,
     })) as Pv2SmartPool;
 
     console.log(`Pv2SmartPool deployed at: ${smartpool.address}`);
+
+    return smartpool;
 });
 
 task("init-smart-pool", "initialises a smart pool")
@@ -201,6 +203,8 @@ task("deploy-smart-pool-implementation-complete")
 
     // Deploy capped pool
     const implementation = await run("deploy-pie-smart-pool");
+
+    console.log(`Implementation deployed at: ${implementation.address}`);
     // Init capped smart pool
     await run("init-smart-pool", {
       smartPool: implementation.address,
@@ -209,6 +213,8 @@ task("deploy-smart-pool-implementation-complete")
       symbol: taskArgs.implName,
       initialSupply: "1337"
     });
+
+    return implementation;
 });
 
 task("deploy-smart-pool-complete")
