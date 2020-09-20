@@ -90,7 +90,7 @@ const config: ExtendedBuidlerConfig = {
       blockGasLimit: 100000000,
     },
     frame: {
-      url: "ws://localhost:1248"
+      url: "http://localhost:1248"
     }
   },
   etherscan: {
