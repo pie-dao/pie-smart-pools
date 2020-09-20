@@ -88,6 +88,9 @@ const config: ExtendedBuidlerConfig = {
       url: 'http://127.0.0.1:8555', // Coverage launches its own ganache-cli client
       gasPrice: 0,
       blockGasLimit: 100000000,
+    },
+    frame: {
+      url: "ws://localhost:1248"
     }
   },
   etherscan: {
