@@ -62,30 +62,34 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         (address[] memory tokens, uint256[] memory amounts) = IPSmartPool(_pie).calcTokensForAmount(_poolAmount);
 
         for(uint256 i = 0; i < tokens.length; i++) {
-            if(registry.inRegistry(tokens[i])) {
-                _toPie(tokens[i], amounts[i]);
-            } else {
-                IUniswapV2Exchange pair = IUniswapV2Exchange(UniLib.pairFor(address(uniswapFactory), tokens[i], address(WETH)));
-
-                (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
-                uint256 amountIn = UniLib.getAmountIn(amounts[i], reserveA, reserveB);
-
-                // UniswapV2 does not pull the token
-                WETH.transfer(address(pair), amountIn);
-
-                if(token0Or1(address(WETH), tokens[i]) == 0) {
-                    pair.swap(amounts[i], 0, address(this), new bytes(0));
-                } else {
-                    pair.swap(0, amounts[i], address(this), new bytes(0));
-                }
-            }
-
-            IERC20(tokens[i]).safeApprove(_pie, amounts[i]);
+            _swapToToken(tokens[i], amounts[i], _pie);
         }
 
         IPSmartPool pie = IPSmartPool(_pie);
         pie.joinPool(_poolAmount);
     }
+
+    function _swapToToken(address _token, uint256 _amount, address _pie) internal virtual {
+        if(registry.inRegistry(_token)) {
+                _toPie(_token, _amount);
+            } else {
+                IUniswapV2Exchange pair = IUniswapV2Exchange(UniLib.pairFor(address(uniswapFactory), _token, address(WETH)));
+
+                (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), _token);
+                uint256 amountIn = UniLib.getAmountIn(_amount, reserveA, reserveB);
+
+                // UniswapV2 does not pull the token
+                WETH.transfer(address(pair), amountIn);
+
+                if(token0Or1(address(WETH), _token) == 0) {
+                    pair.swap(_amount, 0, address(this), new bytes(0));
+                } else {
+                    pair.swap(0, _amount, address(this), new bytes(0));
+                }
+        }
+
+        IERC20(_token).safeApprove(_pie, _amount);
+    } 
 
     function calcToPie(address _pie, uint256 _poolAmount) public view returns(uint256) {
         (address[] memory tokens, uint256[] memory amounts) = IPSmartPool(_pie).calcTokensForAmount(_poolAmount);
@@ -104,6 +108,14 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         return totalEth;
     }
 
+    function calcEthAmount(address _token, uint256 _buyAmount) internal virtual returns(uint256) {
+       if(registry.inRegistry(_token)) {
+            return calcToPie(_token, _buyAmount);
+        } else {
+            (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), _token);
+            return UniLib.getAmountIn(_buyAmount, reserveA, reserveB);
+        } 
+    }
 
     // TODO recursive exit
     function toEth(address _pie, uint256 _poolAmount, uint256 _minEthAmount) external revertIfPaused saveGas(gasSponsor) {

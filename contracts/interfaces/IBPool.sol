@@ -72,4 +72,25 @@ interface IBPool {
     )
         external pure
         returns (uint poolAmountIn);
+
+    function calcInGivenOut(
+        uint tokenBalanceIn,
+        uint tokenWeightIn,
+        uint tokenBalanceOut,
+        uint tokenWeightOut,
+        uint tokenAmountOut,
+        uint swapFee
+    )
+        external pure
+        returns (uint tokenAmountIn);
+
+    function swapExactAmountOut(
+        address tokenIn,
+        uint maxAmountIn,
+        address tokenOut,
+        uint tokenAmountOut,
+        uint maxPrice
+    )
+        external
+        returns (uint tokenAmountIn, uint spotPriceAfter);
 }
