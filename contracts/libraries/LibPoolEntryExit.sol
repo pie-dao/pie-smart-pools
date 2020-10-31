@@ -2,6 +2,7 @@ pragma solidity 0.6.4;
 
 import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolStorage.sol";
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
+import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
 import "./LibFees.sol";
 
 import "./LibPoolToken.sol";
@@ -42,9 +43,11 @@ library LibPoolEntryExit {
 
   function _exitPool(uint256 _amount, uint256[] memory _minAmountsOut) internal lockBPoolSwap {
     IBPool bPool = PBStorage.load().bPool;
+    P2Storage.StorageStruct storage ws = P2Storage.load();
     LibFees.chargeOutstandingAnnualFee();
+    uint256 feeAmount = _amount.bmul(ws.exitFee).bdiv(10**18);
     uint256 poolTotal = PCStorage.load().totalSupply;
-    uint256 ratio = _amount.bdiv(poolTotal);
+    uint256 ratio = _amount.bsub(feeAmount).bdiv(poolTotal);
     require(ratio != 0);
 
     LibPoolToken._burn(msg.sender, _amount);
@@ -64,6 +67,18 @@ library LibPoolEntryExit {
       emit LOG_EXIT(msg.sender, token, tokenAmountOut);
       LibUnderlying._pushUnderlying(token, msg.sender, tokenAmountOut, balance);
     }
+
+    if(
+      feeAmount != 0 &&
+      ws.exitFeeRecipientShare != 0 &&
+      ws.feeRecipient != address(0)
+    ) {
+      uint256 feeRecipientShare = feeAmount.mul(ws.exitFeeRecipientShare).div(10**18);
+      if(feeRecipientShare != 0) {
+        LibPoolToken._mint(ws.feeRecipient, feeRecipientShare);
+      }
+    }
+
     emit PoolExited(msg.sender, _amount);
   }
 

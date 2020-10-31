@@ -256,6 +256,56 @@ describe("Basic Pool Functionality", function () {
         expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeAmount.div(2)));
       }
     });
+    it("Removing liquidity should work, exit fee", async () => {
+      const fee = constants.One.mul(10).pow(16).mul(4); // 4%
+      const hundrerdPercent = constants.One.mul(10).pow(18) // 100%
+      await smartpool.setExitFee(fee)
+
+      const removeAmount = constants.WeiPerEther.div(2);
+      const removeTokenAmount = removeAmount.div(2);
+      const feeAmount = removeTokenAmount.mul(fee).div(hundrerdPercent)
+
+      await smartpool["exitPool(uint256)"](removeAmount);
+      const balance = await smartpool.balanceOf(account);
+      expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
+
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeTokenAmount).sub(feeAmount));
+      }
+    });
+    it("Removing liquidity should work, exit fee, feeRecipient", async () => {
+      const fee = constants.One.mul(10).pow(16).mul(4); // 4%
+      const hundrerdPercent = constants.One.mul(10).pow(18) // 100%
+      const exitFeeRecipient = hundrerdPercent.div(2) // 50%
+      await smartpool.setExitFee(fee)
+      await smartpool.setFeeRecipient(await signers[1].getAddress())
+      await smartpool.setExitFeeRecipientShare(exitFeeRecipient) // 50%
+
+      const removeAmount = constants.WeiPerEther.div(2);
+      const recipientAmount = removeAmount.
+        mul(fee).div(hundrerdPercent).
+        mul(exitFeeRecipient).div(hundrerdPercent)
+
+      const removeTokenAmount = removeAmount.div(2);
+      const feeAmount = removeTokenAmount.mul(fee).div(hundrerdPercent)
+      const totalBefore = await smartpool.totalSupply();
+
+      await smartpool["exitPool(uint256)"](removeAmount);
+      const balance = await smartpool.balanceOf(account);
+      expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
+
+      const balanceRecipient = await smartpool.balanceOf(await signers[1].getAddress());
+      expect(balanceRecipient).to.eq(recipientAmount);
+
+      const totalAfter = await smartpool.totalSupply();
+      expect(totalAfter).to.eq(totalBefore.sub(removeAmount).add(recipientAmount))
+
+      for (let entry of tokens) {
+        const userBalance = await entry.balanceOf(account)
+        expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeTokenAmount).sub(feeAmount));
+      }
+    });
     it("Removing all liquidity should fail", async () => {
       const removeAmount = constants.WeiPerEther;
       await expect(smartpool["exitPool(uint256)"](removeAmount)).to.be.revertedWith(
