@@ -20,7 +20,7 @@ interface IPV2SmartPool is IERC20 {
   ) external;
 
   /**
-    @notice Set the address that can set public swap enabled or disabled. 
+    @notice Set the address that can set public swap enabled or disabled.
     Can only be called by the controller
     @param _swapSetter Address of the new swapSetter
   */
@@ -69,6 +69,16 @@ interface IPV2SmartPool is IERC20 {
   function setFeeRecipient(address _newRecipient) external;
 
   /**
+    @notice Set the exit fee percentage users have to pay.
+  */
+  function setExitFee(uint256 _fee) external;
+
+  /**
+    @notice Sets the recipient fee percentage share. Can only be set by the current controller
+  */
+  function setExitFeeRecipientShare(uint256 _share) external;
+
+  /**
     @notice Set the controller address. Can only be called by the current address
     @param _controller Address of the new controller
   */
@@ -98,7 +108,7 @@ interface IPV2SmartPool is IERC20 {
   */
   function updateWeight(address _token, uint256 _newWeight) external;
 
-  /** 
+  /**
     @notice Gradually adjust the weights of a token. Can only be called by the controller
     @param _newWeights Target weights
     @param _startBlock Block to start weight adjustment
@@ -120,7 +130,7 @@ interface IPV2SmartPool is IERC20 {
   */
   function applyAddToken() external;
 
-  /** 
+  /**
     @notice Commit a token to be added. Can only be called by the controller
     @param _token Address of the token to add
     @param _balance Amount of token to add
@@ -143,7 +153,7 @@ interface IPV2SmartPool is IERC20 {
   */
   function approveTokens() external;
 
-  /** 
+  /**
     @notice Mint pool tokens, locking underlying assets
     @param _amount Amount of pool tokens
   */
@@ -284,7 +294,7 @@ interface IPV2SmartPool is IERC20 {
   */
   function isPublicSwap() external view returns (bool);
 
-  /** 
+  /**
     @notice Get the current tokens in the smart pool
     @return Addresses of the tokens in the smart pool
   */
@@ -307,6 +317,18 @@ interface IPV2SmartPool is IERC20 {
     @return Fee recipient address
   */
   function getFeeRecipient() external view returns (address);
+
+  /**
+    @notice Get the percetage the recipient gets of the total exit fee.
+    @return Fee recipient share percentage
+  */
+  function getExitFeeRecipientShare() external view returns (uint256);
+
+  /**
+    @notice Get the exit fee percentage
+    @return Exit fee percentage
+  */
+  function getExitFee() external view returns (uint256);
 
   /**
     @notice Get the denormalized weight of a token

@@ -484,6 +484,22 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
+    @notice Sets the exit fee percentage. Can only be set by the current controller
+    @param _fee Fee percentage, max 10 percent
+  */
+  function setExitFee(uint256 _fee) external override onlyController noReentry {
+    LibFees.setExitFee(_fee);
+  }
+
+  /**
+    @notice Sets the recipient fee percentage share. Can only be set by the current controller
+    @param _share Percentage of fee for the recipient
+  */
+  function setExitFeeRecipientShare(uint256 _share) external override onlyController noReentry {
+    LibFees.setExitFeeRecipientShare(_share);
+  }
+
+  /**
     @notice Trip the circuit breaker which disabled exit, join and swaps
   */
   function tripCircuitBreaker() external override onlyCircuitBreaker {
@@ -645,7 +661,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   /**
     @notice Get the address of the controller
-    @return The address of the pool
+    @return The address of the controller
   */
   function getController() external override view returns (address) {
     return PBStorage.load().controller;
@@ -697,6 +713,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   function getFeeRecipient() external override view returns (address) {
     return P2Storage.load().feeRecipient;
+  }
+
+  function getExitFeeRecipientShare() external override view returns (uint256) {
+    return P2Storage.load().exitFeeRecipientShare;
+  }
+
+  function getExitFee() external override view returns (uint256) {
+    return P2Storage.load().exitFee;
   }
 
   /**
