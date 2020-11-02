@@ -412,6 +412,16 @@ interface IPV2SmartPool is IERC20 {
     returns (address[] memory tokens, uint256[] memory amounts);
 
   /**
+    @notice Calculate the amount of underlying redeemed when exiting with a certain amount
+    @return tokens Addresses of the underlying tokens
+    @return amounts Amounts of the underlying tokens
+  */
+  function calcTokensForAmountExit(uint256 _amount)
+    external
+    view
+    returns (address[] memory tokens, uint256[] memory amounts);
+
+  /**
     @notice Calculate the amount of pool tokens out given underlying in
     @param _token Underlying asset to deposit
     @param _amount Amount of underlying asset to deposit

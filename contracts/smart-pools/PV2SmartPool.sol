@@ -592,6 +592,21 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
+        @notice Gets the underlying assets and amounts redeemed when exiting specific pool shares.
+        @param _amount Amount of pool shares to calculate the values for
+        @return tokens The addresses of the tokens
+        @return amounts The amounts of tokens redeemed when exiting that amount of pool shares
+    */
+  function calcTokensForAmountExit(uint256 _amount)
+    external
+    override
+    view
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    return LibPoolMath.calcTokensForAmountExit(_amount);
+  }
+
+  /**
     @notice Calculate the amount of pool tokens out for a given amount in
     @param _token Address of the input token
     @param _amount Amount of input token

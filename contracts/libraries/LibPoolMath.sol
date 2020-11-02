@@ -282,6 +282,35 @@ library LibPoolMath {
     }
   }
 
+   /**
+        @notice Gets the underlying assets and amounts redeemed when exiting specific pool shares.
+        @param _amount Amount of pool shares to calculate the values for
+        @return tokens The addresses of the tokens
+        @return amounts The amounts of tokens redeemed when exiting that amount of pool shares
+    */
+  function calcTokensForAmountExit(uint256 _amount)
+    external
+    view
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    P2Storage.StorageStruct storage ws = P2Storage.load();
+    uint256 feeAmount = _amount.bmul(ws.exitFee).bdiv(10**18);
+
+    tokens = PBStorage.load().bPool.getCurrentTokens();
+    amounts = new uint256[](tokens.length);
+    uint256 ratio = _amount.bsub(feeAmount).bdiv(
+      PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee())
+    );
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      address t = tokens[i];
+
+      uint256 bal = PBStorage.load().bPool.getBalance(t);
+      uint256 amount = ratio.bmul(bal);
+      amounts[i] = amount;
+    }
+  }
+
   /**
     @notice Calculate the amount of pool tokens out for a given amount in
     @param _token Address of the input token

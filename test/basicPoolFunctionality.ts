@@ -246,14 +246,21 @@ describe("Basic Pool Functionality", function () {
     });
     it("Removing liquidity should work", async () => {
       const removeAmount = constants.WeiPerEther.div(2);
+      const calcAmountExit = await smartpool.calcTokensForAmountExit(removeAmount)
 
       await smartpool["exitPool(uint256)"](removeAmount);
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
-      for (let entry of tokens) {
+      for (let i = 0; i < tokens.length; i++) {
+        const entry = tokens[i]
+        const calcExitToken = calcAmountExit.tokens[i]
+        const calcExitAmount = calcAmountExit.amounts[i]
+
         const userBalance = await entry.balanceOf(account)
         expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeAmount.div(2)));
+        expect(calcExitToken).to.eq(entry.address);
+        expect(calcExitAmount).to.eq(removeAmount.div(2));
       }
     });
     it("Removing liquidity should work, exit fee", async () => {
@@ -264,14 +271,21 @@ describe("Basic Pool Functionality", function () {
       const removeAmount = constants.WeiPerEther.div(2);
       const removeTokenAmount = removeAmount.div(2);
       const feeAmount = removeTokenAmount.mul(fee).div(hundrerdPercent)
+      const calcAmountExit = await smartpool.calcTokensForAmountExit(removeAmount)
 
       await smartpool["exitPool(uint256)"](removeAmount);
       const balance = await smartpool.balanceOf(account);
       expect(balance).to.eq(INITIAL_SUPPLY.sub(removeAmount));
 
-      for (let entry of tokens) {
+      for (let i = 0; i < tokens.length; i++) {
+        const entry = tokens[i]
+        const calcExitToken = calcAmountExit.tokens[i]
+        const calcExitAmount = calcAmountExit.amounts[i]
+
         const userBalance = await entry.balanceOf(account)
         expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeTokenAmount).sub(feeAmount));
+        expect(calcExitToken).to.eq(entry.address);
+        expect(calcExitAmount).to.eq(removeTokenAmount.sub(feeAmount));
       }
     });
     it("Removing liquidity should work, exit fee, feeRecipient", async () => {
@@ -289,6 +303,7 @@ describe("Basic Pool Functionality", function () {
 
       const removeTokenAmount = removeAmount.div(2);
       const feeAmount = removeTokenAmount.mul(fee).div(hundrerdPercent)
+      const calcAmountExit = await smartpool.calcTokensForAmountExit(removeAmount)
       const totalBefore = await smartpool.totalSupply();
 
       await smartpool["exitPool(uint256)"](removeAmount);
@@ -301,9 +316,15 @@ describe("Basic Pool Functionality", function () {
       const totalAfter = await smartpool.totalSupply();
       expect(totalAfter).to.eq(totalBefore.sub(removeAmount).add(recipientAmount))
 
-      for (let entry of tokens) {
+      for (let i = 0; i < tokens.length; i++) {
+        const entry = tokens[i]
+        const calcExitToken = calcAmountExit.tokens[i]
+        const calcExitAmount = calcAmountExit.amounts[i]
+
         const userBalance = await entry.balanceOf(account)
         expect(userBalance).to.eq(INITIAL_TOKEN_SUPPLY.sub(removeTokenAmount).sub(feeAmount));
+        expect(calcExitToken).to.eq(entry.address);
+        expect(calcExitAmount).to.eq(removeTokenAmount.sub(feeAmount));
       }
     });
     it("Removing all liquidity should fail", async () => {
