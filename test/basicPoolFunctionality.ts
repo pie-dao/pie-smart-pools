@@ -3,7 +3,7 @@ import {MockTokenFactory} from "@pie-dao/mock-contracts/dist/typechain/MockToken
 import {MockToken} from "@pie-dao/mock-contracts/typechain/MockToken";
 import {ethers, run, deployments, ethereum} from "@nomiclabs/buidler";
 import {Signer, Wallet, utils, constants} from "ethers";
-import {BigNumber} from "ethers/utils";
+import {BigNumber, parseEther} from "ethers/utils";
 import chai from "chai";
 import {deployContract, solidity} from "ethereum-waffle";
 
@@ -264,8 +264,8 @@ describe("Basic Pool Functionality", function () {
       }
     });
     it("Removing liquidity should work, exit fee", async () => {
-      const fee = constants.One.mul(10).pow(16).mul(4); // 4%
-      const hundrerdPercent = constants.One.mul(10).pow(18) // 100%
+      const fee = parseEther("0.01").mul(4); // 4%
+      const hundrerdPercent = parseEther("1")// 100%
       await smartpool.setExitFee(fee)
 
       const removeAmount = constants.WeiPerEther.div(2);

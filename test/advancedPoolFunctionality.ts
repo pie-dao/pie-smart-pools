@@ -782,7 +782,7 @@ describe("Advanced Pool Functionality", function () {
     });
     describe("Exit fee", async () => {
       it("Setting the exit fee should work", async () => {
-        const tenPercent = constants.One.mul(10).pow(17) // 10%
+        const tenPercent = parseEther("0.1"); // 10%
 
         await smartpool.setExitFee("1");
         expect(await smartpool.getExitFee()).to.eq("1");
