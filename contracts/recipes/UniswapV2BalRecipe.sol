@@ -23,8 +23,29 @@ contract UniswapV2BalRecipe is UniswapV2Recipe {
         }
         
     }
+    
+    function calcToPie(address _pie, uint256 _poolAmount) public override view returns(uint256) {
+        (address[] memory tokens, uint256[] memory amounts) = IPSmartPool(_pie).calcTokensForAmount(_poolAmount);
 
-    function calcEthAmount(address _token, uint256 _buyAmount) internal override returns(uint256) {
+        uint256 totalEth = 0;
+
+        for(uint256 i = 0; i < tokens.length; i++) {
+            
+            if(tokenToBPool[ tokens[i] ] != address(0)) {
+                totalEth += calcEthAmount(tokens[i], amounts[i]);
+            }
+            else if(registry.inRegistry(tokens[i])) {
+                totalEth += calcToPie(tokens[i], amounts[i]);
+            } else {
+                (uint256 reserveA, uint256 reserveB) = UniLib.getReserves(address(uniswapFactory), address(WETH), tokens[i]);
+                totalEth += UniLib.getAmountIn(amounts[i], reserveA, reserveB);
+            }
+        }
+
+        return totalEth;
+    }
+
+    function calcEthAmount(address _token, uint256 _buyAmount) internal view override returns(uint256) {
         if(tokenToBPool[_token] != address(0)) {
             IBPool bPool = IBPool(tokenToBPool[_token]);
 

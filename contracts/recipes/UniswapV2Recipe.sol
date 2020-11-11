@@ -91,7 +91,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         IERC20(_token).safeApprove(_pie, _amount);
     } 
 
-    function calcToPie(address _pie, uint256 _poolAmount) public view returns(uint256) {
+    function calcToPie(address _pie, uint256 _poolAmount) public view virtual returns(uint256) {
         (address[] memory tokens, uint256[] memory amounts) = IPSmartPool(_pie).calcTokensForAmount(_poolAmount);
 
         uint256 totalEth = 0;
@@ -108,7 +108,7 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         return totalEth;
     }
 
-    function calcEthAmount(address _token, uint256 _buyAmount) internal virtual returns(uint256) {
+    function calcEthAmount(address _token, uint256 _buyAmount) internal view virtual returns(uint256) {
        if(registry.inRegistry(_token)) {
             return calcToPie(_token, _buyAmount);
         } else {
@@ -167,11 +167,6 @@ contract UniswapV2Recipe is Ownable, ChiGasSaver {
         }
 
         return 1;
-    }
-    
-    function die() public onlyOwner {
-        address payable _to = payable(los().owner);
-        selfdestruct(_to);
     }
 
     function saveEth() external onlyOwner {
