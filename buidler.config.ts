@@ -39,6 +39,15 @@ const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 
 const PLACE_HOLDER_ADDRESS = "0x1000000000000000000000000000000000000001";
 
+
+const INFURA_PROJECT_ID = "2c79395132394446b07c6f19a366ebf5";
+
+// 将私钥替换为您的Ropsten帐户私钥
+// 要从Metamask导出私钥，请打开Metamask并去 账户详情 > 导出私钥
+// 注意切勿将真实的以太币放入测试账户
+const ROPSTEN_PRIVATE_KEY = "4b4882a90cf2252393db8dbb31e42b2f6de9f6b4c4f0e58fe5c2221d46b33ff8";
+
+
 interface ExtendedBuidlerConfig extends BuidlerConfig {
   [x:string]: any
 }
@@ -73,6 +82,13 @@ const config: ExtendedBuidlerConfig = {
         KOVAN_PRIVATE_KEY,
         KOVAN_PRIVATE_KEY_SECONDARY
       ].filter((item) => item !== "")
+    },
+    ropsten: {
+      url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,
+      blockGasLimit: 7612388,
+      gas: 7612388,
+      gasPrice: 20000000000,
+      accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
@@ -176,7 +192,7 @@ task("deploy-pie-smart-pool", "deploys a pie smart pool")
     const linkedArtifact = linkArtifact(Pv2SmartPoolArtifact, libraries);
 
     const smartpool = (await deployContract(signers[0] as Wallet, linkedArtifact, [], {
-      gasLimit: 10000000,
+      gasLimit: 7612388,
     })) as Pv2SmartPool;
 
     console.log(`Pv2SmartPool deployed at: ${smartpool.address}`);
