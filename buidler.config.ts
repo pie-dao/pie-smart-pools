@@ -40,12 +40,12 @@ const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 const PLACE_HOLDER_ADDRESS = "0x1000000000000000000000000000000000000001";
 
 
-const INFURA_PROJECT_ID = "2c79395132394446b07c6f19a366ebf5";
+const INFURA_PROJECT_ID = "a665f4eae78c4da3a2b606003f9eb31a";
 
 // 将私钥替换为您的Ropsten帐户私钥
 // 要从Metamask导出私钥，请打开Metamask并去 账户详情 > 导出私钥
 // 注意切勿将真实的以太币放入测试账户
-const ROPSTEN_PRIVATE_KEY = "4b4882a90cf2252393db8dbb31e42b2f6de9f6b4c4f0e58fe5c2221d46b33ff8";
+const ROPSTEN_PRIVATE_KEY = "eb5361010735f94c64a486737fd438b78a1c1171ee537bf466d005bcf023eb8a";
 
 
 interface ExtendedBuidlerConfig extends BuidlerConfig {
