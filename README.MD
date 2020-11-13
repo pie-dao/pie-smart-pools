@@ -34,7 +34,7 @@ yarn coverage
 To test a new implementation in testnet conditions. Set the implementation of a test pool to the new version and run the following script.
 
 ```
-POOL=[POOL_ADDRESS] npx buidler test ./mainnet-test/test.ts --network [rinkeby|kovan|rinkeby]
+npx buidler deploy-smart-pool-implementation-complete --impl-name PieDAO --network ropsten
 ```
 
 ## Integration
