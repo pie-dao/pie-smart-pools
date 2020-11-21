@@ -270,9 +270,8 @@ library LibPoolMath {
   {
     tokens = PBStorage.load().bPool.getCurrentTokens();
     amounts = new uint256[](tokens.length);
-    uint256 ratio = _amount.bdiv(
-      PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee())
-    );
+    uint256 ratio =
+      _amount.bdiv(PCStorage.load().totalSupply.badd(LibFees.calcOutstandingAnnualFee()));
 
     for (uint256 i = 0; i < tokens.length; i++) {
       address t = tokens[i];
