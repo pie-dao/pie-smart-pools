@@ -1,6 +1,6 @@
 {
   "name": "@pie-dao/smart-pools",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Implementations of smart pools for Balancer",
   "main": "index.js",
   "scripts": {
