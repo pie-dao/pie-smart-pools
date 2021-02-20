@@ -780,7 +780,23 @@ describe("Advanced Pool Functionality", function () {
         expect(feeRecipientPoolBalanceAfter).to.eq(expectedMint);
       });
     });
-  });
+    describe("Exit fee", async () => {
+      it("Setting the exit fee should work", async () => {
+        const tenPercent = parseEther("0.1"); // 10%
+
+        await smartpool.setExitFee("1");
+        expect(await smartpool.getExitFee()).to.eq("1");
+        expect(smartpool.setExitFee(tenPercent.add(1))).to.be.revertedWith("FEE_TOO_BIG");
+      });
+      it("Setting the exit fee recipient share should work", async () => {
+        const hundrerdPercent = constants.One.mul(10).pow(18) // 100%
+
+        await smartpool.setExitFeeRecipientShare("1");
+        expect(await smartpool.getExitFeeRecipientShare()).to.eq("1");
+        expect(smartpool.setExitFeeRecipientShare(hundrerdPercent.add(1))).to.be.revertedWith("FEE_SHARE_TOO_BIG");
+      });
+    })
+   });
 });
 
 function createBigNumberArray(length: number, value: BigNumber): BigNumber[] {

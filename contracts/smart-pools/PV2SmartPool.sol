@@ -484,6 +484,22 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
+    @notice Sets the exit fee percentage. Can only be set by the current controller
+    @param _fee Fee percentage, max 10 percent
+  */
+  function setExitFee(uint256 _fee) external override onlyController noReentry {
+    LibFees.setExitFee(_fee);
+  }
+
+  /**
+    @notice Sets the recipient fee percentage share. Can only be set by the current controller
+    @param _share Percentage of fee for the recipient
+  */
+  function setExitFeeRecipientShare(uint256 _share) external override onlyController noReentry {
+    LibFees.setExitFeeRecipientShare(_share);
+  }
+
+  /**
     @notice Trip the circuit breaker which disabled exit, join and swaps
   */
   function tripCircuitBreaker() external override onlyCircuitBreaker {
@@ -576,6 +592,21 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   }
 
   /**
+        @notice Gets the underlying assets and amounts redeemed when exiting specific pool shares.
+        @param _amount Amount of pool shares to calculate the values for
+        @return tokens The addresses of the tokens
+        @return amounts The amounts of tokens redeemed when exiting that amount of pool shares
+    */
+  function calcTokensForAmountExit(uint256 _amount)
+    external
+    override
+    view
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    return LibPoolMath.calcTokensForAmountExit(_amount);
+  }
+
+  /**
     @notice Calculate the amount of pool tokens out for a given amount in
     @param _token Address of the input token
     @param _amount Amount of input token
@@ -645,7 +676,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   /**
     @notice Get the address of the controller
-    @return The address of the pool
+    @return The address of the controller
   */
   function getController() external override view returns (address) {
     return PBStorage.load().controller;
@@ -697,6 +728,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
 
   function getFeeRecipient() external override view returns (address) {
     return P2Storage.load().feeRecipient;
+  }
+
+  function getExitFeeRecipientShare() external override view returns (uint256) {
+    return P2Storage.load().exitFeeRecipientShare;
+  }
+
+  function getExitFee() external override view returns (uint256) {
+    return P2Storage.load().exitFee;
   }
 
   /**

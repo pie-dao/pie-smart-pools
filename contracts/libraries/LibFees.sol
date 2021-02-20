@@ -57,4 +57,15 @@ library LibFees {
     emit AnnualFeeChanged(P2Storage.load().annualFee, _newFee);
     P2Storage.load().annualFee = _newFee;
   }
+
+  function setExitFee(uint256 _fee) internal  {
+    require(_fee <= 10**17, "FEE_TOO_BIG"); // max 10%
+    P2Storage.load().exitFee = _fee;
+  }
+
+  function setExitFeeRecipientShare(uint256 _share) internal {
+    require(_share <= 10**18, "FEE_SHARE_TOO_BIG");
+    P2Storage.load().exitFeeRecipientShare = _share;
+  }
+
 }
