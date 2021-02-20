@@ -151,7 +151,7 @@ library LibWeights {
       s.bPool.rebind(tokens[i], s.bPool.getBalance(tokens[i]), newWeight);
     }
 
-    if(minBetweenEndBlockAndThisBlock == ws.endBlock) {
+    if (minBetweenEndBlockAndThisBlock == ws.endBlock) {
       // All the weights are adjusted, adjustment finished.
 
       // save gas option: set this to max number instead of 0

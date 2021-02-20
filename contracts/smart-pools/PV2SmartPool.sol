@@ -454,9 +454,12 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Set the circuit breaker address. Can only be called by the controller
     @param _newCircuitBreaker Address of the new circuit breaker
   */
-  function setCircuitBreaker(
-    address _newCircuitBreaker
-  ) external override onlyController noReentry {
+  function setCircuitBreaker(address _newCircuitBreaker)
+    external
+    override
+    onlyController
+    noReentry
+  {
     emit CircuitBreakerChanged(P2Storage.load().circuitBreaker, _newCircuitBreaker);
     P2Storage.load().circuitBreaker = _newCircuitBreaker;
   }
@@ -568,8 +571,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     */
   function calcTokensForAmount(uint256 _amount)
     external
-    override
     view
+    override
     returns (address[] memory tokens, uint256[] memory amounts)
   {
     return LibPoolMath.calcTokensForAmount(_amount);
@@ -583,8 +586,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   */
   function calcPoolOutGivenSingleIn(address _token, uint256 _amount)
     external
-    override
     view
+    override
     returns (uint256)
   {
     return LibPoolMath.calcPoolOutGivenSingleIn(_token, _amount);
@@ -598,8 +601,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   */
   function calcSingleInGivenPoolOut(address _token, uint256 _amount)
     external
-    override
     view
+    override
     returns (uint256)
   {
     return LibPoolMath.calcSingleInGivenPoolOut(_token, _amount);
@@ -613,8 +616,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   */
   function calcSingleOutGivenPoolIn(address _token, uint256 _amount)
     external
-    override
     view
+    override
     returns (uint256)
   {
     return LibPoolMath.calcSingleOutGivenPoolIn(_token, _amount);
@@ -628,8 +631,8 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   */
   function calcPoolInGivenSingleOut(address _token, uint256 _amount)
     external
-    override
     view
+    override
     returns (uint256)
   {
     return LibPoolMath.calcPoolInGivenSingleOut(_token, _amount);
@@ -639,7 +642,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the current tokens in the smart pool
     @return Addresses of the tokens in the smart pool
   */
-  function getTokens() external override view returns (address[] memory) {
+  function getTokens() external view override returns (address[] memory) {
     return PBStorage.load().bPool.getCurrentTokens();
   }
 
@@ -647,7 +650,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the address of the controller
     @return The address of the pool
   */
-  function getController() external override view returns (address) {
+  function getController() external view override returns (address) {
     return PBStorage.load().controller;
   }
 
@@ -655,7 +658,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the address of the public swap setter
     @return The public swap setter address
   */
-  function getPublicSwapSetter() external override view returns (address) {
+  function getPublicSwapSetter() external view override returns (address) {
     return PBStorage.load().publicSwapSetter;
   }
 
@@ -663,7 +666,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the address of the token binder
     @return The token binder address
   */
-  function getTokenBinder() external override view returns (address) {
+  function getTokenBinder() external view override returns (address) {
     return PBStorage.load().tokenBinder;
   }
 
@@ -671,7 +674,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the address of the circuitBreaker
     @return The address of the circuitBreaker
   */
-  function getCircuitBreaker() external override view returns (address) {
+  function getCircuitBreaker() external view override returns (address) {
     return P2Storage.load().circuitBreaker;
   }
 
@@ -679,7 +682,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get if public swapping is enabled
     @return If public swapping is enabled
   */
-  function isPublicSwap() external override view returns (bool) {
+  function isPublicSwap() external view override returns (bool) {
     return PBStorage.load().bPool.isPublicSwap();
   }
 
@@ -687,15 +690,15 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the current cap
     @return The current cap in wei
   */
-  function getCap() external override view returns (uint256) {
+  function getCap() external view override returns (uint256) {
     return PCSStorage.load().cap;
   }
 
-  function getAnnualFee() external override view returns (uint256) {
+  function getAnnualFee() external view override returns (uint256) {
     return P2Storage.load().annualFee;
   }
 
-  function getFeeRecipient() external override view returns (address) {
+  function getFeeRecipient() external view override returns (address) {
     return P2Storage.load().feeRecipient;
   }
 
@@ -703,7 +706,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the denormalized weight of a specific token in the underlying balancer pool
     @return the normalized weight of the token in uint
   */
-  function getDenormalizedWeight(address _token) external override view returns (uint256) {
+  function getDenormalizedWeight(address _token) external view override returns (uint256) {
     return PBStorage.load().bPool.getDenormalizedWeight(_token);
   }
 
@@ -711,7 +714,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get all denormalized weights
     @return weights Denormalized weights
   */
-  function getDenormalizedWeights() external override view returns (uint256[] memory weights) {
+  function getDenormalizedWeights() external view override returns (uint256[] memory weights) {
     PBStorage.StorageStruct storage s = PBStorage.load();
     address[] memory tokens = s.bPool.getCurrentTokens();
     weights = new uint256[](tokens.length);
@@ -724,7 +727,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the address of the underlying Balancer pool
     @return The address of the underlying balancer pool
   */
-  function getBPool() external override view returns (address) {
+  function getBPool() external view override returns (address) {
     return address(PBStorage.load().bPool);
   }
 
@@ -732,7 +735,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the current swap fee
     @return The current swap fee
   */
-  function getSwapFee() external override view returns (uint256) {
+  function getSwapFee() external view override returns (uint256) {
     return PBStorage.load().bPool.getSwapFee();
   }
 
@@ -740,7 +743,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get the target weights
     @return weights Target weights
   */
-  function getNewWeights() external override view returns (uint256[] memory weights) {
+  function getNewWeights() external view override returns (uint256[] memory weights) {
     return P2Storage.load().newWeights;
   }
 
@@ -748,7 +751,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get weights at start of weight adjustment
     @return weights Start weights
   */
-  function getStartWeights() external override view returns (uint256[] memory weights) {
+  function getStartWeights() external view override returns (uint256[] memory weights) {
     return P2Storage.load().startWeights;
   }
 
@@ -756,7 +759,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get start block of weight adjustment
     @return Start block
   */
-  function getStartBlock() external override view returns (uint256) {
+  function getStartBlock() external view override returns (uint256) {
     return P2Storage.load().startBlock;
   }
 
@@ -764,7 +767,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get end block of weight adjustment
     @return End block
   */
-  function getEndBlock() external override view returns (uint256) {
+  function getEndBlock() external view override returns (uint256) {
     return P2Storage.load().endBlock;
   }
 
@@ -772,7 +775,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get new token being added
     @return New token
   */
-  function getNewToken() external override view returns (P2Storage.NewToken memory) {
+  function getNewToken() external view override returns (P2Storage.NewToken memory) {
     return P2Storage.load().newToken;
   }
 
@@ -780,7 +783,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     @notice Get if joining and exiting is enabled
     @return Enabled or not
   */
-  function getJoinExitEnabled() external override view returns (bool) {
+  function getJoinExitEnabled() external view override returns (bool) {
     return P2Storage.load().joinExitEnabled;
   }
 
@@ -789,14 +792,14 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   /**
     @notice Not Supported in PieDAO implementation of Balancer Smart Pools
   */
-  function finalizeSmartPool() external override view {
+  function finalizeSmartPool() external view override {
     revert("PV2SmartPool.finalizeSmartPool: unsupported function");
   }
 
   /**
     @notice Not Supported in PieDAO implementation of Balancer Smart Pools
   */
-  function createPool(uint256 initialSupply) external override view {
+  function createPool(uint256 initialSupply) external view override {
     revert("PV2SmartPool.createPool: unsupported function");
   }
 }

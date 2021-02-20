@@ -20,9 +20,8 @@ library LibAddRemoveToken {
 
     uint256 totalSupply = PCStorage.load().totalSupply;
 
-    uint256 poolShares = totalSupply.bmul(ws.newToken.denorm).bdiv(
-      s.bPool.getTotalDenormalizedWeight()
-    );
+    uint256 poolShares =
+      totalSupply.bmul(ws.newToken.denorm).bdiv(s.bPool.getTotalDenormalizedWeight());
 
     ws.newToken.isCommitted = false;
 
@@ -70,9 +69,10 @@ library LibAddRemoveToken {
     uint256 totalSupply = PCStorage.load().totalSupply;
 
     // poolShares = totalSupply * tokenWeight / totalWeight
-    uint256 poolShares = totalSupply.bmul(s.bPool.getDenormalizedWeight(_token)).bdiv(
-      s.bPool.getTotalDenormalizedWeight()
-    );
+    uint256 poolShares =
+      totalSupply.bmul(s.bPool.getDenormalizedWeight(_token)).bdiv(
+        s.bPool.getTotalDenormalizedWeight()
+      );
 
     // this is what will be unbound from the pool
     // Have to get it before unbinding
