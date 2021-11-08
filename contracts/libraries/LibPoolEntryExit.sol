@@ -19,7 +19,7 @@ library LibPoolEntryExit {
 
   modifier lockBPoolSwap() {
     IBPool bPool = PBStorage.load().bPool;
-    if(bPool.isPublicSwap()) {
+    if (bPool.isPublicSwap()) {
       // If public swap is enabled turn it of, execute function and turn it off again
       bPool.setPublicSwap(false);
       _;
@@ -221,7 +221,7 @@ library LibPoolEntryExit {
     address _token,
     uint256 _amountIn,
     uint256 _minPoolAmountOut
-  ) external lockBPoolSwap returns (uint256 poolAmountOut)  {
+  ) external lockBPoolSwap returns (uint256 poolAmountOut) {
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     require(bPool.isBound(_token), "LibPoolEntryExit.joinswapExternAmountIn: Token Not Bound");
