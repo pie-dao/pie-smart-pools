@@ -10,7 +10,7 @@ All Smart Pools are fully upgradeable to make it easy to add features and optimi
 
 Clone this repo. And copy the contents of ``env.example`` to a new file called ``.env`` and edit the the relevant values inside. **DO NOT** share this file with anyone as it will contain sensitive data.
 
-Install all dependencies: 
+Install all dependencies:
 ```
 yarn
 ```
@@ -63,6 +63,12 @@ To get the underlying tokens and amounts needed to mint a certain amount of pool
 
 ```solidity
 function calcTokensForAmount(uint256 _amount) external view returns(address[] memory tokens, uint256[] memory amounts);
+```
+
+To get the underlying tokens and amounts redeemed when exiting a certain amount of pool shares call:
+
+```solidity
+function calcTokensForAmountExit(uint256 _amount) external view returns(address[] memory tokens, uint256[] memory amounts);
 ```
 
 #### Balancer smart pool specific
