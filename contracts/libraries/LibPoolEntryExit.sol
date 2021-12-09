@@ -41,8 +41,6 @@ library LibPoolEntryExit {
   }
 
   function _exitPool(uint256 _amount, uint256[] memory _minAmountsOut) internal lockBPoolSwap {
-    require(tx.origin == msg.sender, "Not allowed");
-
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     uint256 poolTotal = PCStorage.load().totalSupply;
@@ -143,8 +141,6 @@ library LibPoolEntryExit {
     external
     lockBPoolSwap
   {
-    require(tx.origin == msg.sender, "Not allowed");
-
     IBPool bPool = PBStorage.load().bPool;
     LibFees.chargeOutstandingAnnualFee();
     uint256 poolTotal = PCStorage.load().totalSupply;
