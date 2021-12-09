@@ -17,8 +17,9 @@ import {PBasicSmartPoolStorage as PBStorage} from "../storage/PBasicSmartPoolSto
 import {PCTokenStorage as PCStorage} from "../storage/PCTokenStorage.sol";
 import {PCappedSmartPoolStorage as PCSStorage} from "../storage/PCappedSmartPoolStorage.sol";
 import {PV2SmartPoolStorage as P2Storage} from "../storage/PV2SmartPoolStorage.sol";
+import {AccessControl} from "../AccessControl.sol";
 
-contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
+contract PV2SmartPool is IPV2SmartPool, PCToken, AccessControl, ReentryProtection {
   using LibSafeApprove for IERC20;
 
   event TokensApproved();
@@ -143,6 +144,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
   function exitPoolTakingloss(uint256 _amount, address[] calldata _lossTokens)
     external
     override
+    onlyAllowed
     ready
     noReentry
     onlyJoinExitEnabled
@@ -154,7 +156,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
         @notice Burns pool shares and sends back the underlying assets
         @param _amount Amount of pool tokens to burn
     */
-  function exitPool(uint256 _amount) external override ready noReentry onlyJoinExitEnabled {
+  function exitPool(uint256 _amount) external override ready onlyAllowed noReentry onlyJoinExitEnabled {
     LibPoolEntryExit.exitPool(_amount);
   }
 
@@ -167,6 +169,7 @@ contract PV2SmartPool is IPV2SmartPool, PCToken, ReentryProtection {
     external
     override
     ready
+    onlyAllowed
     noReentry
     onlyJoinExitEnabled
   {
